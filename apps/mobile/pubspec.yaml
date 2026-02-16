@@ -1,0 +1,105 @@
+name: metzudat_halikud
+description: "Metzudat HaLikud - Hebrew RTL news application for the Likud party"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_bloc: ^9.0.0
+  equatable: ^2.0.0
+
+  # Code Generation (annotations)
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+
+  # Dependency Injection
+  get_it: ^8.0.0
+  injectable: ^2.5.0
+
+  # Navigation
+  go_router: ^15.0.0
+
+  # Networking
+  dio: ^5.8.0
+  connectivity_plus: ^6.0.0
+
+  # Localization
+  easy_localization: ^3.0.0
+  intl: any
+
+  # Local Storage
+  hive_flutter: ^1.1.0
+  hive: ^2.2.0
+
+  # UI
+  cached_network_image: ^3.4.0
+  flutter_svg: ^2.0.0
+  shimmer: ^3.0.0
+  marqueer: ^2.1.0
+  google_fonts: ^6.0.0
+  cupertino_icons: ^1.0.8
+
+  # Media
+  media_kit: ^1.1.0
+  media_kit_video: ^1.1.0
+  media_kit_libs_video: ^1.0.0
+  just_audio: ^0.9.0
+
+  # Firebase
+  firebase_core: ^3.0.0
+  firebase_messaging: ^15.0.0
+
+  # Sharing & Utils
+  share_plus: ^10.0.0
+  url_launcher: ^6.3.0
+
+  # Functional Programming
+  dartz: ^0.10.0
+
+  # HTML Rendering
+  flutter_widget_from_html: ^0.15.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Code Generation
+  freezed: ^3.0.0
+  json_serializable: ^6.9.0
+  injectable_generator: ^2.7.0
+  build_runner: ^2.4.0
+
+  # Testing
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.0
+
+  # Linting
+  very_good_analysis: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/l10n/
+
+  fonts:
+    - family: Heebo
+      fonts:
+        - asset: assets/fonts/Heebo-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Heebo-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Heebo-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Heebo-ExtraBold.ttf
+          weight: 800
