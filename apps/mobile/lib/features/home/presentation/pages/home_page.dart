@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -208,12 +208,12 @@ class _HomePageState extends State<HomePage> {
           ),
 
           // Section header.
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
               child: Text(
-                'חדשות אחרונות',
-                style: TextStyle(
+                'latest_news'.tr(),
+                style: const TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -225,13 +225,13 @@ class _HomePageState extends State<HomePage> {
 
           // Feed articles.
           if (state.articles.isEmpty)
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Center(
                   child: Text(
-                    'אין כתבות להצגה',
-                    style: TextStyle(
+                    'no_articles'.tr(),
+                    style: const TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 14,
                       color: AppColors.textSecondary,
@@ -323,14 +323,14 @@ class _HomePageState extends State<HomePage> {
 
   /// Returns the Hebrew name for the day of the week.
   String _hebrewDayName(int weekday) {
-    const days = {
-      DateTime.sunday: 'יום ראשון',
-      DateTime.monday: 'יום שני',
-      DateTime.tuesday: 'יום שלישי',
-      DateTime.wednesday: 'יום רביעי',
-      DateTime.thursday: 'יום חמישי',
-      DateTime.friday: 'יום שישי',
-      DateTime.saturday: 'שבת',
+    final days = {
+      DateTime.sunday: 'day_sunday'.tr(),
+      DateTime.monday: 'day_monday'.tr(),
+      DateTime.tuesday: 'day_tuesday'.tr(),
+      DateTime.wednesday: 'day_wednesday'.tr(),
+      DateTime.thursday: 'day_thursday'.tr(),
+      DateTime.friday: 'day_friday'.tr(),
+      DateTime.saturday: 'day_saturday'.tr(),
     };
     return days[weekday] ?? '';
   }

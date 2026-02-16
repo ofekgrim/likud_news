@@ -17,9 +17,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "migration:generate": "typeorm migration:generate -d src/database/data-source.ts",
-    "migration:run": "typeorm migration:run -d src/database/data-source.ts",
-    "migration:revert": "typeorm migration:revert -d src/database/data-source.ts",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/database/data-source.ts",
     "seed": "ts-node src/database/seeds/seed.ts"
   },
   "dependencies": {
@@ -40,6 +41,7 @@
     "class-transformer": "^0.5.0",
     "class-validator": "^0.14.0",
     "compression": "^1.7.0",
+    "dotenv": "^16.4.0",
     "firebase-admin": "^13.0.0",
     "helmet": "^8.0.0",
     "passport": "^0.7.0",

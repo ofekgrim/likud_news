@@ -1,5 +1,25 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+// Feature page imports
+import '../features/home/presentation/pages/home_page.dart';
+import '../features/breaking_news/presentation/pages/breaking_news_page.dart';
+import '../features/video/presentation/pages/video_page.dart';
+import '../features/magazine/presentation/pages/magazine_page.dart';
+import '../features/more/presentation/pages/more_page.dart';
+import '../features/article_detail/presentation/pages/article_detail_page.dart';
+import '../features/members/presentation/pages/member_detail_page.dart';
+import '../features/members/presentation/pages/members_page.dart';
+import '../features/search/presentation/pages/search_page.dart';
+import '../features/categories/presentation/pages/categories_page.dart';
+import '../features/categories/presentation/widgets/category_articles_page.dart';
+import '../features/settings/presentation/pages/settings_page.dart';
+import '../features/favorites/presentation/pages/favorites_page.dart';
+import '../features/contact/presentation/pages/contact_page.dart';
+import '../features/about/presentation/pages/about_page.dart';
+import '../features/accessibility/presentation/pages/accessibility_page.dart';
+import '../features/privacy/presentation/pages/privacy_page.dart';
 
 /// App router configuration using GoRouter.
 ///
@@ -23,8 +43,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/',
-                builder: (context, state) =>
-                    const _PlaceholderPage(title: 'ראשי - Home'),
+                builder: (context, state) => const HomePage(),
               ),
             ],
           ),
@@ -33,8 +52,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/breaking',
-                builder: (context, state) =>
-                    const _PlaceholderPage(title: 'מבזקים - Breaking'),
+                builder: (context, state) => const BreakingNewsPage(),
               ),
             ],
           ),
@@ -43,8 +61,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/video',
-                builder: (context, state) =>
-                    const _PlaceholderPage(title: 'וידאו - Video'),
+                builder: (context, state) => const VideoPage(),
               ),
             ],
           ),
@@ -53,8 +70,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/magazine',
-                builder: (context, state) =>
-                    const _PlaceholderPage(title: 'מגזין - Magazine'),
+                builder: (context, state) => const MagazinePage(),
               ),
             ],
           ),
@@ -63,8 +79,7 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/more',
-                builder: (context, state) =>
-                    const _PlaceholderPage(title: '☰ More'),
+                builder: (context, state) => const MorePage(),
               ),
             ],
           ),
@@ -74,55 +89,58 @@ class AppRouter {
       // Full-screen routes (outside tab shell)
       GoRoute(
         path: '/article/:slug',
-        builder: (context, state) => _PlaceholderPage(
-          title: 'Article: ${state.pathParameters['slug']}',
+        builder: (context, state) => ArticleDetailPage(
+          slug: state.pathParameters['slug']!,
         ),
       ),
       GoRoute(
         path: '/member/:id',
-        builder: (context, state) => _PlaceholderPage(
-          title: 'Member: ${state.pathParameters['id']}',
+        builder: (context, state) => MemberDetailPage(
+          memberId: int.parse(state.pathParameters['id']!),
         ),
       ),
       GoRoute(
+        path: '/members',
+        builder: (context, state) => const MembersPage(),
+      ),
+      GoRoute(
         path: '/search',
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Search'),
+        builder: (context, state) => const SearchPage(),
       ),
       GoRoute(
         path: '/categories',
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Categories'),
+        builder: (context, state) => const CategoriesPage(),
+      ),
+      GoRoute(
+        path: '/category/:slug',
+        builder: (context, state) => CategoryArticlesPage(
+          slug: state.pathParameters['slug']!,
+          name: state.uri.queryParameters['name'] ?? '',
+        ),
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Settings'),
+        builder: (context, state) => const SettingsPage(),
       ),
       GoRoute(
         path: '/favorites',
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Favorites'),
+        builder: (context, state) => const FavoritesPage(),
       ),
       GoRoute(
         path: '/contact',
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Contact'),
+        builder: (context, state) => const ContactPage(),
       ),
       GoRoute(
         path: '/about',
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'About'),
+        builder: (context, state) => const AboutPage(),
       ),
       GoRoute(
         path: '/accessibility',
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Accessibility'),
+        builder: (context, state) => const AccessibilityPage(),
       ),
       GoRoute(
         path: '/privacy',
-        builder: (context, state) =>
-            const _PlaceholderPage(title: 'Privacy Policy'),
+        builder: (context, state) => const PrivacyPage(),
       ),
     ],
   );
@@ -146,53 +164,33 @@ class _MainShell extends StatelessWidget {
             initialLocation: index == navigationShell.currentIndex,
           );
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'ראשי',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
+            label: 'home'.tr(),
           ),
           NavigationDestination(
-            icon: Icon(Icons.flash_on_outlined),
-            selectedIcon: Icon(Icons.flash_on),
-            label: 'מבזקים',
+            icon: const Icon(Icons.flash_on_outlined),
+            selectedIcon: const Icon(Icons.flash_on),
+            label: 'breaking_news'.tr(),
           ),
           NavigationDestination(
-            icon: Icon(Icons.play_circle_outline),
-            selectedIcon: Icon(Icons.play_circle),
-            label: 'וידאו',
+            icon: const Icon(Icons.play_circle_outline),
+            selectedIcon: const Icon(Icons.play_circle),
+            label: 'video'.tr(),
           ),
           NavigationDestination(
-            icon: Icon(Icons.article_outlined),
-            selectedIcon: Icon(Icons.article),
-            label: 'מגזין',
+            icon: const Icon(Icons.article_outlined),
+            selectedIcon: const Icon(Icons.article),
+            label: 'magazine'.tr(),
           ),
           NavigationDestination(
-            icon: Icon(Icons.menu),
-            selectedIcon: Icon(Icons.menu),
-            label: 'עוד',
+            icon: const Icon(Icons.menu),
+            selectedIcon: const Icon(Icons.menu),
+            label: 'more'.tr(),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Placeholder page for screens not yet implemented.
-class _PlaceholderPage extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderPage({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
       ),
     );
   }

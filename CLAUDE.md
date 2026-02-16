@@ -186,6 +186,28 @@ make build-ios          # Build iOS IPA
 13. Settings & Language — Hebrew/English toggle, theme, font size
 14. Favorites & Recently Read — offline-first, device-ID based
 
+## Current Build Status
+
+### Phase 1: Scaffolding - COMPLETE
+- Git repo, Flutter app, NestJS backend, Next.js admin, Docker Compose, CI/CD, Melos
+
+### Phase 2: Core Architecture - COMPLETE
+- Flutter: DI, theme, RTL, router, network layer, SSE client, error handling
+- Flutter features: Home (19 files), Article Detail (15 files), Breaking News (9 files)
+- NestJS: All 13 modules wired in AppModule (Articles, Categories, Members, Ticker, Auth, Users, Media, Contact, Favorites, History, Push, SSE, Search)
+
+### Phase 3: Feature Development - IN PROGRESS
+- Flutter: Categories, Search, Members, Video, Magazine, Favorites/History, Settings, Contact, About/Legal, More menu
+- Backend: Database migrations, seeds, indexes
+
+### Phase 4-7: Remaining
+- Admin panel (Next.js), media pipeline, push notifications, testing, deployment
+
+## GitHub Repository
+
+- Remote: https://github.com/ofekgrim/likud_news
+- Branch: main
+
 ## Plan Reference
 
 Full implementation plan: `.claude/plans/misty-humming-parasol.md`

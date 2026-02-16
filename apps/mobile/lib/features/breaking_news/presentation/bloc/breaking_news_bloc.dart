@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
@@ -144,7 +145,7 @@ class BreakingNewsBloc extends Bloc<BreakingNewsEvent, BreakingNewsState> {
 
     result.fold(
       (failure) => emit(BreakingNewsError(
-        failure.message ?? 'שגיאה בטעינת המבזקים',
+        failure.message ?? 'error_loading_breaking'.tr(),
       )),
       (articles) {
         emit(BreakingNewsLoaded(articles: articles, isLive: true));
@@ -179,7 +180,7 @@ class BreakingNewsBloc extends Bloc<BreakingNewsEvent, BreakingNewsState> {
         // On refresh failure, keep current articles if available.
         if (state is! BreakingNewsLoaded) {
           emit(BreakingNewsError(
-            failure.message ?? 'שגיאה בטעינת המבזקים',
+            failure.message ?? 'error_loading_breaking'.tr(),
           ));
         }
       },

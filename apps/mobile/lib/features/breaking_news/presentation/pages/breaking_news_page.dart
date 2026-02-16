@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -69,7 +70,7 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
           ),
           const SizedBox(width: 10),
           Text(
-            'דסק החדשות',
+            'news_desk'.tr(),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -82,7 +83,7 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
             onPressed: () {
               context.read<BreakingNewsBloc>().add(const RefreshBreaking());
             },
-            tooltip: 'רענון',
+            tooltip: 'refresh'.tr(),
           ),
         ],
       ),
@@ -111,9 +112,9 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
               fontWeight: FontWeight.w600,
             ),
         unselectedLabelStyle: Theme.of(context).textTheme.titleMedium,
-        tabs: const [
-          Tab(text: 'מבזקים'),
-          Tab(text: 'לכל הכתבות'),
+        tabs: [
+          Tab(text: 'tab_breaking'.tr()),
+          Tab(text: 'tab_all_articles'.tr()),
         ],
       ),
     );
@@ -163,8 +164,8 @@ class _BreakingList extends StatelessWidget {
                   : articles;
 
               if (filtered.isEmpty) {
-                return const EmptyView(
-                  message: 'אין מבזקים כרגע',
+                return EmptyView(
+                  message: 'no_breaking'.tr(),
                   icon: Icons.newspaper_outlined,
                 );
               }

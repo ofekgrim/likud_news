@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -42,7 +43,7 @@ class ArticleActionsBar extends StatelessWidget {
             children: [
               // Share label
               Text(
-                'שיתוף:',
+                'share_label'.tr(),
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -86,13 +87,13 @@ class ArticleActionsBar extends StatelessWidget {
               _ShareIconButton(
                 icon: Icons.link,
                 color: AppColors.textSecondary,
-                tooltip: 'העתק קישור',
+                tooltip: 'copy_link'.tr(),
                 onPressed: () {
                   _share(context, SharePlatform.copyLink);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('הקישור הועתק'),
-                      duration: Duration(seconds: 2),
+                    SnackBar(
+                      content: Text('link_copied'.tr()),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },
@@ -108,7 +109,7 @@ class ArticleActionsBar extends StatelessWidget {
                       ? AppColors.likudBlue
                       : AppColors.textSecondary,
                 ),
-                tooltip: isFavorite ? 'הסר מהשמורים' : 'שמור כתבה',
+                tooltip: isFavorite ? 'remove_favorite'.tr() : 'save_article'.tr(),
                 onPressed: () => context
                     .read<ArticleDetailBloc>()
                     .add(const ToggleFavoriteEvent()),
