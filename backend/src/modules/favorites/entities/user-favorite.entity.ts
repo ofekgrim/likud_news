@@ -3,9 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
   Unique,
   Index,
 } from 'typeorm';
+import { Article } from '../../articles/entities/article.entity';
 
 @Entity('user_favorites')
 @Unique(['deviceId', 'articleId'])
@@ -19,6 +22,10 @@ export class UserFavorite {
 
   @Column({ type: 'uuid' })
   articleId: string;
+
+  @ManyToOne(() => Article, { eager: false })
+  @JoinColumn({ name: 'articleId' })
+  article: Article;
 
   @CreateDateColumn()
   createdAt: Date;

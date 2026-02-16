@@ -15,6 +15,21 @@ import { UserFavorite } from './modules/favorites/entities/user-favorite.entity'
 import { ReadingHistory } from './modules/history/entities/reading-history.entity';
 import { PushToken } from './modules/push/entities/push-token.entity';
 
+// Feature modules
+import { ArticlesModule } from './modules/articles/articles.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { MembersModule } from './modules/members/members.module';
+import { TickerModule } from './modules/ticker/ticker.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { MediaModule } from './modules/media/media.module';
+import { ContactModule } from './modules/contact/contact.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
+import { HistoryModule } from './modules/history/history.module';
+import { PushModule } from './modules/push/push.module';
+import { SseModule } from './modules/sse/sse.module';
+import { SearchModule } from './modules/search/search.module';
+
 @Module({
   imports: [
     // Configuration
@@ -54,19 +69,20 @@ import { PushToken } from './modules/push/entities/push-token.entity';
       }),
     }),
 
-    // Feature modules will be added here as they are built:
-    // ArticlesModule,
-    // CategoriesModule,
-    // MembersModule,
-    // TickerModule,
-    // AuthModule,
-    // UsersModule,
-    // MediaModule,
-    // ContactModule,
-    // FavoritesModule,
-    // HistoryModule,
-    // PushModule,
-    // SseModule,
+    // Feature modules
+    ArticlesModule,
+    CategoriesModule,
+    MembersModule,
+    TickerModule,
+    AuthModule,
+    UsersModule,
+    MediaModule,
+    ContactModule,
+    FavoritesModule,
+    HistoryModule,
+    PushModule,
+    SseModule,
+    SearchModule,
   ],
   controllers: [],
   providers: [],

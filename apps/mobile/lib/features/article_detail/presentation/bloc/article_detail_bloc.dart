@@ -1,0 +1,220 @@
+import 'package:equatable/equatable.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../core/constants/api_constants.dart';
+import '../../domain/entities/article_detail.dart';
+import '../../domain/usecases/get_article_detail.dart';
+import '../../domain/usecases/record_read.dart';
+import '../../domain/usecases/toggle_favorite.dart';
+
+// ---------------------------------------------------------------------------
+// Events
+// ---------------------------------------------------------------------------
+
+sealed class ArticleDetailEvent extends Equatable {
+  const ArticleDetailEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+/// Triggers loading the full article content by URL slug.
+class LoadArticleDetail extends ArticleDetailEvent {
+  final String slug;
+
+  const LoadArticleDetail(this.slug);
+
+  @override
+  List<Object?> get props => [slug];
+}
+
+/// Toggles the bookmark/favorite status.
+class ToggleFavoriteEvent extends ArticleDetailEvent {
+  const ToggleFavoriteEvent();
+}
+
+/// Triggers the native share sheet for the current article.
+class ShareArticle extends ArticleDetailEvent {
+  final SharePlatform platform;
+
+  const ShareArticle(this.platform);
+
+  @override
+  List<Object?> get props => [platform];
+}
+
+/// Supported share targets.
+enum SharePlatform { whatsapp, telegram, facebook, x, copyLink, system }
+
+// ---------------------------------------------------------------------------
+// States
+// ---------------------------------------------------------------------------
+
+sealed class ArticleDetailState extends Equatable {
+  const ArticleDetailState();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class ArticleDetailInitial extends ArticleDetailState {
+  const ArticleDetailInitial();
+}
+
+class ArticleDetailLoading extends ArticleDetailState {
+  const ArticleDetailLoading();
+}
+
+class ArticleDetailLoaded extends ArticleDetailState {
+  final ArticleDetail article;
+  final bool isFavorite;
+
+  const ArticleDetailLoaded({
+    required this.article,
+    required this.isFavorite,
+  });
+
+  @override
+  List<Object?> get props => [article, isFavorite];
+}
+
+class ArticleDetailError extends ArticleDetailState {
+  final String message;
+
+  const ArticleDetailError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+// ---------------------------------------------------------------------------
+// BLoC
+// ---------------------------------------------------------------------------
+
+@injectable
+class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
+  final GetArticleDetail _getArticleDetail;
+  final ToggleFavorite _toggleFavorite;
+  final RecordRead _recordRead;
+
+  /// Device identifier used for favorites and read-tracking.
+  /// Should be injected or set before dispatching events.
+  String deviceId = '';
+
+  ArticleDetailBloc(
+    this._getArticleDetail,
+    this._toggleFavorite,
+    this._recordRead,
+  ) : super(const ArticleDetailInitial()) {
+    on<LoadArticleDetail>(_onLoadArticleDetail);
+    on<ToggleFavoriteEvent>(_onToggleFavorite);
+    on<ShareArticle>(_onShareArticle);
+  }
+
+  Future<void> _onLoadArticleDetail(
+    LoadArticleDetail event,
+    Emitter<ArticleDetailState> emit,
+  ) async {
+    emit(const ArticleDetailLoading());
+
+    final result = await _getArticleDetail(
+      GetArticleDetailParams(slug: event.slug),
+    );
+
+    result.fold(
+      (failure) => emit(ArticleDetailError(
+        failure.message ?? 'Failed to load article',
+      )),
+      (article) {
+        emit(ArticleDetailLoaded(
+          article: article,
+          isFavorite: article.isFavorite,
+        ));
+
+        // Fire-and-forget: record the read event.
+        if (deviceId.isNotEmpty) {
+          _recordRead(RecordReadParams(
+            deviceId: deviceId,
+            articleId: article.id,
+          ));
+        }
+      },
+    );
+  }
+
+  Future<void> _onToggleFavorite(
+    ToggleFavoriteEvent event,
+    Emitter<ArticleDetailState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ArticleDetailLoaded) return;
+    if (deviceId.isEmpty) return;
+
+    // Optimistic update
+    emit(ArticleDetailLoaded(
+      article: currentState.article,
+      isFavorite: !currentState.isFavorite,
+    ));
+
+    final result = await _toggleFavorite(ToggleFavoriteParams(
+      deviceId: deviceId,
+      articleId: currentState.article.id,
+    ));
+
+    result.fold(
+      // Revert on failure
+      (_) => emit(ArticleDetailLoaded(
+        article: currentState.article,
+        isFavorite: currentState.isFavorite,
+      )),
+      (isFavorite) => emit(ArticleDetailLoaded(
+        article: currentState.article,
+        isFavorite: isFavorite,
+      )),
+    );
+  }
+
+  Future<void> _onShareArticle(
+    ShareArticle event,
+    Emitter<ArticleDetailState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! ArticleDetailLoaded) return;
+
+    final article = currentState.article;
+    final articleUrl =
+        '${ApiConstants.baseUrl.replaceAll('/api/v1', '')}/article/${article.slug}';
+    final shareText = '${article.title}\n$articleUrl';
+
+    switch (event.platform) {
+      case SharePlatform.whatsapp:
+        final encoded = Uri.encodeComponent(shareText);
+        final uri = Uri.parse('https://wa.me/?text=$encoded');
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      case SharePlatform.telegram:
+        final encoded = Uri.encodeComponent(shareText);
+        final uri = Uri.parse('https://t.me/share/url?url=$encoded');
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      case SharePlatform.facebook:
+        final encodedUrl = Uri.encodeComponent(articleUrl);
+        final uri = Uri.parse(
+          'https://www.facebook.com/sharer/sharer.php?u=$encodedUrl',
+        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      case SharePlatform.x:
+        final encoded = Uri.encodeComponent(shareText);
+        final uri = Uri.parse(
+          'https://twitter.com/intent/tweet?text=$encoded',
+        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      case SharePlatform.copyLink:
+        await Clipboard.setData(ClipboardData(text: articleUrl));
+      case SharePlatform.system:
+        await Share.share(shareText);
+    }
+  }
+}
