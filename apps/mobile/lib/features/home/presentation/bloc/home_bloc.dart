@@ -99,13 +99,13 @@ class HomeLoaded extends HomeState {
 
   @override
   List<Object?> get props => [
-        heroArticle,
-        articles,
-        tickerItems,
-        categories,
-        hasMore,
-        currentPage,
-      ];
+    heroArticle,
+    articles,
+    tickerItems,
+    categories,
+    hasMore,
+    currentPage,
+  ];
 }
 
 /// An error occurred while loading home data.
@@ -169,27 +169,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final feedEither = feedResult;
     if (feedEither.isLeft()) {
       final failure = feedEither.fold((f) => f, (_) => null);
-      emit(HomeError(
-        message: failure?.message ?? 'Failed to load articles',
-      ));
+      emit(HomeError(message: failure?.message ?? 'Failed to load articles'));
       return;
     }
 
-    final articles = feedEither.fold((_) => <Article>[], (list) => list as List<Article>);
+    final articles = feedEither.fold(
+      (_) => <Article>[],
+      (list) => list as List<Article>,
+    );
     final heroArticle = heroResult.fold((_) => null, (a) => a as Article);
     final tickerItems = tickerResult.fold(
-        (_) => <TickerItem>[], (list) => list as List<TickerItem>);
+      (_) => <TickerItem>[],
+      (list) => list as List<TickerItem>,
+    );
     final categories = categoriesResult.fold(
-        (_) => <Category>[], (list) => list as List<Category>);
+      (_) => <Category>[],
+      (list) => list as List<Category>,
+    );
 
-    emit(HomeLoaded(
-      heroArticle: heroArticle,
-      articles: articles,
-      tickerItems: tickerItems,
-      categories: categories,
-      hasMore: articles.length >= _pageSize,
-      currentPage: 1,
-    ));
+    emit(
+      HomeLoaded(
+        heroArticle: heroArticle,
+        articles: articles,
+        tickerItems: tickerItems,
+        categories: categories,
+        hasMore: articles.length >= _pageSize,
+        currentPage: 1,
+      ),
+    );
   }
 
   /// Loads the next page of articles and appends to the existing list.
@@ -209,11 +216,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         emit(currentState.copyWith(hasMore: false));
       },
       (newArticles) {
-        emit(currentState.copyWith(
-          articles: [...currentState.articles, ...newArticles],
-          currentPage: nextPage,
-          hasMore: newArticles.length >= _pageSize,
-        ));
+        emit(
+          currentState.copyWith(
+            articles: [...currentState.articles, ...newArticles],
+            currentPage: nextPage,
+            hasMore: newArticles.length >= _pageSize,
+          ),
+        );
       },
     );
   }
@@ -241,26 +250,33 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       // On refresh failure, keep existing state if available.
       if (state is HomeLoaded) return;
       final failure = feedEither.fold((f) => f, (_) => null);
-      emit(HomeError(
-        message: failure?.message ?? 'Failed to refresh',
-      ));
+      emit(HomeError(message: failure?.message ?? 'Failed to refresh'));
       return;
     }
 
-    final articles = feedEither.fold((_) => <Article>[], (list) => list as List<Article>);
+    final articles = feedEither.fold(
+      (_) => <Article>[],
+      (list) => list as List<Article>,
+    );
     final heroArticle = heroResult.fold((_) => null, (a) => a as Article);
     final tickerItems = tickerResult.fold(
-        (_) => <TickerItem>[], (list) => list as List<TickerItem>);
+      (_) => <TickerItem>[],
+      (list) => list as List<TickerItem>,
+    );
     final categories = categoriesResult.fold(
-        (_) => <Category>[], (list) => list as List<Category>);
+      (_) => <Category>[],
+      (list) => list as List<Category>,
+    );
 
-    emit(HomeLoaded(
-      heroArticle: heroArticle,
-      articles: articles,
-      tickerItems: tickerItems,
-      categories: categories,
-      hasMore: articles.length >= _pageSize,
-      currentPage: 1,
-    ));
+    emit(
+      HomeLoaded(
+        heroArticle: heroArticle,
+        articles: articles,
+        tickerItems: tickerItems,
+        categories: categories,
+        hasMore: articles.length >= _pageSize,
+        currentPage: 1,
+      ),
+    );
   }
 }

@@ -1,6 +1,22 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+import 'di.dart';
+
+// BLoC imports
+import '../features/home/presentation/bloc/home_bloc.dart';
+import '../features/breaking_news/presentation/bloc/breaking_news_bloc.dart';
+import '../features/video/presentation/bloc/video_bloc.dart';
+import '../features/magazine/presentation/bloc/magazine_bloc.dart';
+import '../features/article_detail/presentation/bloc/article_detail_bloc.dart';
+import '../features/members/presentation/bloc/members_bloc.dart';
+import '../features/search/presentation/bloc/search_bloc.dart';
+import '../features/categories/presentation/bloc/categories_bloc.dart';
+import '../features/settings/presentation/bloc/settings_bloc.dart';
+import '../features/favorites/presentation/bloc/favorites_bloc.dart';
+import '../features/contact/presentation/bloc/contact_bloc.dart';
 
 // Feature page imports
 import '../features/home/presentation/pages/home_page.dart';
@@ -43,7 +59,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/',
-                builder: (context, state) => const HomePage(),
+                builder: (context, state) => BlocProvider(
+                  create: (_) => getIt<HomeBloc>(),
+                  child: const HomePage(),
+                ),
               ),
             ],
           ),
@@ -52,7 +71,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/breaking',
-                builder: (context, state) => const BreakingNewsPage(),
+                builder: (context, state) => BlocProvider(
+                  create: (_) => getIt<BreakingNewsBloc>(),
+                  child: const BreakingNewsPage(),
+                ),
               ),
             ],
           ),
@@ -61,7 +83,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/video',
-                builder: (context, state) => const VideoPage(),
+                builder: (context, state) => BlocProvider(
+                  create: (_) => getIt<VideoBloc>(),
+                  child: const VideoPage(),
+                ),
               ),
             ],
           ),
@@ -70,7 +95,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/magazine',
-                builder: (context, state) => const MagazinePage(),
+                builder: (context, state) => BlocProvider(
+                  create: (_) => getIt<MagazineBloc>(),
+                  child: const MagazinePage(),
+                ),
               ),
             ],
           ),
@@ -89,46 +117,73 @@ class AppRouter {
       // Full-screen routes (outside tab shell)
       GoRoute(
         path: '/article/:slug',
-        builder: (context, state) => ArticleDetailPage(
-          slug: state.pathParameters['slug']!,
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<ArticleDetailBloc>(),
+          child: ArticleDetailPage(
+            slug: state.pathParameters['slug']!,
+          ),
         ),
       ),
       GoRoute(
         path: '/member/:id',
-        builder: (context, state) => MemberDetailPage(
-          memberId: int.parse(state.pathParameters['id']!),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<MembersBloc>(),
+          child: MemberDetailPage(
+            memberId: int.parse(state.pathParameters['id']!),
+          ),
         ),
       ),
       GoRoute(
         path: '/members',
-        builder: (context, state) => const MembersPage(),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<MembersBloc>(),
+          child: const MembersPage(),
+        ),
       ),
       GoRoute(
         path: '/search',
-        builder: (context, state) => const SearchPage(),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<SearchBloc>(),
+          child: const SearchPage(),
+        ),
       ),
       GoRoute(
         path: '/categories',
-        builder: (context, state) => const CategoriesPage(),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<CategoriesBloc>(),
+          child: const CategoriesPage(),
+        ),
       ),
       GoRoute(
         path: '/category/:slug',
-        builder: (context, state) => CategoryArticlesPage(
-          slug: state.pathParameters['slug']!,
-          name: state.uri.queryParameters['name'] ?? '',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<CategoriesBloc>(),
+          child: CategoryArticlesPage(
+            slug: state.pathParameters['slug']!,
+            name: state.uri.queryParameters['name'] ?? '',
+          ),
         ),
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsPage(),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<SettingsBloc>(),
+          child: const SettingsPage(),
+        ),
       ),
       GoRoute(
         path: '/favorites',
-        builder: (context, state) => const FavoritesPage(),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<FavoritesBloc>(),
+          child: const FavoritesPage(),
+        ),
       ),
       GoRoute(
         path: '/contact',
-        builder: (context, state) => const ContactPage(),
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<ContactBloc>(),
+          child: const ContactPage(),
+        ),
       ),
       GoRoute(
         path: '/about',

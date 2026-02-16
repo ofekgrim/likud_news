@@ -8,7 +8,7 @@ import '../widgets/video_player_widget.dart';
 /// Full-screen video player page.
 ///
 /// Shows the video player, title, category badge, and share controls.
-/// Uses [VideoPlayerWidget] as a placeholder for media_kit integration.
+/// Uses [VideoPlayerWidget] as a placeholder for video player integration.
 class VideoPlayerPage extends StatelessWidget {
   final VideoArticle video;
 

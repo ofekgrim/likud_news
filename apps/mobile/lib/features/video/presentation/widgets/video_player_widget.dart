@@ -8,7 +8,7 @@ import '../../domain/entities/video_article.dart';
 ///
 /// Shows the hero image with a large play button overlay.
 /// Tapping toggles between play/pause state.
-/// Can be replaced with a real media_kit player integration later.
+/// Can be replaced with a real video player integration later.
 class VideoPlayerWidget extends StatefulWidget {
   final VideoArticle video;
 
