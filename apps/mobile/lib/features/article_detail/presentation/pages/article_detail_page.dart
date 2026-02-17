@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -103,8 +104,7 @@ class ArticleDetailPage extends StatelessWidget {
                                 HashtagChips(
                                   hashtags: article.hashtags,
                                   onHashtagTap: (tag) {
-                                    // Navigate to search/filter by hashtag.
-                                    // Placeholder: can be wired up to router.
+                                    context.push('/search');
                                   },
                                 ),
 
@@ -127,19 +127,7 @@ class ArticleDetailPage extends StatelessWidget {
                                   articles: article.relatedArticles,
                                   onArticleTap: (related) {
                                     if (related.slug != null) {
-                                      Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute<void>(
-                                          builder: (_) =>
-                                              BlocProvider.value(
-                                            value: context
-                                                .read<ArticleDetailBloc>()
-                                              ..add(LoadArticleDetail(
-                                                  related.slug!)),
-                                            child: ArticleDetailPage(
-                                                slug: related.slug!),
-                                          ),
-                                        ),
-                                      );
+                                      context.push('/article/${related.slug!}');
                                     }
                                   },
                                 ),
@@ -180,7 +168,7 @@ class _BackButton extends StatelessWidget {
             color: AppColors.white,
             size: 20,
           ),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () => context.pop(),
           tooltip: 'חזור',
         ),
       ),

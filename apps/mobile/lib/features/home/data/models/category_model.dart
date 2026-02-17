@@ -28,11 +28,11 @@ class CategoryModel {
     return CategoryModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      nameEn: json['name_en'] as String?,
+      nameEn: json['nameEn'] as String?,
       slug: json['slug'] as String?,
-      iconUrl: json['icon_url'] as String?,
-      sortOrder: json['sort_order'] as int? ?? 0,
-      isActive: json['is_active'] as bool? ?? true,
+      iconUrl: json['iconUrl'] as String?,
+      sortOrder: json['sortOrder'] as int? ?? 0,
+      isActive: json['isActive'] as bool? ?? true,
       color: json['color'] as String?,
     );
   }
@@ -41,11 +41,11 @@ class CategoryModel {
     return {
       'id': id,
       'name': name,
-      'name_en': nameEn,
+      'nameEn': nameEn,
       'slug': slug,
-      'icon_url': iconUrl,
-      'sort_order': sortOrder,
-      'is_active': isActive,
+      'iconUrl': iconUrl,
+      'sortOrder': sortOrder,
+      'isActive': isActive,
       'color': color,
     };
   }

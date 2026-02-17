@@ -7,11 +7,11 @@ void main() {
     final tJson = <String, dynamic>{
       'id': '1',
       'name': '\u05E4\u05D5\u05DC\u05D9\u05D8\u05D9\u05E7\u05D4',
-      'name_en': 'Politics',
+      'nameEn': 'Politics',
       'slug': 'politics',
-      'icon_url': 'https://example.com/icon.svg',
-      'sort_order': 2,
-      'is_active': true,
+      'iconUrl': 'https://example.com/icon.svg',
+      'sortOrder': 2,
+      'isActive': true,
       'color': '#0099DB',
     };
 
@@ -71,11 +71,11 @@ void main() {
             json['name'],
             equals(
                 '\u05E4\u05D5\u05DC\u05D9\u05D8\u05D9\u05E7\u05D4'));
-        expect(json['name_en'], equals('Politics'));
+        expect(json['nameEn'], equals('Politics'));
         expect(json['slug'], equals('politics'));
-        expect(json['icon_url'], equals('https://example.com/icon.svg'));
-        expect(json['sort_order'], equals(2));
-        expect(json['is_active'], isTrue);
+        expect(json['iconUrl'], equals('https://example.com/icon.svg'));
+        expect(json['sortOrder'], equals(2));
+        expect(json['isActive'], isTrue);
         expect(json['color'], equals('#0099DB'));
       });
     });

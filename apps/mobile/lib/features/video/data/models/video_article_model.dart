@@ -33,14 +33,14 @@ class VideoArticleModel {
       id: json['id'] as String,
       title: json['title'] as String,
       subtitle: json['subtitle'] as String?,
-      heroImageUrl: json['hero_image_url'] as String?,
-      videoUrl: json['video_url'] as String?,
+      heroImageUrl: json['heroImageUrl'] as String?,
+      videoUrl: json['videoUrl'] as String?,
       duration: json['duration'] as int? ?? 0,
-      categoryName: json['category_name'] as String?,
-      categoryColor: json['category_color'] as String?,
+      categoryName: json['categoryName'] as String?,
+      categoryColor: json['categoryColor'] as String?,
       slug: json['slug'] as String?,
-      publishedAt: json['published_at'] != null
-          ? DateTime.tryParse(json['published_at'] as String)
+      publishedAt: json['publishedAt'] != null
+          ? DateTime.tryParse(json['publishedAt'] as String)
           : null,
     );
   }
@@ -50,13 +50,13 @@ class VideoArticleModel {
       'id': id,
       'title': title,
       'subtitle': subtitle,
-      'hero_image_url': heroImageUrl,
-      'video_url': videoUrl,
+      'heroImageUrl': heroImageUrl,
+      'videoUrl': videoUrl,
       'duration': duration,
-      'category_name': categoryName,
-      'category_color': categoryColor,
+      'categoryName': categoryName,
+      'categoryColor': categoryColor,
       'slug': slug,
-      'published_at': publishedAt?.toIso8601String(),
+      'publishedAt': publishedAt?.toIso8601String(),
     };
   }
 

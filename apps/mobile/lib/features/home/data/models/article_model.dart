@@ -46,26 +46,26 @@ class ArticleModel {
     return ArticleModel(
       id: json['id'] as String,
       title: json['title'] as String,
-      titleEn: json['title_en'] as String?,
+      titleEn: json['titleEn'] as String?,
       subtitle: json['subtitle'] as String?,
       content: json['content'] as String?,
-      heroImageUrl: json['hero_image_url'] as String?,
-      heroImageCaption: json['hero_image_caption'] as String?,
+      heroImageUrl: json['heroImageUrl'] as String?,
+      heroImageCaption: json['heroImageCaption'] as String?,
       author: json['author'] as String?,
       hashtags: (json['hashtags'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      isHero: json['is_hero'] as bool? ?? false,
-      isBreaking: json['is_breaking'] as bool? ?? false,
-      viewCount: json['view_count'] as int? ?? 0,
+      isHero: json['isHero'] as bool? ?? false,
+      isBreaking: json['isBreaking'] as bool? ?? false,
+      viewCount: json['viewCount'] as int? ?? 0,
       slug: json['slug'] as String?,
-      publishedAt: json['published_at'] != null
-          ? DateTime.tryParse(json['published_at'] as String)
+      publishedAt: json['publishedAt'] != null
+          ? DateTime.tryParse(json['publishedAt'] as String)
           : null,
-      categoryId: json['category_id'] as String?,
-      categoryName: json['category_name'] as String?,
-      categoryColor: json['category_color'] as String?,
+      categoryId: json['categoryId'] as String?,
+      categoryName: json['categoryName'] as String?,
+      categoryColor: json['categoryColor'] as String?,
     );
   }
 
@@ -73,21 +73,21 @@ class ArticleModel {
     return {
       'id': id,
       'title': title,
-      'title_en': titleEn,
+      'titleEn': titleEn,
       'subtitle': subtitle,
       'content': content,
-      'hero_image_url': heroImageUrl,
-      'hero_image_caption': heroImageCaption,
+      'heroImageUrl': heroImageUrl,
+      'heroImageCaption': heroImageCaption,
       'author': author,
       'hashtags': hashtags,
-      'is_hero': isHero,
-      'is_breaking': isBreaking,
-      'view_count': viewCount,
+      'isHero': isHero,
+      'isBreaking': isBreaking,
+      'viewCount': viewCount,
       'slug': slug,
-      'published_at': publishedAt?.toIso8601String(),
-      'category_id': categoryId,
-      'category_name': categoryName,
-      'category_color': categoryColor,
+      'publishedAt': publishedAt?.toIso8601String(),
+      'categoryId': categoryId,
+      'categoryName': categoryName,
+      'categoryColor': categoryColor,
     };
   }
 

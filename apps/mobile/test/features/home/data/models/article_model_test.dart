@@ -9,21 +9,21 @@ void main() {
     final tJson = <String, dynamic>{
       'id': '1',
       'title': 'Test Article',
-      'title_en': 'Test Article EN',
+      'titleEn': 'Test Article EN',
       'subtitle': 'Subtitle',
       'content': '<p>Content</p>',
-      'hero_image_url': 'https://example.com/img.jpg',
-      'hero_image_caption': 'Caption',
+      'heroImageUrl': 'https://example.com/img.jpg',
+      'heroImageCaption': 'Caption',
       'author': 'Author',
       'hashtags': ['tag1', 'tag2'],
-      'is_hero': true,
-      'is_breaking': false,
-      'view_count': 42,
+      'isHero': true,
+      'isBreaking': false,
+      'viewCount': 42,
       'slug': 'test-article',
-      'published_at': '2024-01-15T10:30:00.000',
-      'category_id': '5',
-      'category_name': 'Politics',
-      'category_color': '#FF0000',
+      'publishedAt': '2024-01-15T10:30:00.000',
+      'categoryId': '5',
+      'categoryName': 'Politics',
+      'categoryColor': '#FF0000',
     };
 
     final tModel = ArticleModel(
@@ -118,27 +118,27 @@ void main() {
 
         expect(json['id'], equals('1'));
         expect(json['title'], equals('Test Article'));
-        expect(json['title_en'], equals('Test Article EN'));
+        expect(json['titleEn'], equals('Test Article EN'));
         expect(json['subtitle'], equals('Subtitle'));
         expect(json['content'], equals('<p>Content</p>'));
-        expect(json['hero_image_url'], equals('https://example.com/img.jpg'));
-        expect(json['hero_image_caption'], equals('Caption'));
+        expect(json['heroImageUrl'], equals('https://example.com/img.jpg'));
+        expect(json['heroImageCaption'], equals('Caption'));
         expect(json['author'], equals('Author'));
         expect(json['hashtags'], equals(['tag1', 'tag2']));
-        expect(json['is_hero'], isTrue);
-        expect(json['is_breaking'], isFalse);
-        expect(json['view_count'], equals(42));
+        expect(json['isHero'], isTrue);
+        expect(json['isBreaking'], isFalse);
+        expect(json['viewCount'], equals(42));
         expect(json['slug'], equals('test-article'));
-        expect(json['category_id'], equals('5'));
-        expect(json['category_name'], equals('Politics'));
-        expect(json['category_color'], equals('#FF0000'));
+        expect(json['categoryId'], equals('5'));
+        expect(json['categoryName'], equals('Politics'));
+        expect(json['categoryColor'], equals('#FF0000'));
       });
 
       test('should serialize publishedAt as ISO8601', () {
         final json = tModel.toJson();
 
-        expect(json['published_at'], isA<String>());
-        expect(json['published_at'], equals(tPublishedAt.toIso8601String()));
+        expect(json['publishedAt'], isA<String>());
+        expect(json['publishedAt'], equals(tPublishedAt.toIso8601String()));
       });
     });
 

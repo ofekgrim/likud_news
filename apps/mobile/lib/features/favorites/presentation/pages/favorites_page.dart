@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -229,7 +230,7 @@ class _FavoritesPageState extends State<FavoritesPage>
               FeedArticleCard(
                 article: article,
                 onTap: () {
-                  // TODO: navigate to article detail.
+                  context.push('/article/${article.slug ?? article.id}');
                 },
               ),
               if (index < state.articles.length - 1)

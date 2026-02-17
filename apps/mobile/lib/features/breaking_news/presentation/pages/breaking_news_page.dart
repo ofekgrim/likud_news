@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -190,10 +191,11 @@ class _BreakingList extends StatelessWidget {
                   itemCount: filtered.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
+                    final article = filtered[index];
                     return BreakingNewsCard(
-                      article: filtered[index],
+                      article: article,
                       onTap: () {
-                        // Navigate to article detail — wired by the consumer.
+                        context.push('/article/${article.slug ?? article.id}');
                       },
                     );
                   },

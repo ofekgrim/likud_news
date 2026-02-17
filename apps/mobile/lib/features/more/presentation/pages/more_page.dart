@@ -46,7 +46,7 @@ class MorePage extends StatelessWidget {
             context,
             icon: Icons.people_outline,
             title: 'likud_members'.tr(),
-            route: '/member/list',
+            route: '/members',
           ),
           _buildNavTile(
             context,

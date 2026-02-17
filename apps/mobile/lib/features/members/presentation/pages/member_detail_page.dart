@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -46,7 +47,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_forward),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         centerTitle: true,
         title: const Text(
@@ -210,7 +211,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                   FeedArticleCard(
                     article: article,
                     onTap: () {
-                      // TODO: navigate to article detail.
+                      context.push('/article/${article.slug}');
                     },
                   ),
                   const Divider(

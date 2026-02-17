@@ -24,10 +24,10 @@ class TickerItemModel {
     return TickerItemModel(
       id: json['id'] as String,
       text: json['text'] as String,
-      linkUrl: json['link_url'] as String?,
-      articleId: json['article_id'] as String?,
+      linkUrl: json['linkUrl'] as String?,
+      articleId: json['articleId'] as String?,
       position: json['position'] as int? ?? 0,
-      isActive: json['is_active'] as bool? ?? true,
+      isActive: json['isActive'] as bool? ?? true,
     );
   }
 
@@ -35,10 +35,10 @@ class TickerItemModel {
     return {
       'id': id,
       'text': text,
-      'link_url': linkUrl,
-      'article_id': articleId,
+      'linkUrl': linkUrl,
+      'articleId': articleId,
       'position': position,
-      'is_active': isActive,
+      'isActive': isActive,
     };
   }
 

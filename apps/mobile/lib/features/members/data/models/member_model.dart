@@ -34,15 +34,15 @@ class MemberModel {
     return MemberModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      nameEn: json['name_en'] as String?,
+      nameEn: json['nameEn'] as String?,
       title: json['title'] as String?,
       bio: json['bio'] as String?,
-      photoUrl: json['photo_url'] as String?,
-      socialTwitter: json['social_twitter'] as String?,
-      socialFacebook: json['social_facebook'] as String?,
-      socialInstagram: json['social_instagram'] as String?,
-      isActive: json['is_active'] as bool? ?? true,
-      sortOrder: json['sort_order'] as int? ?? 0,
+      photoUrl: json['photoUrl'] as String?,
+      socialTwitter: json['socialTwitter'] as String?,
+      socialFacebook: json['socialFacebook'] as String?,
+      socialInstagram: json['socialInstagram'] as String?,
+      isActive: json['isActive'] as bool? ?? true,
+      sortOrder: json['sortOrder'] as int? ?? 0,
     );
   }
 
@@ -50,15 +50,15 @@ class MemberModel {
     return {
       'id': id,
       'name': name,
-      'name_en': nameEn,
+      'nameEn': nameEn,
       'title': title,
       'bio': bio,
-      'photo_url': photoUrl,
-      'social_twitter': socialTwitter,
-      'social_facebook': socialFacebook,
-      'social_instagram': socialInstagram,
-      'is_active': isActive,
-      'sort_order': sortOrder,
+      'photoUrl': photoUrl,
+      'socialTwitter': socialTwitter,
+      'socialFacebook': socialFacebook,
+      'socialInstagram': socialInstagram,
+      'isActive': isActive,
+      'sortOrder': sortOrder,
     };
   }
 

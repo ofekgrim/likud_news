@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -9,7 +10,6 @@ import '../../../../core/widgets/shimmer_loading.dart';
 import '../../domain/entities/member.dart';
 import '../bloc/members_bloc.dart';
 import '../widgets/member_card.dart';
-import 'member_detail_page.dart';
 
 /// Members directory page.
 ///
@@ -49,14 +49,7 @@ class _MembersPageState extends State<MembersPage> {
   }
 
   void _navigateToDetail(BuildContext context, Member member) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<MembersBloc>(),
-          child: MemberDetailPage(memberId: member.id),
-        ),
-      ),
-    );
+    context.push('/member/${member.id}');
   }
 
   @override
