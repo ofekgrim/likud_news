@@ -3,7 +3,8 @@
 # =============================================================================
 
 .PHONY: setup run-mobile run-backend run-admin test-all test-flutter test-backend \
-        build-android build-ios seed-db clean lint-all docker-up docker-down codegen
+        build-android build-ios seed-db clean lint-all docker-up docker-down codegen \
+        deploy-build deploy-up deploy-down deploy-logs
 
 # ------ Setup ------
 
@@ -90,6 +91,22 @@ migrate: ## Run database migrations
 
 migrate-generate: ## Generate a new migration
 	cd backend && npm run migration:generate -- -n $(name)
+
+# ------ Deployment ------
+
+deploy-build: ## Build all Docker images locally
+	docker build -t metzudat-backend:latest ./backend
+	docker build -t metzudat-admin:latest ./admin
+	docker build -t metzudat-nginx:latest ./infra/nginx
+
+deploy-up: ## Start production containers
+	docker compose -f infra/docker-compose.prod.yml up -d
+
+deploy-down: ## Stop production containers
+	docker compose -f infra/docker-compose.prod.yml down
+
+deploy-logs: ## View production container logs
+	docker compose -f infra/docker-compose.prod.yml logs -f
 
 # ------ Cleanup ------
 
