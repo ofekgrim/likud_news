@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm run lint:*)",
+      "Bash(docker ps:*)",
+      "Bash(open:*)",
+      "Bash(docker port:*)",
+      "Bash(lsof:*)",
+      "Bash(npm run migration:run:*)",
+      "Bash(PORT=9090 npx nest start:*)"
+    ]
+  }
+}
