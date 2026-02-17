@@ -163,5 +163,11 @@
   "notifications_permission_title": "התראות",
   "notifications_permission_body": "אפשר התראות כדי לקבל מבזקים וחדשות בזמן אמת",
   "notifications_enabled": "התראות מופעלות",
-  "notifications_disabled": "התראות כבויות"
+  "notifications_disabled": "התראות כבויות",
+
+  "reading_time_minutes": "{} דקות קריאה",
+  "reading_time_one_minute": "דקה אחת קריאה",
+  "sponsored": "ממומן",
+  "sponsored_content": "תוכן ממומן",
+  "no_content_available": "אין תוכן להצגה"
 }

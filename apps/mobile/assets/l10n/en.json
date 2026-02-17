@@ -163,5 +163,11 @@
   "notifications_permission_title": "Notifications",
   "notifications_permission_body": "Enable notifications to receive breaking news in real-time",
   "notifications_enabled": "Notifications enabled",
-  "notifications_disabled": "Notifications disabled"
+  "notifications_disabled": "Notifications disabled",
+
+  "reading_time_minutes": "{} min read",
+  "reading_time_one_minute": "1 min read",
+  "sponsored": "Sponsored",
+  "sponsored_content": "Sponsored Content",
+  "no_content_available": "No content available"
 }

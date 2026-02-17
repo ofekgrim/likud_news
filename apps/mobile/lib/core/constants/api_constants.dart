@@ -3,7 +3,7 @@ class ApiConstants {
   ApiConstants._();
 
   // Base URL — change per environment
-  static const String baseUrl = 'http://localhost:3000/api/v1';
+  static const String baseUrl = 'http://localhost:6000/api/v1';
 
   // Articles
   static const String articles = '/articles';

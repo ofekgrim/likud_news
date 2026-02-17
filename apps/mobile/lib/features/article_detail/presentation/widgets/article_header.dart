@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/article_detail.dart';
+import '../utils/reading_time_calculator.dart';
 
 /// Hero image header with gradient overlay and title text.
 ///
@@ -17,6 +18,8 @@ class ArticleHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final readingMinutes =
+        ReadingTimeCalculator.calculateMinutes(article.content ?? '');
     const headerHeight = 360.0;
 
     return SizedBox(
@@ -179,6 +182,19 @@ class ArticleHeader extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       '${article.viewCount}',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: AppColors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.menu_book_outlined,
+                      size: 14,
+                      color: AppColors.white.withValues(alpha: 0.7),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$readingMinutes דקות קריאה',
                       style: theme.textTheme.labelMedium?.copyWith(
                         color: AppColors.white.withValues(alpha: 0.8),
                       ),
