@@ -4,7 +4,7 @@ import '../../domain/entities/video_article.dart';
 ///
 /// Maps API responses to the domain [VideoArticle] entity via [toEntity].
 class VideoArticleModel {
-  final int id;
+  final String id;
   final String title;
   final String? subtitle;
   final String? heroImageUrl;
@@ -30,7 +30,7 @@ class VideoArticleModel {
 
   factory VideoArticleModel.fromJson(Map<String, dynamic> json) {
     return VideoArticleModel(
-      id: json['id'] as int,
+      id: json['id'] as String,
       title: json['title'] as String,
       subtitle: json['subtitle'] as String?,
       heroImageUrl: json['hero_image_url'] as String?,

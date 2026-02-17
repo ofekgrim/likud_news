@@ -1,11 +1,11 @@
 export default () => ({
-  port: parseInt(process.env.PORT, 10) || 3000,
+  port: parseInt(process.env.PORT ?? '3000', 10) || 3000,
   apiPrefix: process.env.API_PREFIX || 'api/v1',
   nodeEnv: process.env.NODE_ENV || 'development',
 
   database: {
     host: process.env.DATABASE_HOST || 'localhost',
-    port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+    port: parseInt(process.env.DATABASE_PORT ?? '5432', 10) || 5432,
     name: process.env.DATABASE_NAME || 'likud_news',
     username: process.env.DATABASE_USER || 'likud',
     password: process.env.DATABASE_PASSWORD || 'likud_dev',
@@ -16,15 +16,17 @@ export default () => ({
 
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+    port: parseInt(process.env.REDIS_PORT ?? '6379', 10) || 6379,
     password: process.env.REDIS_PASSWORD || undefined,
   },
 
   jwt: {
     secret: process.env.JWT_SECRET || 'change-this-secret',
-    expiration: parseInt(process.env.JWT_EXPIRATION, 10) || 3600,
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'change-this-refresh-secret',
-    refreshExpiration: parseInt(process.env.JWT_REFRESH_EXPIRATION, 10) || 604800,
+    expiration: parseInt(process.env.JWT_EXPIRATION ?? '3600', 10) || 3600,
+    refreshSecret:
+      process.env.JWT_REFRESH_SECRET || 'change-this-refresh-secret',
+    refreshExpiration:
+      parseInt(process.env.JWT_REFRESH_EXPIRATION ?? '604800', 10) || 604800,
   },
 
   aws: {
@@ -42,11 +44,11 @@ export default () => ({
   },
 
   cors: {
-    origins: (process.env.CORS_ORIGINS || 'http://localhost:3001').split(','),
+    origins: (process.env.CORS_ORIGINS || 'http://localhost:3001,http://localhost:6001').split(','),
   },
 
   throttle: {
-    ttl: parseInt(process.env.THROTTLE_TTL, 10) || 60,
-    limit: parseInt(process.env.THROTTLE_LIMIT, 10) || 100,
+    ttl: parseInt(process.env.THROTTLE_TTL ?? '60', 10) || 60,
+    limit: parseInt(process.env.THROTTLE_LIMIT ?? '100', 10) || 100,
   },
 });

@@ -31,7 +31,10 @@ export class CreateTickerItemDto {
   @IsNumber()
   position?: number;
 
-  @ApiPropertyOptional({ description: 'Whether the ticker item is active', default: true })
+  @ApiPropertyOptional({
+    description: 'Whether the ticker item is active',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;

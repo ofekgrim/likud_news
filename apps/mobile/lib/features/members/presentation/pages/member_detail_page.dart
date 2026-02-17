@@ -15,7 +15,7 @@ import '../bloc/members_bloc.dart';
 /// Shows a large photo, name, title, bio text, social media links,
 /// and a list of related articles using [FeedArticleCard].
 class MemberDetailPage extends StatefulWidget {
-  final int memberId;
+  final String memberId;
 
   const MemberDetailPage({
     super.key,

@@ -25,14 +25,17 @@ export class MediaService {
     private readonly configService: ConfigService,
   ) {
     this.s3Client = new S3Client({
-      region: this.configService.get<string>('aws.region'),
+      region: this.configService.get<string>('aws.region') ?? 'eu-west-1',
       credentials: {
-        accessKeyId: this.configService.get<string>('aws.accessKeyId'),
-        secretAccessKey: this.configService.get<string>('aws.secretAccessKey'),
+        accessKeyId: this.configService.get<string>('aws.accessKeyId') ?? '',
+        secretAccessKey:
+          this.configService.get<string>('aws.secretAccessKey') ?? '',
       },
     });
-    this.bucket = this.configService.get<string>('aws.s3Bucket');
-    this.cloudfrontDomain = this.configService.get<string>('aws.cloudfrontDomain');
+    this.bucket =
+      this.configService.get<string>('aws.s3Bucket') ?? 'likud-news-media';
+    this.cloudfrontDomain =
+      this.configService.get<string>('aws.cloudfrontDomain') ?? '';
   }
 
   async generatePresignedUrl(

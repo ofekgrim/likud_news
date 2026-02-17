@@ -11,7 +11,9 @@ export class HistoryService {
     private readonly historyRepository: Repository<ReadingHistory>,
   ) {}
 
-  async recordRead(createHistoryDto: CreateHistoryDto): Promise<ReadingHistory> {
+  async recordRead(
+    createHistoryDto: CreateHistoryDto,
+  ): Promise<ReadingHistory> {
     const existing = await this.historyRepository.findOne({
       where: {
         deviceId: createHistoryDto.deviceId,

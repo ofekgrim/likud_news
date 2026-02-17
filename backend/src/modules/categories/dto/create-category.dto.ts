@@ -14,7 +14,10 @@ export class CreateCategoryDto {
   @MaxLength(200)
   name: string;
 
-  @ApiPropertyOptional({ description: 'Category name (English)', maxLength: 200 })
+  @ApiPropertyOptional({
+    description: 'Category name (English)',
+    maxLength: 200,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(200)
@@ -36,7 +39,10 @@ export class CreateCategoryDto {
   @IsNumber()
   sortOrder?: number;
 
-  @ApiPropertyOptional({ description: 'Whether the category is active', default: true })
+  @ApiPropertyOptional({
+    description: 'Whether the category is active',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
@@ -47,6 +53,8 @@ export class CreateCategoryDto {
   })
   @IsOptional()
   @IsString()
-  @Matches(/^#[0-9A-Fa-f]{6}$/, { message: 'color must be a valid hex color (e.g. #FF0000)' })
+  @Matches(/^#[0-9A-Fa-f]{6}$/, {
+    message: 'color must be a valid hex color (e.g. #FF0000)',
+  })
   color?: string;
 }

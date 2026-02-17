@@ -7,7 +7,7 @@ import '../../../home/domain/entities/article.dart';
 /// Extends the base [Article] data with HTML content, English translations,
 /// related articles list, and favorite status for the detail view.
 class ArticleDetail extends Equatable {
-  final int id;
+  final String id;
   final String title;
   final String? titleEn;
   final String? subtitle;
@@ -22,7 +22,7 @@ class ArticleDetail extends Equatable {
   final int viewCount;
   final String? slug;
   final DateTime? publishedAt;
-  final int? categoryId;
+  final String? categoryId;
   final String? categoryName;
   final String? categoryColor;
   final List<Article> relatedArticles;
@@ -53,7 +53,7 @@ class ArticleDetail extends Equatable {
 
   /// Creates a copy with optional field overrides.
   ArticleDetail copyWith({
-    int? id,
+    String? id,
     String? title,
     String? titleEn,
     String? subtitle,
@@ -68,7 +68,7 @@ class ArticleDetail extends Equatable {
     int? viewCount,
     String? slug,
     DateTime? publishedAt,
-    int? categoryId,
+    String? categoryId,
     String? categoryName,
     String? categoryColor,
     List<Article>? relatedArticles,

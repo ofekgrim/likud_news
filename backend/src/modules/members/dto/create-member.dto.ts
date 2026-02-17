@@ -3,7 +3,6 @@ import {
   IsOptional,
   IsBoolean,
   IsNumber,
-  IsUrl,
   MaxLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -26,7 +25,10 @@ export class CreateMemberDto {
   @MaxLength(300)
   title?: string;
 
-  @ApiPropertyOptional({ description: 'Title / role (English)', maxLength: 300 })
+  @ApiPropertyOptional({
+    description: 'Title / role (English)',
+    maxLength: 300,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(300)
@@ -66,7 +68,10 @@ export class CreateMemberDto {
   @MaxLength(500)
   socialInstagram?: string;
 
-  @ApiPropertyOptional({ description: 'Whether the member is active', default: true })
+  @ApiPropertyOptional({
+    description: 'Whether the member is active',
+    default: true,
+  })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;

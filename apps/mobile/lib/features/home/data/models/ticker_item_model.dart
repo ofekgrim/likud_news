@@ -4,10 +4,10 @@ import '../../domain/entities/ticker_item.dart';
 ///
 /// Maps API responses to the domain [TickerItem] entity via [toEntity].
 class TickerItemModel {
-  final int id;
+  final String id;
   final String text;
   final String? linkUrl;
-  final int? articleId;
+  final String? articleId;
   final int position;
   final bool isActive;
 
@@ -22,10 +22,10 @@ class TickerItemModel {
 
   factory TickerItemModel.fromJson(Map<String, dynamic> json) {
     return TickerItemModel(
-      id: json['id'] as int,
+      id: json['id'] as String,
       text: json['text'] as String,
       linkUrl: json['link_url'] as String?,
-      articleId: json['article_id'] as int?,
+      articleId: json['article_id'] as String?,
       position: json['position'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
     );

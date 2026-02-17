@@ -81,7 +81,7 @@ class BreakingNewsRemoteDatasourceImpl implements BreakingNewsRemoteDatasource {
   /// Maps a JSON map to an [Article] entity.
   Article _articleFromJson(Map<String, dynamic> json) {
     return Article(
-      id: json['id'] as int,
+      id: json['id'] as String,
       title: json['title'] as String,
       titleEn: json['title_en'] as String?,
       subtitle: json['subtitle'] as String?,
@@ -100,7 +100,7 @@ class BreakingNewsRemoteDatasourceImpl implements BreakingNewsRemoteDatasource {
       publishedAt: json['published_at'] != null
           ? DateTime.tryParse(json['published_at'] as String)
           : null,
-      categoryId: json['category_id'] as int?,
+      categoryId: json['category_id'] as String?,
       categoryName: json['category_name'] as String?,
       categoryColor: json['category_color'] as String?,
     );

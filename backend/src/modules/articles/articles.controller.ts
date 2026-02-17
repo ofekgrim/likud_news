@@ -46,7 +46,10 @@ export class ArticlesController {
 
   @Get('hero')
   @ApiOperation({ summary: 'Get the current hero article' })
-  @ApiResponse({ status: 200, description: 'The current hero article, or null' })
+  @ApiResponse({
+    status: 200,
+    description: 'The current hero article, or null',
+  })
   findHero() {
     return this.articlesService.findHero();
   }
@@ -72,7 +75,9 @@ export class ArticlesController {
   }
 
   @Get(':slug')
-  @ApiOperation({ summary: 'Get a single article by slug (increments view count)' })
+  @ApiOperation({
+    summary: 'Get a single article by slug (increments view count)',
+  })
   @ApiParam({ name: 'slug', description: 'Article URL slug' })
   @ApiResponse({ status: 200, description: 'The article' })
   @ApiResponse({ status: 404, description: 'Article not found' })
@@ -97,7 +102,10 @@ export class ArticlesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft-delete an article' })
   @ApiParam({ name: 'id', description: 'Article UUID' })
-  @ApiResponse({ status: 204, description: 'Article soft-deleted successfully' })
+  @ApiResponse({
+    status: 204,
+    description: 'Article soft-deleted successfully',
+  })
   @ApiResponse({ status: 404, description: 'Article not found' })
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.articlesService.remove(id);

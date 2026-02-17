@@ -4,7 +4,7 @@ import '../../domain/entities/category.dart';
 ///
 /// Maps API responses to the domain [Category] entity via [toEntity].
 class CategoryModel {
-  final int id;
+  final String id;
   final String name;
   final String? nameEn;
   final String? slug;
@@ -26,7 +26,7 @@ class CategoryModel {
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
-      id: json['id'] as int,
+      id: json['id'] as String,
       name: json['name'] as String,
       nameEn: json['name_en'] as String?,
       slug: json['slug'] as String?,

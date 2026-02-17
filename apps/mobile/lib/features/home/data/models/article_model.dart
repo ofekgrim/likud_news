@@ -4,7 +4,7 @@ import '../../domain/entities/article.dart';
 ///
 /// Maps API responses to the domain [Article] entity via [toEntity].
 class ArticleModel {
-  final int id;
+  final String id;
   final String title;
   final String? titleEn;
   final String? subtitle;
@@ -18,7 +18,7 @@ class ArticleModel {
   final int viewCount;
   final String? slug;
   final DateTime? publishedAt;
-  final int? categoryId;
+  final String? categoryId;
   final String? categoryName;
   final String? categoryColor;
 
@@ -44,7 +44,7 @@ class ArticleModel {
 
   factory ArticleModel.fromJson(Map<String, dynamic> json) {
     return ArticleModel(
-      id: json['id'] as int,
+      id: json['id'] as String,
       title: json['title'] as String,
       titleEn: json['title_en'] as String?,
       subtitle: json['subtitle'] as String?,
@@ -63,7 +63,7 @@ class ArticleModel {
       publishedAt: json['published_at'] != null
           ? DateTime.tryParse(json['published_at'] as String)
           : null,
-      categoryId: json['category_id'] as int?,
+      categoryId: json['category_id'] as String?,
       categoryName: json['category_name'] as String?,
       categoryColor: json['category_color'] as String?,
     );

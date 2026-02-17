@@ -1,8 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'firebase_options.dart';
 import 'app/app.dart';
 import 'app/di.dart';
+// ignore: unused_import
+import 'app/router.dart'; // Used when push notifications are enabled
+import 'core/services/device_id_service.dart';
+// import 'core/services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,11 +22,21 @@ void main() async {
   // Initialize localization
   await EasyLocalization.ensureInitialized();
 
+  // Initialize device ID (Hive + persistent UUID)
+  final deviceIdService = DeviceIdService();
+  await deviceIdService.init();
+  getIt.registerSingleton<DeviceIdService>(deviceIdService);
+
   // Initialize dependency injection
   configureDependencies();
 
-  // TODO: Initialize Firebase when credentials are available
-  // await Firebase.initializeApp();
+  // Firebase — uncomment after running: flutterfire configure
+  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Push notifications — uncomment after Firebase is initialized
+  // final pushService = getIt<PushNotificationService>();
+  // await pushService.init();
+  // pushService.setRouter(AppRouter.router);
 
   runApp(
     EasyLocalization(

@@ -17,13 +17,13 @@ abstract class ArticleDetailRemoteDataSource {
   /// Returns `true` if the article is now favorited, `false` otherwise.
   Future<bool> toggleFavorite({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   });
 
   /// Records that the device user read the given article.
   Future<void> recordRead({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   });
 }
 
@@ -45,7 +45,7 @@ class ArticleDetailRemoteDataSourceImpl
   @override
   Future<bool> toggleFavorite({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   }) async {
     final response = await _apiClient.post<Map<String, dynamic>>(
       ApiConstants.favorites,
@@ -60,7 +60,7 @@ class ArticleDetailRemoteDataSourceImpl
   @override
   Future<void> recordRead({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   }) async {
     await _apiClient.post(
       ApiConstants.history,

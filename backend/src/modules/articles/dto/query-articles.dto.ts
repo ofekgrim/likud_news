@@ -13,7 +13,11 @@ import { Type, Transform } from 'class-transformer';
 import { ArticleStatus } from '../entities/article.entity';
 
 export class QueryArticlesDto {
-  @ApiPropertyOptional({ description: 'Page number (1-based)', default: 1, minimum: 1 })
+  @ApiPropertyOptional({
+    description: 'Page number (1-based)',
+    default: 1,
+    minimum: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -52,7 +56,9 @@ export class QueryArticlesDto {
   @IsBoolean()
   isBreaking?: boolean;
 
-  @ApiPropertyOptional({ description: 'Search query (searches title, subtitle, content)' })
+  @ApiPropertyOptional({
+    description: 'Search query (searches title, subtitle, content)',
+  })
   @IsOptional()
   @IsString()
   search?: string;

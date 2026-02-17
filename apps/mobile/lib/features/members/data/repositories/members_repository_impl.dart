@@ -31,7 +31,7 @@ class MembersRepositoryImpl implements MembersRepository {
   }
 
   @override
-  Future<Either<Failure, MemberDetail>> getMemberDetail(int id) async {
+  Future<Either<Failure, MemberDetail>> getMemberDetail(String id) async {
     try {
       final memberModel = await _remoteDataSource.getMemberDetail(id);
       final articleModels = await _remoteDataSource.getMemberArticles(id);

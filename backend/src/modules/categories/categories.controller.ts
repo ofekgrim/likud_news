@@ -25,7 +25,9 @@ export class CategoriesController {
   }
 
   @Get(':slug/articles')
-  @ApiOperation({ summary: 'Get articles in a category by slug with pagination' })
+  @ApiOperation({
+    summary: 'Get articles in a category by slug with pagination',
+  })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   findArticlesBySlug(

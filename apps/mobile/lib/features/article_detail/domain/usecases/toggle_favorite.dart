@@ -27,7 +27,7 @@ class ToggleFavorite implements UseCase<bool, ToggleFavoriteParams> {
 /// Parameters for [ToggleFavorite].
 class ToggleFavoriteParams extends Equatable {
   final String deviceId;
-  final int articleId;
+  final String articleId;
 
   const ToggleFavoriteParams({
     required this.deviceId,

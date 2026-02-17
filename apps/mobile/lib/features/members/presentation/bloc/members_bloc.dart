@@ -27,7 +27,7 @@ final class LoadMembers extends MembersEvent {
 
 /// Triggers loading of a single member's detail.
 final class LoadMemberDetail extends MembersEvent {
-  final int id;
+  final String id;
 
   const LoadMemberDetail({required this.id});
 

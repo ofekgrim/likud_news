@@ -28,7 +28,7 @@ class RecordRead implements UseCase<void, RecordReadParams> {
 /// Parameters for [RecordRead].
 class RecordReadParams extends Equatable {
   final String deviceId;
-  final int articleId;
+  final String articleId;
 
   const RecordReadParams({
     required this.deviceId,

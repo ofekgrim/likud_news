@@ -4,7 +4,7 @@ import '../../domain/entities/member.dart';
 ///
 /// Maps API responses to the domain [Member] entity via [toEntity].
 class MemberModel {
-  final int id;
+  final String id;
   final String name;
   final String? nameEn;
   final String? title;
@@ -32,7 +32,7 @@ class MemberModel {
 
   factory MemberModel.fromJson(Map<String, dynamic> json) {
     return MemberModel(
-      id: json['id'] as int,
+      id: json['id'] as String,
       name: json['name'] as String,
       nameEn: json['name_en'] as String?,
       title: json['title'] as String?,

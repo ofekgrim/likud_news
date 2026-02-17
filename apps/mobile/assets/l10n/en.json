@@ -158,5 +158,10 @@
   "notifications": "Notifications",
   "app_version": "App Version",
   "accessibility": "Accessibility",
-  "dark_mode": "Dark Mode"
+  "dark_mode": "Dark Mode",
+
+  "notifications_permission_title": "Notifications",
+  "notifications_permission_body": "Enable notifications to receive breaking news in real-time",
+  "notifications_enabled": "Notifications enabled",
+  "notifications_disabled": "Notifications disabled"
 }

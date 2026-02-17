@@ -6,7 +6,7 @@ import '../../domain/entities/article_detail.dart';
 /// Handles JSON serialization/deserialization and converts
 /// to the domain [ArticleDetail] entity.
 class ArticleDetailModel {
-  final int id;
+  final String id;
   final String title;
   final String? titleEn;
   final String? subtitle;
@@ -21,7 +21,7 @@ class ArticleDetailModel {
   final int viewCount;
   final String? slug;
   final DateTime? publishedAt;
-  final int? categoryId;
+  final String? categoryId;
   final String? categoryName;
   final String? categoryColor;
   final List<Article> relatedArticles;
@@ -53,7 +53,7 @@ class ArticleDetailModel {
   /// Creates an [ArticleDetailModel] from a JSON map.
   factory ArticleDetailModel.fromJson(Map<String, dynamic> json) {
     return ArticleDetailModel(
-      id: json['id'] as int,
+      id: json['id'] as String,
       title: json['title'] as String,
       titleEn: json['titleEn'] as String?,
       subtitle: json['subtitle'] as String?,
@@ -73,7 +73,7 @@ class ArticleDetailModel {
       publishedAt: json['publishedAt'] != null
           ? DateTime.tryParse(json['publishedAt'] as String)
           : null,
-      categoryId: json['categoryId'] as int?,
+      categoryId: json['categoryId'] as String?,
       categoryName: json['categoryName'] as String?,
       categoryColor: json['categoryColor'] as String?,
       relatedArticles: (json['relatedArticles'] as List<dynamic>?)
@@ -138,7 +138,7 @@ class ArticleDetailModel {
   /// Parses a related article from JSON into an [Article] entity.
   static Article _articleFromJson(Map<String, dynamic> json) {
     return Article(
-      id: json['id'] as int,
+      id: json['id'] as String,
       title: json['title'] as String,
       titleEn: json['titleEn'] as String?,
       subtitle: json['subtitle'] as String?,
@@ -157,7 +157,7 @@ class ArticleDetailModel {
       publishedAt: json['publishedAt'] != null
           ? DateTime.tryParse(json['publishedAt'] as String)
           : null,
-      categoryId: json['categoryId'] as int?,
+      categoryId: json['categoryId'] as String?,
       categoryName: json['categoryName'] as String?,
       categoryColor: json['categoryColor'] as String?,
     );

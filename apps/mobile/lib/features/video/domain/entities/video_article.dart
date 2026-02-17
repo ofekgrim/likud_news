@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Immutable video article entity used throughout the domain and presentation layers.
 class VideoArticle extends Equatable {
-  final int id;
+  final String id;
   final String title;
   final String? subtitle;
   final String? heroImageUrl;

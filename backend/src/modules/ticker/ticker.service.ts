@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual, MoreThan } from 'typeorm';
+import { Repository } from 'typeorm';
 import { TickerItem } from './entities/ticker-item.entity';
 import { CreateTickerItemDto } from './dto/create-ticker-item.dto';
 import { UpdateTickerItemDto } from './dto/update-ticker-item.dto';
@@ -29,10 +29,9 @@ export class TickerService {
     const queryBuilder = this.tickerItemRepository
       .createQueryBuilder('ticker')
       .where('ticker.isActive = :isActive', { isActive: true })
-      .andWhere(
-        '(ticker.expiresAt IS NULL OR ticker.expiresAt > :now)',
-        { now },
-      )
+      .andWhere('(ticker.expiresAt IS NULL OR ticker.expiresAt > :now)', {
+        now,
+      })
       .orderBy('ticker.position', 'ASC');
 
     return queryBuilder.getMany();

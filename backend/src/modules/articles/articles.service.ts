@@ -29,14 +29,18 @@ export class ArticlesService {
       withDeleted: true,
     });
     if (existing) {
-      throw new ConflictException(`An article with slug "${articleData.slug}" already exists`);
+      throw new ConflictException(
+        `An article with slug "${articleData.slug}" already exists`,
+      );
     }
 
     const article = this.articleRepository.create(articleData);
 
     // If memberIds are provided, attach the relation
     if (memberIds?.length) {
-      article.members = memberIds.map((id) => ({ id }) as any);
+      article.members = memberIds.map(
+        (id) => ({ id }) as Article['members'][number],
+      );
     }
 
     return this.articleRepository.save(article);
@@ -52,7 +56,14 @@ export class ArticlesService {
     limit: number;
     totalPages: number;
   }> {
-    const { page = 1, limit = 20, categoryId, status, isBreaking, search } = query;
+    const {
+      page = 1,
+      limit = 20,
+      categoryId,
+      status,
+      isBreaking,
+      search,
+    } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.articleRepository
@@ -109,7 +120,7 @@ export class ArticlesService {
     }
 
     // Fire-and-forget view count increment
-    this.incrementViewCount(article.id);
+    void this.incrementViewCount(article.id);
 
     return article;
   }
@@ -174,7 +185,10 @@ export class ArticlesService {
   /**
    * Update an article by ID.
    */
-  async update(id: string, updateArticleDto: UpdateArticleDto): Promise<Article> {
+  async update(
+    id: string,
+    updateArticleDto: UpdateArticleDto,
+  ): Promise<Article> {
     const article = await this.findOne(id);
 
     const { memberIds, ...updateData } = updateArticleDto;
@@ -196,7 +210,9 @@ export class ArticlesService {
 
     // Update member relations if provided
     if (memberIds !== undefined) {
-      article.members = memberIds.map((id) => ({ id }) as any);
+      article.members = memberIds.map(
+        (id) => ({ id }) as Article['members'][number],
+      );
     }
 
     return this.articleRepository.save(article);
@@ -225,10 +241,7 @@ export class ArticlesService {
   /**
    * Full-text search across articles.
    */
-  async search(
-    searchQuery: string,
-    limit: number = 20,
-  ): Promise<Article[]> {
+  async search(searchQuery: string, limit: number = 20): Promise<Article[]> {
     return this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')

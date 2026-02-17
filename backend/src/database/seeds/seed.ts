@@ -12,9 +12,9 @@ async function seed() {
 
   try {
     // ─── Check if already seeded ──────────────────────────────────────
-    const existingUsers = await queryRunner.query(
+    const existingUsers = (await queryRunner.query(
       `SELECT COUNT(*) as count FROM "users"`,
-    );
+    )) as { count: string }[];
     if (parseInt(existingUsers[0].count, 10) > 0) {
       console.log('Database already seeded. Skipping.');
       await queryRunner.release();
@@ -39,24 +39,72 @@ async function seed() {
     // ─── 2. Seed Categories ───────────────────────────────────────────
     console.log('Seeding categories...');
     const categories = [
-      { name: 'פוליטיקה', nameEn: 'Politics', slug: 'politics', color: '#1A237E', sortOrder: 1 },
-      { name: 'ביטחון', nameEn: 'Security', slug: 'security', color: '#B71C1C', sortOrder: 2 },
-      { name: 'כלכלה', nameEn: 'Economy', slug: 'economy', color: '#1B5E20', sortOrder: 3 },
-      { name: 'חברה', nameEn: 'Society', slug: 'society', color: '#E65100', sortOrder: 4 },
-      { name: 'חינוך', nameEn: 'Education', slug: 'education', color: '#4A148C', sortOrder: 5 },
-      { name: 'בריאות', nameEn: 'Health', slug: 'health', color: '#006064', sortOrder: 6 },
-      { name: 'ספורט', nameEn: 'Sports', slug: 'sports', color: '#F57F17', sortOrder: 7 },
-      { name: 'תרבות', nameEn: 'Culture', slug: 'culture', color: '#880E4F', sortOrder: 8 },
+      {
+        name: 'פוליטיקה',
+        nameEn: 'Politics',
+        slug: 'politics',
+        color: '#1A237E',
+        sortOrder: 1,
+      },
+      {
+        name: 'ביטחון',
+        nameEn: 'Security',
+        slug: 'security',
+        color: '#B71C1C',
+        sortOrder: 2,
+      },
+      {
+        name: 'כלכלה',
+        nameEn: 'Economy',
+        slug: 'economy',
+        color: '#1B5E20',
+        sortOrder: 3,
+      },
+      {
+        name: 'חברה',
+        nameEn: 'Society',
+        slug: 'society',
+        color: '#E65100',
+        sortOrder: 4,
+      },
+      {
+        name: 'חינוך',
+        nameEn: 'Education',
+        slug: 'education',
+        color: '#4A148C',
+        sortOrder: 5,
+      },
+      {
+        name: 'בריאות',
+        nameEn: 'Health',
+        slug: 'health',
+        color: '#006064',
+        sortOrder: 6,
+      },
+      {
+        name: 'ספורט',
+        nameEn: 'Sports',
+        slug: 'sports',
+        color: '#F57F17',
+        sortOrder: 7,
+      },
+      {
+        name: 'תרבות',
+        nameEn: 'Culture',
+        slug: 'culture',
+        color: '#880E4F',
+        sortOrder: 8,
+      },
     ];
 
     const categoryIds: string[] = [];
     for (const cat of categories) {
-      const result = await queryRunner.query(
+      const result = (await queryRunner.query(
         `INSERT INTO "categories" ("id", "name", "nameEn", "slug", "color", "sortOrder", "isActive")
          VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5, true)
          RETURNING "id"`,
         [cat.name, cat.nameEn, cat.slug, cat.color, cat.sortOrder],
-      );
+      )) as { id: string }[];
       categoryIds.push(result[0].id);
       console.log(`  -> Created category: ${cat.name} (${cat.nameEn})`);
     }
@@ -108,12 +156,19 @@ async function seed() {
 
     const memberIds: string[] = [];
     for (const member of members) {
-      const result = await queryRunner.query(
+      const result = (await queryRunner.query(
         `INSERT INTO "members" ("id", "name", "nameEn", "title", "titleEn", "bio", "isActive", "sortOrder")
          VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5, true, $6)
          RETURNING "id"`,
-        [member.name, member.nameEn, member.title, member.titleEn, member.bio, member.sortOrder],
-      );
+        [
+          member.name,
+          member.nameEn,
+          member.title,
+          member.titleEn,
+          member.bio,
+          member.sortOrder,
+        ],
+      )) as { id: string }[];
       memberIds.push(result[0].id);
       console.log(`  -> Created member: ${member.name}`);
     }
@@ -126,7 +181,8 @@ async function seed() {
       {
         title: 'ראש הממשלה נתניהו: "נמשיך להוביל את מדינת ישראל קדימה"',
         subtitle: 'ראש הממשלה נשא נאום מרכזי בכנס הליכוד השנתי',
-        content: 'ראש הממשלה בנימין נתניהו נשא היום נאום מרכזי בכנס השנתי של תנועת הליכוד. בנאומו, התייחס נתניהו להישגי הממשלה בתחום הביטחון, הכלכלה והחברה. "אנחנו ממשיכים להוביל את מדינת ישראל קדימה, עם כלכלה חזקה, ביטחון מוצק ומעמד בינלאומי חסר תקדים", אמר נתניהו.',
+        content:
+          'ראש הממשלה בנימין נתניהו נשא היום נאום מרכזי בכנס השנתי של תנועת הליכוד. בנאומו, התייחס נתניהו להישגי הממשלה בתחום הביטחון, הכלכלה והחברה. "אנחנו ממשיכים להוביל את מדינת ישראל קדימה, עם כלכלה חזקה, ביטחון מוצק ומעמד בינלאומי חסר תקדים", אמר נתניהו.',
         slug: 'netanyahu-likud-annual-conference',
         status: 'published',
         isHero: true,
@@ -137,7 +193,8 @@ async function seed() {
       {
         title: 'דחיפה דיפלומטית: ישראל חותמת על הסכם שיתוף פעולה חדש',
         subtitle: 'הסכם היסטורי בתחום הטכנולוגיה והמסחר',
-        content: 'מדינת ישראל חתמה היום על הסכם שיתוף פעולה חדש עם מדינה נוספת באזור. ההסכם כולל שיתוף פעולה בתחומי הטכנולוגיה, המסחר, החקלאות והחינוך. שר החוץ ישראל כ"ץ ציין כי מדובר בהישג דיפלומטי משמעותי שממשיך את מגמת הסכמי אברהם.',
+        content:
+          'מדינת ישראל חתמה היום על הסכם שיתוף פעולה חדש עם מדינה נוספת באזור. ההסכם כולל שיתוף פעולה בתחומי הטכנולוגיה, המסחר, החקלאות והחינוך. שר החוץ ישראל כ"ץ ציין כי מדובר בהישג דיפלומטי משמעותי שממשיך את מגמת הסכמי אברהם.',
         slug: 'new-diplomatic-agreement-signed',
         status: 'published',
         isHero: false,
@@ -148,7 +205,8 @@ async function seed() {
       {
         title: 'מערכת הביטחון מציגה: תכנית רב-שנתית חדשה לחיזוק צה"ל',
         subtitle: 'תקציב ייעודי לפיתוח יכולות טכנולוגיות מתקדמות',
-        content: 'שר הביטחון הציג היום את התכנית הרב-שנתית החדשה לחיזוק צה"ל. התכנית כוללת השקעות משמעותיות בטכנולוגיות מתקדמות, סייבר, ומערכות נשק חדשניות. "אנחנו מבטיחים את העליונות הביטחונית של ישראל לעשורים הבאים", נאמר בהצהרה רשמית.',
+        content:
+          'שר הביטחון הציג היום את התכנית הרב-שנתית החדשה לחיזוק צה"ל. התכנית כוללת השקעות משמעותיות בטכנולוגיות מתקדמות, סייבר, ומערכות נשק חדשניות. "אנחנו מבטיחים את העליונות הביטחונית של ישראל לעשורים הבאים", נאמר בהצהרה רשמית.',
         slug: 'new-multi-year-defense-plan',
         status: 'published',
         isHero: false,
@@ -159,7 +217,8 @@ async function seed() {
       {
         title: 'הכלכלה הישראלית ממשיכה לצמוח: נתונים חיוביים ברבעון האחרון',
         subtitle: 'עלייה בייצוא הטכנולוגי ובהשקעות זרות',
-        content: 'הלשכה המרכזית לסטטיסטיקה פרסמה היום נתונים חיוביים על הכלכלה הישראלית ברבעון האחרון. הנתונים מצביעים על צמיחה של 3.5% בתוצר המקומי הגולמי, עלייה בייצוא הטכנולוגי ועלייה משמעותית בהשקעות זרות. שר הכלכלה ניר ברקת ציין כי הנתונים משקפים את המדיניות הכלכלית הנכונה של הממשלה.',
+        content:
+          'הלשכה המרכזית לסטטיסטיקה פרסמה היום נתונים חיוביים על הכלכלה הישראלית ברבעון האחרון. הנתונים מצביעים על צמיחה של 3.5% בתוצר המקומי הגולמי, עלייה בייצוא הטכנולוגי ועלייה משמעותית בהשקעות זרות. שר הכלכלה ניר ברקת ציין כי הנתונים משקפים את המדיניות הכלכלית הנכונה של הממשלה.',
         slug: 'economy-positive-growth-quarter',
         status: 'published',
         isHero: false,
@@ -170,7 +229,8 @@ async function seed() {
       {
         title: 'רפורמה חדשה בחינוך: שיפור תנאי המורים ותכניות לימוד מעודכנות',
         subtitle: 'התכנית תיושם בהדרגה החל משנת הלימודים הבאה',
-        content: 'שר החינוך הציג היום רפורמה מקיפה במערכת החינוך הישראלית. הרפורמה כוללת שיפור משמעותי בתנאי ההעסקה של מורים, עדכון תכניות הלימוד בתחומי המדעים והטכנולוגיה, והשקעה בתשתיות חינוכיות. "החינוך הוא הבסיס לעתיד המדינה", ציין השר.',
+        content:
+          'שר החינוך הציג היום רפורמה מקיפה במערכת החינוך הישראלית. הרפורמה כוללת שיפור משמעותי בתנאי ההעסקה של מורים, עדכון תכניות הלימוד בתחומי המדעים והטכנולוגיה, והשקעה בתשתיות חינוכיות. "החינוך הוא הבסיס לעתיד המדינה", ציין השר.',
         slug: 'education-reform-teachers-curriculum',
         status: 'published',
         isHero: true,
@@ -181,7 +241,8 @@ async function seed() {
       {
         title: 'פרויקט תשתיות לאומי: כביש מהיר חדש יקשר בין צפון לדרום',
         subtitle: 'הפרויקט צפוי להפחית את זמני הנסיעה ב-30%',
-        content: 'שרת התחבורה מירי רגב הכריזה היום על פרויקט תשתיות לאומי חדש לסלילת כביש מהיר שיקשר בין צפון הארץ לדרומה. הפרויקט, בהשקעה של מיליארדי שקלים, צפוי להפחית את זמני הנסיעה ב-30% ולהניע פיתוח כלכלי באזורי הפריפריה.',
+        content:
+          'שרת התחבורה מירי רגב הכריזה היום על פרויקט תשתיות לאומי חדש לסלילת כביש מהיר שיקשר בין צפון הארץ לדרומה. הפרויקט, בהשקעה של מיליארדי שקלים, צפוי להפחית את זמני הנסיעה ב-30% ולהניע פיתוח כלכלי באזורי הפריפריה.',
         slug: 'national-highway-project-north-south',
         status: 'published',
         isHero: false,
@@ -192,7 +253,8 @@ async function seed() {
       {
         title: 'מערכת הבריאות: תכנית חדשה להרחבת שירותי הרפואה בפריפריה',
         subtitle: 'הקמת מרכזים רפואיים חדשים בנגב ובגליל',
-        content: 'שר הבריאות יולי אדלשטיין הציג היום תכנית מקיפה להרחבת שירותי הבריאות בפריפריה. התכנית כוללת הקמת מרכזים רפואיים חדשים, גיוס רופאים מומחים ושדרוג הציוד הרפואי בבתי החולים הקיימים. "כל אזרח בישראל זכאי לשירותי בריאות ברמה הגבוהה ביותר", אמר השר.',
+        content:
+          'שר הבריאות יולי אדלשטיין הציג היום תכנית מקיפה להרחבת שירותי הבריאות בפריפריה. התכנית כוללת הקמת מרכזים רפואיים חדשים, גיוס רופאים מומחים ושדרוג הציוד הרפואי בבתי החולים הקיימים. "כל אזרח בישראל זכאי לשירותי בריאות ברמה הגבוהה ביותר", אמר השר.',
         slug: 'health-services-expansion-periphery',
         status: 'published',
         isHero: false,
@@ -203,7 +265,8 @@ async function seed() {
       {
         title: 'נבחרת ישראל בכדורגל: ניצחון מרשים במשחק הוקדמה',
         subtitle: 'שער ניצחון בדקה ה-89 הקפיץ את האוהדים',
-        content: 'נבחרת ישראל בכדורגל ניצחה הערב במשחק מוקדמות בתוצאה מרשימה. שער הניצחון נקלע בדקה ה-89 של המשחק, מה שהקפיץ את עשרות אלפי האוהדים ביציעים. מאמן הנבחרת ציין כי הקבוצה הראתה רוח לחימה ונחישות.',
+        content:
+          'נבחרת ישראל בכדורגל ניצחה הערב במשחק מוקדמות בתוצאה מרשימה. שער הניצחון נקלע בדקה ה-89 של המשחק, מה שהקפיץ את עשרות אלפי האוהדים ביציעים. מאמן הנבחרת ציין כי הקבוצה הראתה רוח לחימה ונחישות.',
         slug: 'israel-football-impressive-victory',
         status: 'published',
         isHero: false,
@@ -214,7 +277,8 @@ async function seed() {
       {
         title: 'פסטיבל תרבות ישראלי בינלאומי ייערך בירושלים',
         subtitle: 'אמנים מ-30 מדינות ישתתפו בפסטיבל',
-        content: 'עיריית ירושלים הכריזה היום על קיום פסטיבל תרבות בינלאומי גדול שייערך בבירה. הפסטיבל יכלול הופעות מוזיקה, תיאטרון, ריקוד ואמנות חזותית, עם השתתפות אמנים מ-30 מדינות שונות. "ירושלים היא בירת התרבות של ישראל", ציינה ראש העירייה.',
+        content:
+          'עיריית ירושלים הכריזה היום על קיום פסטיבל תרבות בינלאומי גדול שייערך בבירה. הפסטיבל יכלול הופעות מוזיקה, תיאטרון, ריקוד ואמנות חזותית, עם השתתפות אמנים מ-30 מדינות שונות. "ירושלים היא בירת התרבות של ישראל", ציינה ראש העירייה.',
         slug: 'international-culture-festival-jerusalem',
         status: 'published',
         isHero: false,
@@ -225,7 +289,8 @@ async function seed() {
       {
         title: 'טיוטת חוק חדש: הגנה על זכויות עובדי ההייטק',
         subtitle: 'הצעת החוק תידון בוועדת הכלכלה של הכנסת',
-        content: 'חברי כנסת מהליכוד הגישו היום הצעת חוק חדשה שמטרתה להגן על זכויות עובדי ההייטק בישראל. הצעת החוק כוללת הסדרת תנאי עבודה, הגנה על אופציות עובדים ומנגנוני פיצוי במקרה של פיטורים. הצעת החוק צפויה להידון בוועדת הכלכלה של הכנסת בשבועות הקרובים.',
+        content:
+          'חברי כנסת מהליכוד הגישו היום הצעת חוק חדשה שמטרתה להגן על זכויות עובדי ההייטק בישראל. הצעת החוק כוללת הסדרת תנאי עבודה, הגנה על אופציות עובדים ומנגנוני פיצוי במקרה של פיטורים. הצעת החוק צפויה להידון בוועדת הכלכלה של הכנסת בשבועות הקרובים.',
         slug: 'new-bill-hightech-workers-rights',
         status: 'draft',
         isHero: false,
@@ -237,7 +302,7 @@ async function seed() {
 
     const articleIds: string[] = [];
     for (const article of articles) {
-      const result = await queryRunner.query(
+      const result = (await queryRunner.query(
         `INSERT INTO "articles" (
           "id", "title", "subtitle", "content", "slug", "status",
           "isHero", "isBreaking", "categoryId", "publishedAt", "viewCount"
@@ -259,7 +324,7 @@ async function seed() {
           article.publishedAt,
           Math.floor(Math.random() * 5000),
         ],
-      );
+      )) as { id: string }[];
       articleIds.push(result[0].id);
       console.log(`  -> Created article: ${article.slug}`);
     }
@@ -284,7 +349,9 @@ async function seed() {
         [articleIds[link.articleIdx], memberIds[link.memberIdx]],
       );
     }
-    console.log(`  -> Linked ${articleMemberLinks.length} article-member relations`);
+    console.log(
+      `  -> Linked ${articleMemberLinks.length} article-member relations`,
+    );
 
     // ─── 6. Seed Ticker Items ─────────────────────────────────────────
     console.log('Seeding ticker items...');
@@ -320,7 +387,11 @@ async function seed() {
       await queryRunner.query(
         `INSERT INTO "ticker_items" ("id", "text", "articleId", "position", "isActive")
          VALUES (uuid_generate_v4(), $1, $2, $3, true)`,
-        [item.text, item.articleIdx !== null ? articleIds[item.articleIdx] : null, item.position],
+        [
+          item.text,
+          item.articleIdx !== null ? articleIds[item.articleIdx] : null,
+          item.position,
+        ],
       );
       console.log(`  -> Created ticker item: ${item.text.substring(0, 50)}...`);
     }
@@ -338,4 +409,4 @@ async function seed() {
   }
 }
 
-seed();
+void seed();

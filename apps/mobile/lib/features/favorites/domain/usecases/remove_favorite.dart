@@ -25,7 +25,7 @@ class RemoveFavorite implements UseCase<void, RemoveFavoriteParams> {
 /// Parameters for the [RemoveFavorite] use case.
 class RemoveFavoriteParams extends Equatable {
   final String deviceId;
-  final int articleId;
+  final String articleId;
 
   const RemoveFavoriteParams({
     required this.deviceId,

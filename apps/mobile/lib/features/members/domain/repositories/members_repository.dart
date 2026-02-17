@@ -12,5 +12,5 @@ abstract class MembersRepository {
   Future<Either<Failure, List<Member>>> getMembers();
 
   /// Fetches a single member's full profile with related articles.
-  Future<Either<Failure, MemberDetail>> getMemberDetail(int id);
+  Future<Either<Failure, MemberDetail>> getMemberDetail(String id);
 }

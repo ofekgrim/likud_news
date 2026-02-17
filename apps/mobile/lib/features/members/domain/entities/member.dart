@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Immutable member entity used throughout the domain and presentation layers.
 class Member extends Equatable {
-  final int id;
+  final String id;
   final String name;
   final String? nameEn;
   final String? title;

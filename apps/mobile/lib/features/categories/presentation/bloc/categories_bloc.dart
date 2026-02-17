@@ -31,10 +31,7 @@ class LoadCategoryArticles extends CategoriesEvent {
   final String slug;
   final int page;
 
-  const LoadCategoryArticles({
-    required this.slug,
-    this.page = 1,
-  });
+  const LoadCategoryArticles({required this.slug, this.page = 1});
 
   @override
   List<Object?> get props => [slug, page];
@@ -141,10 +138,8 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
   /// [CategoryArticlesLoaded.hasMore] is set to false.
   static const int _pageSize = 20;
 
-  CategoriesBloc(
-    this._getCategories,
-    this._getCategoryArticles,
-  ) : super(const CategoriesInitial()) {
+  CategoriesBloc(this._getCategories, this._getCategoryArticles)
+    : super(const CategoriesInitial()) {
     on<LoadCategories>(_onLoadCategories);
     on<LoadCategoryArticles>(_onLoadCategoryArticles);
     on<RefreshCategoryArticles>(_onRefreshCategoryArticles);
@@ -160,9 +155,11 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     final result = await _getCategories(const NoParams());
 
     result.fold(
-      (failure) => emit(CategoriesError(
-        message: failure.message ?? 'error_loading_categories'.tr(),
-      )),
+      (failure) => emit(
+        CategoriesError(
+          message: failure.message ?? 'error_loading_categories'.tr(),
+        ),
+      ),
       (categories) => emit(CategoriesLoaded(categories: categories)),
     );
   }
@@ -191,11 +188,13 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
           emit(currentState.copyWith(hasMore: false));
         },
         (newArticles) {
-          emit(currentState.copyWith(
-            articles: [...currentState.articles, ...newArticles],
-            currentPage: event.page,
-            hasMore: newArticles.length >= _pageSize,
-          ));
+          emit(
+            currentState.copyWith(
+              articles: [...currentState.articles, ...newArticles],
+              currentPage: event.page,
+              hasMore: newArticles.length >= _pageSize,
+            ),
+          );
         },
       );
       return;
@@ -207,34 +206,33 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     // First, load categories to find the selected one.
     final categoriesResult = await _getCategories(const NoParams());
     Category? selectedCategory;
-    categoriesResult.fold(
-      (_) {},
-      (categories) {
-        selectedCategory = categories.where((c) => c.slug == event.slug).firstOrNull;
-      },
-    );
+    categoriesResult.fold((_) {}, (categories) {
+      selectedCategory = categories
+          .where((c) => c.slug == event.slug)
+          .firstOrNull;
+    });
 
     // If category not found, create a placeholder from slug.
-    selectedCategory ??= Category(
-      id: 0,
-      name: event.slug,
-      slug: event.slug,
-    );
+    selectedCategory ??= Category(id: '0', name: event.slug, slug: event.slug);
 
     final result = await _getCategoryArticles(
       CategoryArticlesParams(slug: event.slug, page: 1),
     );
 
     result.fold(
-      (failure) => emit(CategoriesError(
-        message: failure.message ?? 'error_loading_category_articles'.tr(),
-      )),
-      (articles) => emit(CategoryArticlesLoaded(
-        category: selectedCategory!,
-        articles: articles,
-        hasMore: articles.length >= _pageSize,
-        currentPage: 1,
-      )),
+      (failure) => emit(
+        CategoriesError(
+          message: failure.message ?? 'error_loading_category_articles'.tr(),
+        ),
+      ),
+      (articles) => emit(
+        CategoryArticlesLoaded(
+          category: selectedCategory!,
+          articles: articles,
+          hasMore: articles.length >= _pageSize,
+          currentPage: 1,
+        ),
+      ),
     );
   }
 
@@ -253,22 +251,27 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
       (failure) {
         // On refresh failure, keep current state if available.
         if (currentState is! CategoryArticlesLoaded) {
-          emit(CategoriesError(
-            message: failure.message ?? 'error_refreshing_category_articles'.tr(),
-          ));
+          emit(
+            CategoriesError(
+              message:
+                  failure.message ?? 'error_refreshing_category_articles'.tr(),
+            ),
+          );
         }
       },
       (articles) {
         final category = currentState is CategoryArticlesLoaded
             ? currentState.category
-            : Category(id: 0, name: event.slug, slug: event.slug);
+            : Category(id: '0', name: event.slug, slug: event.slug);
 
-        emit(CategoryArticlesLoaded(
-          category: category,
-          articles: articles,
-          hasMore: articles.length >= _pageSize,
-          currentPage: 1,
-        ));
+        emit(
+          CategoryArticlesLoaded(
+            category: category,
+            articles: articles,
+            hasMore: articles.length >= _pageSize,
+            currentPage: 1,
+          ),
+        );
       },
     );
   }

@@ -22,7 +22,7 @@ abstract class FavoritesRepository {
   /// [articleId] is the ID of the article to remove.
   Future<Either<Failure, void>> removeFavorite({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   });
 
   /// Fetches a paginated list of the user's reading history.

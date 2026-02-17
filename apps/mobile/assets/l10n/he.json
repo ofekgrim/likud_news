@@ -158,5 +158,10 @@
   "notifications": "התראות",
   "app_version": "גרסת אפליקציה",
   "accessibility": "נגישות",
-  "dark_mode": "מצב כהה"
+  "dark_mode": "מצב כהה",
+
+  "notifications_permission_title": "התראות",
+  "notifications_permission_body": "אפשר התראות כדי לקבל מבזקים וחדשות בזמן אמת",
+  "notifications_enabled": "התראות מופעלות",
+  "notifications_disabled": "התראות כבויות"
 }

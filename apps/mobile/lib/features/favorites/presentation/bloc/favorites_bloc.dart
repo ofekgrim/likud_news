@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
+import '../../../../core/services/device_id_service.dart';
 import '../../../home/domain/entities/article.dart';
 import '../../domain/usecases/get_favorites.dart';
 import '../../domain/usecases/get_reading_history.dart';
@@ -32,7 +33,7 @@ final class LoadMoreFavorites extends FavoritesEvent {
 
 /// Removes an article from the favorites list.
 final class RemoveFavorite extends FavoritesEvent {
-  final int articleId;
+  final String articleId;
 
   const RemoveFavorite(this.articleId);
 
@@ -140,10 +141,10 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
   final GetFavorites _getFavorites;
   final use_case.RemoveFavorite _removeFavorite;
   final GetReadingHistory _getReadingHistory;
+  final DeviceIdService _deviceIdService;
 
-  /// Placeholder device identifier.
-  /// In production, this would be obtained via a UUID stored locally.
-  static const String _deviceId = 'device-placeholder';
+  /// Device identifier obtained from [DeviceIdService].
+  String get _deviceId => _deviceIdService.deviceId;
 
   /// Number of articles per page. When a page returns fewer items,
   /// [FavoritesLoaded.hasMore] is set to false.
@@ -153,6 +154,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     this._getFavorites,
     this._removeFavorite,
     this._getReadingHistory,
+    this._deviceIdService,
   ) : super(const FavoritesInitial()) {
     on<LoadFavorites>(_onLoadFavorites);
     on<LoadMoreFavorites>(_onLoadMoreFavorites);
@@ -170,7 +172,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     emit(const FavoritesLoading());
 
     final result = await _getFavorites(
-      const FavoritesParams(deviceId: _deviceId, page: 1),
+      FavoritesParams(deviceId: _deviceId, page: 1),
     );
 
     result.fold(
@@ -257,7 +259,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     emit(const FavoritesLoading());
 
     final result = await _getReadingHistory(
-      const HistoryParams(deviceId: _deviceId, page: 1),
+      HistoryParams(deviceId: _deviceId, page: 1),
     );
 
     result.fold(
@@ -281,7 +283,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     emit(const FavoritesLoading());
 
     final result = await _getReadingHistory(
-      const HistoryParams(deviceId: _deviceId, page: 1),
+      HistoryParams(deviceId: _deviceId, page: 1),
     );
 
     result.fold(

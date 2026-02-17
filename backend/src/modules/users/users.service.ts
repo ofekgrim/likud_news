@@ -56,7 +56,7 @@ export class UsersService {
 
     const savedUser = await this.usersRepository.save(user);
 
-    delete savedUser.passwordHash;
+    (savedUser as Partial<User>).passwordHash = undefined;
     return savedUser;
   }
 
@@ -86,7 +86,7 @@ export class UsersService {
 
     const savedUser = await this.usersRepository.save(user);
 
-    delete savedUser.passwordHash;
+    (savedUser as Partial<User>).passwordHash = undefined;
     return savedUser;
   }
 

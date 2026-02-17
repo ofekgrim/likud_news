@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Immutable category entity for story circles and article filtering.
 class Category extends Equatable {
-  final int id;
+  final String id;
   final String name;
   final String? nameEn;
   final String? slug;

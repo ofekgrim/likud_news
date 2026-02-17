@@ -79,9 +79,9 @@ class AccessibilityPage extends StatelessWidget {
             Center(
               child: Text(
                 'accessibility_updated_text'.tr(),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textTertiary,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
               ),
             ),
             const SizedBox(height: 24),
@@ -112,18 +112,18 @@ class AccessibilityPage extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.likudBlue,
-                  ),
+                fontWeight: FontWeight.w700,
+                color: AppColors.likudBlue,
+              ),
               textDirection: TextDirection.rtl,
             ),
             const SizedBox(height: 12),
             Text(
               content,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textPrimary,
-                    height: 1.6,
-                  ),
+                color: AppColors.textPrimary,
+                height: 1.6,
+              ),
               textDirection: TextDirection.rtl,
             ),
           ],

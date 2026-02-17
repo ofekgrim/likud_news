@@ -15,7 +15,11 @@ export class SearchQueryDto {
   @MinLength(2)
   q: string;
 
-  @ApiPropertyOptional({ description: 'Page number (1-based)', default: 1, minimum: 1 })
+  @ApiPropertyOptional({
+    description: 'Page number (1-based)',
+    default: 1,
+    minimum: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

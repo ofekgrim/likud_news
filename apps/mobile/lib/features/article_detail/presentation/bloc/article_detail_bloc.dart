@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/services/device_id_service.dart';
 import '../../domain/entities/article_detail.dart';
 import '../../domain/usecases/get_article_detail.dart';
 import '../../domain/usecases/record_read.dart';
@@ -100,15 +101,16 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
   final GetArticleDetail _getArticleDetail;
   final ToggleFavorite _toggleFavorite;
   final RecordRead _recordRead;
+  final DeviceIdService _deviceIdService;
 
-  /// Device identifier used for favorites and read-tracking.
-  /// Should be injected or set before dispatching events.
-  String deviceId = '';
+  /// Device identifier obtained from [DeviceIdService].
+  String get _deviceId => _deviceIdService.deviceId;
 
   ArticleDetailBloc(
     this._getArticleDetail,
     this._toggleFavorite,
     this._recordRead,
+    this._deviceIdService,
   ) : super(const ArticleDetailInitial()) {
     on<LoadArticleDetail>(_onLoadArticleDetail);
     on<ToggleFavoriteEvent>(_onToggleFavorite);
@@ -136,9 +138,9 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
         ));
 
         // Fire-and-forget: record the read event.
-        if (deviceId.isNotEmpty) {
+        if (_deviceId.isNotEmpty) {
           _recordRead(RecordReadParams(
-            deviceId: deviceId,
+            deviceId: _deviceId,
             articleId: article.id,
           ));
         }
@@ -152,7 +154,7 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
   ) async {
     final currentState = state;
     if (currentState is! ArticleDetailLoaded) return;
-    if (deviceId.isEmpty) return;
+    if (_deviceId.isEmpty) return;
 
     // Optimistic update
     emit(ArticleDetailLoaded(
@@ -161,7 +163,7 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
     ));
 
     final result = await _toggleFavorite(ToggleFavoriteParams(
-      deviceId: deviceId,
+      deviceId: _deviceId,
       articleId: currentState.article.id,
     ));
 

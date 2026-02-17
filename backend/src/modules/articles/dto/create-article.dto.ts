@@ -19,7 +19,10 @@ export class CreateArticleDto {
   @MaxLength(500)
   title: string;
 
-  @ApiPropertyOptional({ description: 'Article title (English)', maxLength: 500 })
+  @ApiPropertyOptional({
+    description: 'Article title (English)',
+    maxLength: 500,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(500)
@@ -78,17 +81,26 @@ export class CreateArticleDto {
   @IsEnum(ArticleStatus)
   status?: ArticleStatus;
 
-  @ApiPropertyOptional({ description: 'Whether this is the hero article', default: false })
+  @ApiPropertyOptional({
+    description: 'Whether this is the hero article',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   isHero?: boolean;
 
-  @ApiPropertyOptional({ description: 'Whether this is breaking news', default: false })
+  @ApiPropertyOptional({
+    description: 'Whether this is breaking news',
+    default: false,
+  })
   @IsOptional()
   @IsBoolean()
   isBreaking?: boolean;
 
-  @ApiProperty({ description: 'URL-friendly slug (must be unique)', maxLength: 500 })
+  @ApiProperty({
+    description: 'URL-friendly slug (must be unique)',
+    maxLength: 500,
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(500)

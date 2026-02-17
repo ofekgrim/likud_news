@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Immutable article entity used throughout the domain and presentation layers.
 class Article extends Equatable {
-  final int id;
+  final String id;
   final String title;
   final String? titleEn;
   final String? subtitle;
@@ -16,7 +16,7 @@ class Article extends Equatable {
   final int viewCount;
   final String? slug;
   final DateTime? publishedAt;
-  final int? categoryId;
+  final String? categoryId;
   final String? categoryName;
   final String? categoryColor;
 

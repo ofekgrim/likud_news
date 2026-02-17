@@ -3,3 +3,89 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ── Base layer ── */
+@layer base {
+  body {
+    @apply bg-gray-50 font-heebo text-gray-900 antialiased;
+  }
+
+  /* Accent color for native checkboxes & radios */
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: #0099DB;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+}
+
+/* ── TipTap / ProseMirror editor styles ── */
+.ProseMirror {
+  @apply min-h-[300px] p-4 text-right outline-none;
+  direction: rtl;
+}
+
+.ProseMirror p {
+  @apply mb-3 leading-7;
+}
+
+.ProseMirror h1 {
+  @apply text-2xl font-bold mb-4 mt-6;
+}
+
+.ProseMirror h2 {
+  @apply text-xl font-bold mb-3 mt-5;
+}
+
+.ProseMirror h3 {
+  @apply text-lg font-semibold mb-2 mt-4;
+}
+
+.ProseMirror ul {
+  @apply list-disc pr-6 mb-3;
+}
+
+.ProseMirror ol {
+  @apply list-decimal pr-6 mb-3;
+}
+
+.ProseMirror li {
+  @apply mb-1;
+}
+
+.ProseMirror blockquote {
+  @apply border-r-4 border-gray-300 pr-4 text-gray-600 italic my-4;
+}
+
+.ProseMirror a {
+  @apply text-[#0099DB] underline;
+}
+
+.ProseMirror img {
+  @apply max-w-full rounded-lg my-4;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-gray-400 pointer-events-none float-right h-0;
+  content: attr(data-placeholder);
+}
+
+/* ── Utility classes ── */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}

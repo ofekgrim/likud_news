@@ -21,7 +21,7 @@ export class ContactService {
     limit: number = 20,
     isRead?: boolean,
   ): Promise<{ data: ContactMessage[]; total: number }> {
-    const where: any = {};
+    const where: { isRead?: boolean } = {};
     if (isRead !== undefined) {
       where.isRead = isRead;
     }

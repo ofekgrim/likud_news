@@ -3,10 +3,10 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-export const AppDataSource = new DataSource({
+const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DATABASE_HOST || 'localhost',
-  port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+  port: parseInt(process.env.DATABASE_PORT ?? '5432', 10),
   database: process.env.DATABASE_NAME || 'likud_news',
   username: process.env.DATABASE_USER || 'likud',
   password: process.env.DATABASE_PASSWORD || 'likud_dev',
@@ -17,4 +17,4 @@ export const AppDataSource = new DataSource({
   logging: process.env.DATABASE_LOGGING === 'true',
 });
 
-export default AppDataSource;
+export { AppDataSource };

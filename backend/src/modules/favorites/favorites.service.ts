@@ -11,7 +11,9 @@ export class FavoritesService {
     private readonly favoriteRepository: Repository<UserFavorite>,
   ) {}
 
-  async addFavorite(createFavoriteDto: CreateFavoriteDto): Promise<UserFavorite> {
+  async addFavorite(
+    createFavoriteDto: CreateFavoriteDto,
+  ): Promise<UserFavorite> {
     const existing = await this.favoriteRepository.findOne({
       where: {
         deviceId: createFavoriteDto.deviceId,

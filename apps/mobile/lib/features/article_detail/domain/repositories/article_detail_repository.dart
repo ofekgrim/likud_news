@@ -18,12 +18,12 @@ abstract class ArticleDetailRepository {
   /// Returns the new favorite status (`true` = favorited).
   Future<Either<Failure, bool>> toggleFavorite({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   });
 
   /// Records that the user read the given article.
   Future<Either<Failure, void>> recordRead({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   });
 }

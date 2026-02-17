@@ -38,7 +38,7 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
   @override
   Future<Either<Failure, void>> removeFavorite({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   }) async {
     try {
       await _remoteDataSource.removeFavorite(

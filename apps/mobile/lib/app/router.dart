@@ -129,7 +129,7 @@ class AppRouter {
         builder: (context, state) => BlocProvider(
           create: (_) => getIt<MembersBloc>(),
           child: MemberDetailPage(
-            memberId: int.parse(state.pathParameters['id']!),
+            memberId: state.pathParameters['id']!,
           ),
         ),
       ),

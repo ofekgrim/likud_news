@@ -41,7 +41,9 @@ export class MediaController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Confirm a completed upload and create media record' })
+  @ApiOperation({
+    summary: 'Confirm a completed upload and create media record',
+  })
   confirmUpload(@Body() confirmUploadDto: ConfirmUploadDto) {
     return this.mediaService.confirmUpload(confirmUploadDto);
   }
@@ -53,10 +55,7 @@ export class MediaController {
   @ApiOperation({ summary: 'Get all media with pagination' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  findAll(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20,
-  ) {
+  findAll(@Query('page') page: number = 1, @Query('limit') limit: number = 20) {
     return this.mediaService.findAll(+page, +limit);
   }
 

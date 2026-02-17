@@ -22,7 +22,7 @@ class GetMemberDetail implements UseCase<MemberDetail, MemberDetailParams> {
 
 /// Parameters for the [GetMemberDetail] use case.
 class MemberDetailParams extends Equatable {
-  final int id;
+  final String id;
 
   const MemberDetailParams({required this.id});
 

@@ -29,7 +29,7 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
   @override
   Future<Either<Failure, bool>> toggleFavorite({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   }) async {
     try {
       final isFavorite = await _remoteDataSource.toggleFavorite(
@@ -45,7 +45,7 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
   @override
   Future<Either<Failure, void>> recordRead({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   }) async {
     try {
       await _remoteDataSource.recordRead(

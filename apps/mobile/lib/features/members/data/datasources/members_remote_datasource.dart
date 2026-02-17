@@ -15,12 +15,12 @@ abstract class MembersRemoteDataSource {
   /// Fetches a single member's detail with related articles.
   ///
   /// Throws a [DioException] on failure.
-  Future<MemberModel> getMemberDetail(int id);
+  Future<MemberModel> getMemberDetail(String id);
 
   /// Fetches articles related to a specific member.
   ///
   /// Throws a [DioException] on failure.
-  Future<List<ArticleModel>> getMemberArticles(int id);
+  Future<List<ArticleModel>> getMemberArticles(String id);
 }
 
 /// Implementation of [MembersRemoteDataSource] using [ApiClient].
@@ -44,7 +44,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   }
 
   @override
-  Future<MemberModel> getMemberDetail(int id) async {
+  Future<MemberModel> getMemberDetail(String id) async {
     final response = await _apiClient.get('${ApiConstants.members}/$id');
     final data = response.data as Map<String, dynamic>;
     final memberJson =
@@ -53,7 +53,7 @@ class MembersRemoteDataSourceImpl implements MembersRemoteDataSource {
   }
 
   @override
-  Future<List<ArticleModel>> getMemberArticles(int id) async {
+  Future<List<ArticleModel>> getMemberArticles(String id) async {
     final response = await _apiClient.get(
       '${ApiConstants.members}/$id/articles',
     );

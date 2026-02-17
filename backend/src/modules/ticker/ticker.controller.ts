@@ -19,7 +19,9 @@ export class TickerController {
   constructor(private readonly tickerService: TickerService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all active ticker items (non-expired, ordered by position)' })
+  @ApiOperation({
+    summary: 'Get all active ticker items (non-expired, ordered by position)',
+  })
   findActive() {
     return this.tickerService.findActive();
   }

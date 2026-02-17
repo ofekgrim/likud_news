@@ -19,7 +19,7 @@ abstract class FavoritesRemoteDataSource {
   /// Throws a [DioException] on failure.
   Future<void> removeFavorite({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   });
 
   /// Fetches a paginated list of reading history articles from the API.
@@ -64,7 +64,7 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
   @override
   Future<void> removeFavorite({
     required String deviceId,
-    required int articleId,
+    required String articleId,
   }) async {
     await _apiClient.delete(
       '${ApiConstants.favorites}/$articleId?deviceId=$deviceId',

@@ -2,10 +2,10 @@ import 'package:equatable/equatable.dart';
 
 /// Immutable ticker item entity for the breaking-news marquee bar.
 class TickerItem extends Equatable {
-  final int id;
+  final String id;
   final String text;
   final String? linkUrl;
-  final int? articleId;
+  final String? articleId;
   final int position;
   final bool isActive;
 

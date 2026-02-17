@@ -14,18 +14,29 @@ async function bootstrap() {
   const apiPrefix = config.get<string>('apiPrefix', 'api/v1');
   app.setGlobalPrefix(apiPrefix);
 
-  // Security
-  app.use(helmet());
-  app.use(compression());
+  // CORS (must be before helmet)
+  const nodeEnv = config.get<string>('nodeEnv', 'development');
+  if (nodeEnv === 'development') {
+    app.enableCors({
+      origin: true,
+      credentials: true,
+    });
+  } else {
+    const corsOrigins = config.get<string[]>('cors.origins', [
+      'http://localhost:3001',
+      'http://localhost:6001',
+    ]);
+    app.enableCors({
+      origin: corsOrigins,
+      credentials: true,
+    });
+  }
 
-  // CORS
-  const corsOrigins = config.get<string[]>('cors.origins', [
-    'http://localhost:3001',
-  ]);
-  app.enableCors({
-    origin: corsOrigins,
-    credentials: true,
-  });
+  // Security
+  app.use(helmet({
+    crossOriginResourcePolicy: false,
+  }));
+  app.use(compression());
 
   // Validation
   app.useGlobalPipes(
@@ -53,8 +64,6 @@ async function bootstrap() {
   const port = config.get<number>('port', 3000);
   await app.listen(port);
   console.log(`Server running on http://localhost:${port}/${apiPrefix}`);
-  console.log(
-    `Swagger docs at http://localhost:${port}/${apiPrefix}/docs`,
-  );
+  console.log(`Swagger docs at http://localhost:${port}/${apiPrefix}/docs`);
 }
-bootstrap();
+void bootstrap();
