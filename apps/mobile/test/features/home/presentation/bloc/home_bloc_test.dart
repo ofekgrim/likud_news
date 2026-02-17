@@ -37,24 +37,24 @@ void main() {
   // -------------------------------------------------------------------------
 
   const tHeroArticle = Article(
-    id: 1,
+    id: '1',
     title: 'Hero Article',
     isHero: true,
   );
 
   const tArticles = [
-    Article(id: 2, title: 'Feed Article 1'),
-    Article(id: 3, title: 'Feed Article 2'),
+    Article(id: '2', title: 'Feed Article 1'),
+    Article(id: '3', title: 'Feed Article 2'),
   ];
 
   const tTickerItems = [
-    TickerItem(id: 1, text: 'Breaking news'),
-    TickerItem(id: 2, text: 'Ticker item 2'),
+    TickerItem(id: '1', text: 'Breaking news'),
+    TickerItem(id: '2', text: 'Ticker item 2'),
   ];
 
   const tCategories = [
-    Category(id: 1, name: 'Politics'),
-    Category(id: 2, name: 'Economy'),
+    Category(id: '1', name: 'Politics'),
+    Category(id: '2', name: 'Economy'),
   ];
 
   const tServerFailure = ServerFailure(message: 'Server error');
@@ -200,8 +200,8 @@ void main() {
 
     group('LoadMoreArticles', () {
       const tNewArticles = [
-        Article(id: 4, title: 'New Article 1'),
-        Article(id: 5, title: 'New Article 2'),
+        Article(id: '4', title: 'New Article 1'),
+        Article(id: '5', title: 'New Article 2'),
       ];
 
       blocTest<HomeBloc, HomeState>(
@@ -242,7 +242,7 @@ void main() {
         build: () {
           // Return fewer than _pageSize (20) articles
           const fewArticles = [
-            Article(id: 10, title: 'Only One'),
+            Article(id: '10', title: 'Only One'),
           ];
           when(() => mockGetFeedArticles(any()))
               .thenAnswer((_) async => const Right(fewArticles));
@@ -268,7 +268,7 @@ void main() {
           // Return exactly 20 articles
           final fullPage = List.generate(
             20,
-            (i) => Article(id: 100 + i, title: 'Article $i'),
+            (i) => Article(id: '${100 + i}', title: 'Article $i'),
           );
           when(() => mockGetFeedArticles(any()))
               .thenAnswer((_) async => Right(fullPage));
@@ -323,22 +323,22 @@ void main() {
 
     group('RefreshFeed', () {
       const tRefreshedHero = Article(
-        id: 99,
+        id: '99',
         title: 'Refreshed Hero',
         isHero: true,
       );
 
       const tRefreshedArticles = [
-        Article(id: 100, title: 'Refreshed Article 1'),
-        Article(id: 101, title: 'Refreshed Article 2'),
+        Article(id: '100', title: 'Refreshed Article 1'),
+        Article(id: '101', title: 'Refreshed Article 2'),
       ];
 
       const tRefreshedTicker = [
-        TickerItem(id: 10, text: 'New ticker'),
+        TickerItem(id: '10', text: 'New ticker'),
       ];
 
       const tRefreshedCategories = [
-        Category(id: 10, name: 'New Category'),
+        Category(id: '10', name: 'New Category'),
       ];
 
       blocTest<HomeBloc, HomeState>(

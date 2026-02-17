@@ -14,8 +14,8 @@ void main() {
       });
 
       test('two categories with different id should not be equal', () {
-        final category1 = createTestCategory(id: 1);
-        final category2 = createTestCategory(id: 2);
+        final category1 = createTestCategory(id: '1');
+        final category2 = createTestCategory(id: '2');
 
         expect(category1, isNot(equals(category2)));
       });
@@ -38,7 +38,7 @@ void main() {
     group('props', () {
       test('props list should contain all fields', () {
         const category = Category(
-          id: 3,
+          id: '3',
           name: 'Politics',
           nameEn: 'Politics EN',
           slug: 'politics',
@@ -49,7 +49,7 @@ void main() {
         );
 
         expect(category.props, [
-          3,
+          '3',
           'Politics',
           'Politics EN',
           'politics',
@@ -63,19 +63,19 @@ void main() {
 
     group('default values', () {
       test('sortOrder should default to 0', () {
-        const category = Category(id: 1, name: 'Test');
+        const category = Category(id: '1', name: 'Test');
 
         expect(category.sortOrder, equals(0));
       });
 
       test('isActive should default to true', () {
-        const category = Category(id: 1, name: 'Test');
+        const category = Category(id: '1', name: 'Test');
 
         expect(category.isActive, isTrue);
       });
 
       test('nullable fields should default to null', () {
-        const category = Category(id: 1, name: 'Test');
+        const category = Category(id: '1', name: 'Test');
 
         expect(category.nameEn, isNull);
         expect(category.slug, isNull);

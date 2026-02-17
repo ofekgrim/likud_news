@@ -14,8 +14,8 @@ void main() {
       });
 
       test('two ticker items with different id should not be equal', () {
-        final ticker1 = createTestTickerItem(id: 1);
-        final ticker2 = createTestTickerItem(id: 2);
+        final ticker1 = createTestTickerItem(id: '1');
+        final ticker2 = createTestTickerItem(id: '2');
 
         expect(ticker1, isNot(equals(ticker2)));
       });
@@ -45,19 +45,19 @@ void main() {
     group('props', () {
       test('props list should contain all fields', () {
         const ticker = TickerItem(
-          id: 7,
+          id: '7',
           text: 'Major headline',
           linkUrl: 'https://example.com/news',
-          articleId: 42,
+          articleId: '42',
           position: 3,
           isActive: true,
         );
 
         expect(ticker.props, [
-          7,
+          '7',
           'Major headline',
           'https://example.com/news',
-          42,
+          '42',
           3,
           true,
         ]);
@@ -66,19 +66,19 @@ void main() {
 
     group('default values', () {
       test('position should default to 0', () {
-        const ticker = TickerItem(id: 1, text: 'Test');
+        const ticker = TickerItem(id: '1', text: 'Test');
 
         expect(ticker.position, equals(0));
       });
 
       test('isActive should default to true', () {
-        const ticker = TickerItem(id: 1, text: 'Test');
+        const ticker = TickerItem(id: '1', text: 'Test');
 
         expect(ticker.isActive, isTrue);
       });
 
       test('nullable fields should default to null', () {
-        const ticker = TickerItem(id: 1, text: 'Test');
+        const ticker = TickerItem(id: '1', text: 'Test');
 
         expect(ticker.linkUrl, isNull);
         expect(ticker.articleId, isNull);

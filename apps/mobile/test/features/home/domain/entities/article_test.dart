@@ -14,8 +14,8 @@ void main() {
       });
 
       test('two articles with different id should not be equal', () {
-        final article1 = createTestArticle(id: 1);
-        final article2 = createTestArticle(id: 2);
+        final article1 = createTestArticle(id: '1');
+        final article2 = createTestArticle(id: '2');
 
         expect(article1, isNot(equals(article2)));
       });
@@ -46,7 +46,7 @@ void main() {
       test('props list should contain all fields', () {
         final publishedAt = DateTime(2024, 1, 15, 10, 30);
         final article = Article(
-          id: 1,
+          id: '1',
           title: 'Title',
           titleEn: 'Title EN',
           subtitle: 'Subtitle',
@@ -60,13 +60,13 @@ void main() {
           viewCount: 42,
           slug: 'title-slug',
           publishedAt: publishedAt,
-          categoryId: 5,
+          categoryId: '5',
           categoryName: 'Politics',
           categoryColor: '#FF0000',
         );
 
         expect(article.props, [
-          1,
+          '1',
           'Title',
           'Title EN',
           'Subtitle',
@@ -80,7 +80,7 @@ void main() {
           42,
           'title-slug',
           publishedAt,
-          5,
+          '5',
           'Politics',
           '#FF0000',
         ]);
@@ -89,32 +89,32 @@ void main() {
 
     group('default values', () {
       test('hashtags should default to an empty list', () {
-        const article = Article(id: 1, title: 'Test');
+        const article = Article(id: '1', title: 'Test');
 
         expect(article.hashtags, isEmpty);
         expect(article.hashtags, isA<List<String>>());
       });
 
       test('isHero should default to false', () {
-        const article = Article(id: 1, title: 'Test');
+        const article = Article(id: '1', title: 'Test');
 
         expect(article.isHero, isFalse);
       });
 
       test('isBreaking should default to false', () {
-        const article = Article(id: 1, title: 'Test');
+        const article = Article(id: '1', title: 'Test');
 
         expect(article.isBreaking, isFalse);
       });
 
       test('viewCount should default to 0', () {
-        const article = Article(id: 1, title: 'Test');
+        const article = Article(id: '1', title: 'Test');
 
         expect(article.viewCount, equals(0));
       });
 
       test('nullable fields should default to null', () {
-        const article = Article(id: 1, title: 'Test');
+        const article = Article(id: '1', title: 'Test');
 
         expect(article.titleEn, isNull);
         expect(article.subtitle, isNull);

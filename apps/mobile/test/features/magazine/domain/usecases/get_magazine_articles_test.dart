@@ -3,49 +3,49 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:metzudat_halikud/core/errors/failures.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/article.dart';
-import 'package:metzudat_halikud/features/home/domain/repositories/home_repository.dart';
-import 'package:metzudat_halikud/features/home/domain/usecases/get_feed_articles.dart';
+import 'package:metzudat_halikud/features/magazine/domain/repositories/magazine_repository.dart';
+import 'package:metzudat_halikud/features/magazine/domain/usecases/get_magazine_articles.dart';
 
-class MockHomeRepository extends Mock implements HomeRepository {}
+class MockMagazineRepository extends Mock implements MagazineRepository {}
 
 void main() {
-  late GetFeedArticles useCase;
-  late MockHomeRepository mockRepository;
+  late GetMagazineArticles useCase;
+  late MockMagazineRepository mockRepository;
 
   setUp(() {
-    mockRepository = MockHomeRepository();
-    useCase = GetFeedArticles(mockRepository);
+    mockRepository = MockMagazineRepository();
+    useCase = GetMagazineArticles(mockRepository);
   });
 
   const tArticles = [
-    Article(id: '1', title: 'Article 1'),
-    Article(id: '2', title: 'Article 2'),
-    Article(id: '3', title: 'Article 3'),
+    Article(id: '1', title: 'Art 1'),
+    Article(id: '2', title: 'Art 2'),
   ];
 
   const tServerFailure = ServerFailure(message: 'Server error');
 
-  group('GetFeedArticles', () {
-    test('should delegate to repository.getFeedArticles(page: 1)', () async {
+  group('GetMagazineArticles', () {
+    test('should delegate to repository.getMagazineArticles(page: 1)',
+        () async {
       // arrange
-      when(() => mockRepository.getFeedArticles(page: 1))
+      when(() => mockRepository.getMagazineArticles(page: 1))
           .thenAnswer((_) async => const Right(tArticles));
 
       // act
-      await useCase(const FeedParams(page: 1));
+      await useCase(const MagazineParams(page: 1));
 
       // assert
-      verify(() => mockRepository.getFeedArticles(page: 1)).called(1);
+      verify(() => mockRepository.getMagazineArticles(page: 1)).called(1);
       verifyNoMoreInteractions(mockRepository);
     });
 
     test('should return Right(List<Article>) on success', () async {
       // arrange
-      when(() => mockRepository.getFeedArticles(page: 1))
+      when(() => mockRepository.getMagazineArticles(page: 1))
           .thenAnswer((_) async => const Right(tArticles));
 
       // act
-      final result = await useCase(const FeedParams(page: 1));
+      final result = await useCase(const MagazineParams(page: 1));
 
       // assert
       expect(result, const Right(tArticles));
@@ -53,11 +53,11 @@ void main() {
 
     test('should return Left(ServerFailure) on failure', () async {
       // arrange
-      when(() => mockRepository.getFeedArticles(page: 1))
+      when(() => mockRepository.getMagazineArticles(page: 1))
           .thenAnswer((_) async => const Left(tServerFailure));
 
       // act
-      final result = await useCase(const FeedParams(page: 1));
+      final result = await useCase(const MagazineParams(page: 1));
 
       // assert
       expect(result, const Left(tServerFailure));
@@ -65,22 +65,22 @@ void main() {
 
     test('should pass the correct page parameter', () async {
       // arrange
-      when(() => mockRepository.getFeedArticles(page: 5))
+      when(() => mockRepository.getMagazineArticles(page: 5))
           .thenAnswer((_) async => const Right(tArticles));
 
       // act
-      await useCase(const FeedParams(page: 5));
+      await useCase(const MagazineParams(page: 5));
 
       // assert
-      verify(() => mockRepository.getFeedArticles(page: 5)).called(1);
+      verify(() => mockRepository.getMagazineArticles(page: 5)).called(1);
     });
   });
 
-  group('FeedParams', () {
+  group('MagazineParams', () {
     test('should support value equality', () {
       // arrange
-      const params1 = FeedParams(page: 1);
-      const params2 = FeedParams(page: 1);
+      const params1 = MagazineParams(page: 1);
+      const params2 = MagazineParams(page: 1);
 
       // assert
       expect(params1, equals(params2));
@@ -88,8 +88,8 @@ void main() {
 
     test('should not be equal when page differs', () {
       // arrange
-      const params1 = FeedParams(page: 1);
-      const params2 = FeedParams(page: 2);
+      const params1 = MagazineParams(page: 1);
+      const params2 = MagazineParams(page: 2);
 
       // assert
       expect(params1, isNot(equals(params2)));
@@ -97,7 +97,7 @@ void main() {
 
     test('props should contain page', () {
       // arrange
-      const params = FeedParams(page: 3);
+      const params = MagazineParams(page: 3);
 
       // assert
       expect(params.props, [3]);

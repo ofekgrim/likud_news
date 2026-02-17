@@ -4,45 +4,40 @@ import 'package:mocktail/mocktail.dart';
 import 'package:metzudat_halikud/core/errors/failures.dart';
 import 'package:metzudat_halikud/core/usecases/usecase.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/article.dart';
-import 'package:metzudat_halikud/features/home/domain/repositories/home_repository.dart';
-import 'package:metzudat_halikud/features/home/domain/usecases/get_hero_article.dart';
+import 'package:metzudat_halikud/features/magazine/domain/repositories/magazine_repository.dart';
+import 'package:metzudat_halikud/features/magazine/domain/usecases/get_featured_article.dart';
 
-class MockHomeRepository extends Mock implements HomeRepository {}
+class MockMagazineRepository extends Mock implements MagazineRepository {}
 
 void main() {
-  late GetHeroArticle useCase;
-  late MockHomeRepository mockRepository;
+  late GetFeaturedArticle useCase;
+  late MockMagazineRepository mockRepository;
 
   setUp(() {
-    mockRepository = MockHomeRepository();
-    useCase = GetHeroArticle(mockRepository);
+    mockRepository = MockMagazineRepository();
+    useCase = GetFeaturedArticle(mockRepository);
   });
 
-  const tArticle = Article(
-    id: '1',
-    title: 'Test Hero Article',
-    isHero: true,
-  );
-
+  const tArticle = Article(id: '1', title: 'Featured Article');
   const tServerFailure = ServerFailure(message: 'Server error');
 
-  group('GetHeroArticle', () {
-    test('should delegate to repository.getHeroArticle()', () async {
+  group('GetFeaturedArticle', () {
+    test('should delegate to repository.getFeaturedArticle()', () async {
       // arrange
-      when(() => mockRepository.getHeroArticle())
+      when(() => mockRepository.getFeaturedArticle())
           .thenAnswer((_) async => const Right(tArticle));
 
       // act
       await useCase(const NoParams());
 
       // assert
-      verify(() => mockRepository.getHeroArticle()).called(1);
+      verify(() => mockRepository.getFeaturedArticle()).called(1);
       verifyNoMoreInteractions(mockRepository);
     });
 
     test('should return Right(Article) on success', () async {
       // arrange
-      when(() => mockRepository.getHeroArticle())
+      when(() => mockRepository.getFeaturedArticle())
           .thenAnswer((_) async => const Right(tArticle));
 
       // act
@@ -52,9 +47,22 @@ void main() {
       expect(result, const Right(tArticle));
     });
 
+    test('should return Right(null) when no featured article exists',
+        () async {
+      // arrange
+      when(() => mockRepository.getFeaturedArticle())
+          .thenAnswer((_) async => const Right(null));
+
+      // act
+      final result = await useCase(const NoParams());
+
+      // assert
+      expect(result, const Right(null));
+    });
+
     test('should return Left(ServerFailure) on failure', () async {
       // arrange
-      when(() => mockRepository.getHeroArticle())
+      when(() => mockRepository.getFeaturedArticle())
           .thenAnswer((_) async => const Left(tServerFailure));
 
       // act
