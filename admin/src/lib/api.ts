@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6000/api/v1';
 
 async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -33,34 +33,28 @@ export const api = {
 };
 
 export async function uploadFile(file: File): Promise<import('@/lib/types').MediaItem> {
-  const ext = file.name.split('.').pop() || '';
-  const typeMap: Record<string, string> = {
-    jpg: 'image', jpeg: 'image', png: 'image', gif: 'image', webp: 'image', svg: 'image',
-    mp4: 'video', webm: 'video', mov: 'video',
-    mp3: 'audio', wav: 'audio', ogg: 'audio',
-  };
-  const mediaType = typeMap[ext.toLowerCase()] || 'document';
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const formData = new FormData();
+  formData.append('file', file);
 
-  // 1. Get presigned URL
-  const presign = await api.post<import('@/lib/types').PresignResponse>('/media/presign', {
-    filename: file.name,
-    mimeType: file.type,
-    size: file.size,
+  const res = await fetch(`${API_BASE}/media/upload`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
   });
 
-  // 2. Upload directly to S3
-  await fetch(presign.uploadUrl, {
-    method: 'PUT',
-    body: file,
-    headers: { 'Content-Type': file.type },
-  });
-
-  // 3. Confirm upload
-  return api.post<import('@/lib/types').MediaItem>('/media/confirm', {
-    s3Key: presign.s3Key,
-    filename: file.name,
-    type: mediaType,
-    mimeType: file.type,
-    size: file.size,
-  });
+  if (res.status === 401) {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    throw new Error('Unauthorized');
+  }
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(error.message || 'Upload failed');
+  }
+  return res.json();
 }

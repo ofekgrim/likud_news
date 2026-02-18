@@ -41,7 +41,7 @@ jobs:
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             echo "Waiting for backend to be healthy..."
             sleep 15
-            curl -sf http://localhost:3000/api/v1/health || exit 1
+            curl -sf http://localhost:6000/api/v1/health || exit 1
             echo "Deployment successful!"
 
       - name: Health check
@@ -51,5 +51,5 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            curl -sf http://localhost:3000/api/v1/health
+            curl -sf http://localhost:6000/api/v1/health
             echo "Health check passed"

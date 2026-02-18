@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Image from 'next/image';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, uploadFile } from '@/lib/api';
 import type { MediaItem, PaginatedResponse } from '@/lib/types';
@@ -132,11 +131,10 @@ export default function MediaPage() {
               {/* Thumbnail */}
               <div className="aspect-square relative bg-gray-100">
                 {item.type === 'image' ? (
-                  <Image
+                  <img
                     src={item.url}
                     alt={item.altText || item.filename}
-                    fill
-                    className="object-cover"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full">

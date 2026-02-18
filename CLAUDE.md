@@ -146,7 +146,7 @@ make build-ios          # Build iOS IPA
 
 ## API Base URL
 
-- Development: `http://localhost:5000/api/v1`
+- Development: `http://localhost:6000/api/v1`
 - Staging: TBD
 - Production: TBD
 

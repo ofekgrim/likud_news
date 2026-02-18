@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import NextImage from 'next/image';
 import { Upload, X } from 'lucide-react';
 import { uploadFile } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,7 @@ export function ImagePicker({ value, onChange, label = 'תמונה', className }
       {value ? (
         <div className="relative inline-block group">
           <div className="relative w-[200px] h-[130px] rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-            <NextImage src={value} alt={label} fill className="object-cover" />
+            <img src={value} alt={label} className="w-full h-full object-cover" />
           </div>
           <button
             type="button"

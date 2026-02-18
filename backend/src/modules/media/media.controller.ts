@@ -7,13 +7,19 @@ import {
   Param,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   ParseUUIDPipe,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
   ApiQuery,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger';
 import { MediaService } from './media.service';
 import { PresignUploadDto } from './dto/presign-upload.dto';
@@ -27,6 +33,23 @@ import { UserRole } from '../users/entities/user.entity';
 @Controller('media')
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Upload a file directly (dev mode — no S3 needed)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    return this.mediaService.uploadLocal(file);
+  }
 
   @Post('presign')
   @UseGuards(JwtAuthGuard, RolesGuard)

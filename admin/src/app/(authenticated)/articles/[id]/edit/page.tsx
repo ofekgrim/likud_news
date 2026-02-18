@@ -23,7 +23,7 @@ export default function EditArticlePage() {
 
   const { data: article, isLoading } = useQuery({
     queryKey: ['article', articleId],
-    queryFn: () => api.get<Article>(`/articles/${articleId}`),
+    queryFn: () => api.get<Article>(`/articles/${articleId}/by-id`),
   });
 
   const { data: categories } = useQuery({

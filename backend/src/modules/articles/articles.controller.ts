@@ -74,6 +74,15 @@ export class ArticlesController {
     return this.articlesService.findMostRead(limit ? Number(limit) : 10);
   }
 
+  @Get(':id/by-id')
+  @ApiOperation({ summary: 'Get a single article by UUID' })
+  @ApiParam({ name: 'id', description: 'Article UUID' })
+  @ApiResponse({ status: 200, description: 'The article' })
+  @ApiResponse({ status: 404, description: 'Article not found' })
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.articlesService.findOne(id);
+  }
+
   @Get(':slug')
   @ApiOperation({
     summary: 'Get a single article by slug (increments view count)',

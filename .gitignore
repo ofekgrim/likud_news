@@ -116,6 +116,7 @@ pnpm-debug.log*
 # ------ NestJS / Backend ------
 backend/dist/
 backend/coverage/
+backend/uploads/
 backend/.env
 backend/.env.*
 !backend/.env.example

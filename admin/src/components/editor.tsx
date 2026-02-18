@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -43,6 +44,7 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ed
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         class: 'min-h-[300px] p-4 text-right focus:outline-none',
@@ -50,6 +52,17 @@ export function RichTextEditor({ content, onChange, placeholder, className }: Ed
       },
     },
   });
+
+  // Sync content from props when article loads asynchronously
+  useEffect(() => {
+    if (editor && content && !editor.isDestroyed) {
+      const currentHtml = editor.getHTML();
+      // Only update if content differs and isn't the default empty paragraph
+      if (currentHtml !== content && (currentHtml === '<p></p>' || currentHtml === '')) {
+        editor.commands.setContent(content);
+      }
+    }
+  }, [editor, content]);
 
   if (!editor) return null;
 
