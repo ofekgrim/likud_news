@@ -26,7 +26,7 @@ async function bootstrap() {
   } else {
     const corsOrigins = config.get<string[]>('cors.origins', [
       'http://localhost:3001',
-      'http://localhost:6001',
+      'http://localhost:3001',
     ]);
     app.enableCors({
       origin: corsOrigins,
@@ -68,7 +68,7 @@ async function bootstrap() {
   });
 
   // Start server
-  const port = config.get<number>('port', 6000);
+  const port = config.get<number>('port', 9090);
   await app.listen(port);
   console.log(`Server running on http://localhost:${port}/${apiPrefix}`);
   console.log(`Swagger docs at http://localhost:${port}/${apiPrefix}/docs`);

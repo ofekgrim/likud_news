@@ -4,6 +4,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/article_detail.dart';
 import '../utils/reading_time_calculator.dart';
+import 'full_image_dialog.dart';
 
 /// Hero image header with gradient overlay and title text.
 ///
@@ -18,8 +19,9 @@ class ArticleHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final readingMinutes =
-        ReadingTimeCalculator.calculateMinutes(article.content ?? '');
+    final readingMinutes = ReadingTimeCalculator.calculateMinutes(
+      article.content ?? '',
+    );
     const headerHeight = 360.0;
 
     return SizedBox(
@@ -28,14 +30,21 @@ class ArticleHeader extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Hero image
-          if (article.heroImageUrl != null &&
-              article.heroImageUrl!.isNotEmpty)
-            AppCachedImage(
-              imageUrl: article.heroImageUrl!,
-              width: double.infinity,
-              height: headerHeight,
-              fit: BoxFit.cover,
+          // Hero image (tap to view fullscreen)
+          if (article.heroImageUrl != null && article.heroImageUrl!.isNotEmpty)
+            GestureDetector(
+              onTap: () => FullImageDialog.show(
+                context,
+                imageUrl: article.heroImageFullUrl ?? article.heroImageUrl!,
+                credit: article.heroImageCredit,
+                caption: article.heroImageCaption,
+              ),
+              child: AppCachedImage(
+                imageUrl: article.heroImageUrl!,
+                width: double.infinity,
+                height: headerHeight,
+                fit: BoxFit.cover,
+              ),
             )
           else
             Container(color: AppColors.likudDarkBlue),
@@ -57,14 +66,40 @@ class ArticleHeader extends StatelessWidget {
             ),
           ),
 
+          // Hero image credit (bottom-right, above gradient)
+          if (article.heroImageCredit != null &&
+              article.heroImageCredit!.isNotEmpty)
+            Positioned(
+              bottom: MediaQuery.of(context).size.height * 0.18,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  article.heroImageCredit!,
+                  style: const TextStyle(
+                    fontFamily: 'Heebo',
+                    fontSize: 11,
+                    color: AppColors.white,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+            ),
+
           // Breaking badge
           if (article.isBreaking)
             Positioned(
               top: MediaQuery.of(context).padding.top + 56,
               right: 16,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.breakingRed,
                   borderRadius: BorderRadius.circular(4),
@@ -95,10 +130,11 @@ class ArticleHeader extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: _parseCategoryColor()
-                            .withValues(alpha: 0.85),
+                        color: _parseCategoryColor().withValues(alpha: 0.85),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(

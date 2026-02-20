@@ -13,6 +13,9 @@ import {
   Bell,
   UserCog,
   X,
+  PenTool,
+  MessageSquare,
+  Tag as TagIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +33,9 @@ const navGroups = [
     label: 'ניהול',
     items: [
       { href: '/members', label: 'חברי כנסת', icon: Users },
+      { href: '/authors', label: 'כתבים', icon: PenTool },
+      { href: '/comments', label: 'תגובות', icon: MessageSquare },
+      { href: '/tags', label: 'תגיות', icon: TagIcon },
       { href: '/ticker', label: 'טיקר', icon: Radio },
       { href: '/contact', label: 'הודעות', icon: Mail },
       { href: '/push', label: 'התראות', icon: Bell },

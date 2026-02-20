@@ -14,6 +14,9 @@ import { ContactMessage } from './modules/contact/entities/contact-message.entit
 import { UserFavorite } from './modules/favorites/entities/user-favorite.entity';
 import { ReadingHistory } from './modules/history/entities/reading-history.entity';
 import { PushToken } from './modules/push/entities/push-token.entity';
+import { Comment } from './modules/comments/entities/comment.entity';
+import { Author } from './modules/authors/entities/author.entity';
+import { Tag } from './modules/tags/entities/tag.entity';
 
 // Feature modules
 import { ArticlesModule } from './modules/articles/articles.module';
@@ -29,6 +32,9 @@ import { HistoryModule } from './modules/history/history.module';
 import { PushModule } from './modules/push/push.module';
 import { SseModule } from './modules/sse/sse.module';
 import { SearchModule } from './modules/search/search.module';
+import { CommentsModule } from './modules/comments/comments.module';
+import { AuthorsModule } from './modules/authors/authors.module';
+import { TagsModule } from './modules/tags/tags.module';
 
 @Module({
   imports: [
@@ -64,6 +70,9 @@ import { SearchModule } from './modules/search/search.module';
           UserFavorite,
           ReadingHistory,
           PushToken,
+          Comment,
+          Author,
+          Tag,
         ],
         migrations: ['dist/database/migrations/*{.ts,.js}'],
       }),
@@ -83,6 +92,9 @@ import { SearchModule } from './modules/search/search.module';
     PushModule,
     SseModule,
     SearchModule,
+    CommentsModule,
+    AuthorsModule,
+    TagsModule,
   ],
   controllers: [],
   providers: [],

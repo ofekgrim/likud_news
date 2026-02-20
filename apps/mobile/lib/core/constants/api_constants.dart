@@ -3,7 +3,7 @@ class ApiConstants {
   ApiConstants._();
 
   // Base URL — change per environment
-  static const String baseUrl = 'http://localhost:6000/api/v1';
+  static const String baseUrl = 'http://localhost:9090/api/v1';
 
   // Articles
   static const String articles = '/articles';
@@ -42,6 +42,15 @@ class ApiConstants {
   // SSE
   static const String sseTicker = '/sse/ticker';
   static const String sseBreaking = '/sse/breaking';
+
+  // Authors
+  static const String authors = '/authors';
+
+  // Tags
+  static const String tags = '/tags';
+
+  // Comments (moderation - admin)
+  static const String comments = '/comments';
 
   // Config
   static const String config = '/config';

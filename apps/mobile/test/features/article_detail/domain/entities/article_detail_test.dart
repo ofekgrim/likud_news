@@ -78,9 +78,10 @@ void main() {
     });
 
     group('props', () {
-      test('props list should contain all 20 fields', () {
+      test('props list should contain all fields', () {
         final detail = createDetail();
 
+        expect(detail.props.length, equals(35));
         expect(detail.props, [
           '1',
           'Test Article',
@@ -102,6 +103,22 @@ void main() {
           '#FF0000',
           const <Article>[],
           false,
+          // Enhanced fields (Phase 11) with defaults
+          const [], // bodyBlocks
+          null, // alertBannerText
+          false, // alertBannerEnabled
+          null, // alertBannerColor
+          null, // heroImageCredit
+          null, // heroImageCaptionHe
+          null, // heroImageFullUrl
+          null, // authorEntity
+          const [], // tags
+          true, // allowComments
+          null, // readingTimeMinutes
+          0, // shareCount
+          0, // commentCount
+          const <Article>[], // sameCategoryArticles
+          const <Article>[], // recommendedArticles
         ]);
       });
     });

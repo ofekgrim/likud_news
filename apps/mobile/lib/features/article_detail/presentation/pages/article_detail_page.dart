@@ -1,22 +1,29 @@
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
-import '../../../../core/ads/ad_native_widget.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../bloc/article_detail_bloc.dart';
+import '../bloc/comments_bloc.dart';
+import '../widgets/alert_banner_widget.dart';
 import '../widgets/article_actions_bar.dart';
-import '../widgets/article_content.dart';
 import '../widgets/article_header.dart';
-import '../widgets/hashtag_chips.dart';
+import '../widgets/block_renderer.dart';
+import '../widgets/category_articles_carousel.dart';
+import '../widgets/comments_section.dart';
+import '../widgets/recommended_articles.dart';
 import '../widgets/related_articles.dart';
+import '../widgets/reporter_row.dart';
+import '../widgets/tags_section.dart';
 
 /// Full-screen article detail page.
 ///
-/// Expects an [ArticleDetailBloc] to be provided above this widget.
-/// Loads the article by slug and displays the hero header, HTML body,
-/// hashtags, related articles, and the share/bookmark action bar.
+/// Expects an [ArticleDetailBloc] and [CommentsBloc] to be provided above
+/// this widget. Loads the article by slug and displays the hero header,
+/// alert banner, reporter row, structured body blocks, tags, comments,
+/// related articles, same-category carousel, and the share/bookmark action bar.
 ///
 /// Shows a scroll progress indicator at the top of the screen.
 class ArticleDetailPage extends StatefulWidget {
@@ -55,6 +62,84 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     });
   }
 
+  void _showFontSizeDialog(BuildContext context, double currentScale) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        double tempScale = currentScale;
+        return StatefulBuilder(
+          builder: (builderContext, setSheetState) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 20,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'font_size_title'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Text(
+                          'A',
+                          style: TextStyle(
+                            fontFamily: 'Heebo',
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        Expanded(
+                          child: Slider(
+                            value: tempScale,
+                            min: 0.8,
+                            max: 1.6,
+                            divisions: 8,
+                            activeColor: AppColors.likudBlue,
+                            label: '${(tempScale * 100).round()}%',
+                            onChanged: (value) {
+                              setSheetState(() {
+                                tempScale = value;
+                              });
+                              context
+                                  .read<ArticleDetailBloc>()
+                                  .add(ChangeFontSize(value));
+                            },
+                          ),
+                        ),
+                        Text(
+                          'A',
+                          style: TextStyle(
+                            fontFamily: 'Heebo',
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Dispatch load event when the page builds for the first time.
@@ -69,7 +154,15 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        body: BlocBuilder<ArticleDetailBloc, ArticleDetailState>(
+        body: BlocConsumer<ArticleDetailBloc, ArticleDetailState>(
+          listener: (context, state) {
+            // When article loads successfully, dispatch LoadComments.
+            if (state is ArticleDetailLoaded) {
+              context.read<CommentsBloc>().add(
+                    LoadComments(articleId: state.article.id),
+                  );
+            }
+          },
           builder: (context, state) {
             return switch (state) {
               ArticleDetailInitial() ||
@@ -85,7 +178,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                       .read<ArticleDetailBloc>()
                       .add(LoadArticleDetail(widget.slug)),
                 ),
-              ArticleDetailLoaded(:final article) => Stack(
+              ArticleDetailLoaded(:final article, :final isFavorite, :final fontScale) =>
+                Stack(
                   children: [
                     // Main content
                     Column(
@@ -114,50 +208,78 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.start,
                                   children: [
-                                    // Hero image caption
-                                    if (article.heroImageCaption != null &&
+                                    // 1. Alert banner (if enabled)
+                                    AlertBannerWidget(
+                                      text:
+                                          article.alertBannerText ?? '',
+                                      colorHex:
+                                          article.alertBannerColor,
+                                      enabled:
+                                          article.alertBannerEnabled,
+                                    ),
+
+                                    // 2. Hero image caption
+                                    if (article.heroImageCaption !=
+                                            null &&
                                         article.heroImageCaption!
                                             .isNotEmpty)
                                       Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            16, 12, 16, 0),
+                                        padding:
+                                            const EdgeInsets.fromLTRB(
+                                                16, 12, 16, 0),
                                         child: Text(
                                           article.heroImageCaption!,
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall
                                               ?.copyWith(
-                                                color:
-                                                    AppColors.textTertiary,
-                                                fontStyle: FontStyle.italic,
+                                                color: AppColors
+                                                    .textTertiary,
+                                                fontStyle:
+                                                    FontStyle.italic,
                                               ),
                                         ),
                                       ),
 
-                                    // HTML content
-                                    if (article.content != null &&
-                                        article.content!.isNotEmpty)
-                                      ArticleContent(
-                                          htmlContent: article.content!),
+                                    // 3. Reporter row
+                                    ReporterRow(
+                                      author: article.authorEntity,
+                                      publishedAt: article.publishedAt,
+                                      readingTimeMinutes:
+                                          article.readingTimeMinutes,
+                                      isFavorite: isFavorite,
+                                      onShare: () => context
+                                          .read<ArticleDetailBloc>()
+                                          .add(ShareArticle(
+                                              SharePlatform.system)),
+                                      onBookmark: () => context
+                                          .read<ArticleDetailBloc>()
+                                          .add(
+                                              const ToggleFavoriteEvent()),
+                                      onFontSize: () =>
+                                          _showFontSizeDialog(
+                                              context, fontScale),
+                                    ),
 
-                                    const SizedBox(height: 16),
-
-                                    // Hashtag chips
-                                    HashtagChips(
-                                      hashtags: article.hashtags,
-                                      onHashtagTap: (tag) {
-                                        context.push('/search');
-                                      },
+                                    // 4. Block renderer (body content)
+                                    BlockRenderer(
+                                      blocks: article.bodyBlocks,
+                                      fontScale: fontScale,
+                                      htmlFallback: article.content,
                                     ),
 
                                     const SizedBox(height: 24),
 
-                                    // Native ad before related articles
-                                    const AdNativeWidget(),
+                                    // 5. Tags section
+                                    TagsSection(
+                                      tags: article.tags,
+                                      onTagTap: (tag) => context
+                                          .push('/tag/${tag.slug}'),
+                                    ),
 
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 24),
 
-                                    // Divider before related
+                                    // 6. Divider
                                     if (article
                                         .relatedArticles.isNotEmpty)
                                       const Divider(
@@ -171,18 +293,67 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                         .relatedArticles.isNotEmpty)
                                       const SizedBox(height: 20),
 
-                                    // Related articles
-                                    RelatedArticles(
-                                      articles: article.relatedArticles,
-                                      onArticleTap: (related) {
-                                        if (related.slug != null) {
-                                          context.push(
-                                              '/article/${related.slug!}');
-                                        }
-                                      },
-                                    ),
+                                    // 7. Related articles
+                                    if (article
+                                        .relatedArticles.isNotEmpty)
+                                      RelatedArticles(
+                                        articles:
+                                            article.relatedArticles,
+                                        onArticleTap: (related) {
+                                          if (related.slug != null) {
+                                            context.push(
+                                                '/article/${related.slug!}');
+                                          }
+                                        },
+                                      ),
 
                                     const SizedBox(height: 24),
+
+                                    // 8. Comments section
+                                    if (article.allowComments)
+                                      CommentsSection(
+                                        articleId: article.id,
+                                        commentCount:
+                                            article.commentCount,
+                                        allowComments:
+                                            article.allowComments,
+                                      ),
+
+                                    const SizedBox(height: 24),
+
+                                    // 9. Recommended articles
+                                    if (article.recommendedArticles
+                                        .isNotEmpty)
+                                      RecommendedArticles(
+                                        articles: article
+                                            .recommendedArticles,
+                                        onArticleTap: (a) {
+                                          if (a.slug != null) {
+                                            context.push(
+                                                '/article/${a.slug!}');
+                                          }
+                                        },
+                                      ),
+
+                                    const SizedBox(height: 24),
+
+                                    // 10. Same category articles carousel
+                                    if (article.sameCategoryArticles
+                                        .isNotEmpty)
+                                      CategoryArticlesCarousel(
+                                        articles: article
+                                            .sameCategoryArticles,
+                                        categoryName:
+                                            article.categoryName,
+                                        onArticleTap: (a) {
+                                          if (a.slug != null) {
+                                            context.push(
+                                                '/article/${a.slug!}');
+                                          }
+                                        },
+                                      ),
+
+                                    const SizedBox(height: 40),
                                   ],
                                 ),
                               ),
@@ -237,7 +408,7 @@ class _BackButton extends StatelessWidget {
             size: 20,
           ),
           onPressed: () => context.pop(),
-          tooltip: 'חזור',
+          tooltip: '\u05D7\u05D6\u05D5\u05E8', // חזור
         ),
       ),
     );

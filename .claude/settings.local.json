@@ -9,7 +9,8 @@
       "Bash(docker port:*)",
       "Bash(lsof:*)",
       "Bash(npm run migration:run:*)",
-      "Bash(PORT=9090 npx nest start:*)"
+      "Bash(PORT=6000 npx nest start:*)",
+      "Bash(flutter analyze:*)"
     ]
   }
 }

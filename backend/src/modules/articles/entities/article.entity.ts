@@ -6,6 +6,7 @@ import {
   ManyToMany,
   OneToMany,
   JoinTable,
+  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
@@ -14,6 +15,8 @@ import {
 import { Category } from '../../categories/entities/category.entity';
 import { Member } from '../../members/entities/member.entity';
 import { Media } from '../../media/entities/media.entity';
+import { Author } from '../../authors/entities/author.entity';
+import { Tag } from '../../tags/entities/tag.entity';
 
 export enum ArticleStatus {
   DRAFT = 'draft',
@@ -80,6 +83,43 @@ export class Article {
   @Column({ type: 'timestamp', nullable: true })
   publishedAt: Date;
 
+  @Column({ type: 'jsonb', default: [] })
+  bodyBlocks: any[];
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  alertBannerText: string;
+
+  @Column({ type: 'boolean', default: false })
+  alertBannerEnabled: boolean;
+
+  @Column({ type: 'varchar', length: 7, default: '#E53935' })
+  alertBannerColor: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  heroImageCredit: string;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  heroImageCaptionHe: string;
+
+  @Column({ type: 'varchar', length: 2000, nullable: true })
+  heroImageFullUrl: string;
+
+  @ManyToOne(() => Author, { nullable: true, eager: false })
+  @JoinColumn({ name: 'authorId' })
+  authorEntity: Author;
+
+  @Column({ type: 'uuid', nullable: true })
+  authorId: string;
+
+  @Column({ type: 'boolean', default: true })
+  allowComments: boolean;
+
+  @Column({ type: 'int', default: 0 })
+  readingTimeMinutes: number;
+
+  @Column({ type: 'int', default: 0 })
+  shareCount: number;
+
   @ManyToOne(() => Category, (category) => category.articles, {
     eager: false,
   })
@@ -91,6 +131,10 @@ export class Article {
   @ManyToMany(() => Member, (member) => member.articles)
   @JoinTable({ name: 'article_members' })
   members: Member[];
+
+  @ManyToMany(() => Tag)
+  @JoinTable({ name: 'article_tags' })
+  tags: Tag[];
 
   @OneToMany(() => Media, (media) => media.article)
   media: Media[];

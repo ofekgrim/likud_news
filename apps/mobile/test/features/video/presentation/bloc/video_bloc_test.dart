@@ -62,18 +62,15 @@ void main() {
       blocTest<VideoBloc, VideoState>(
         'emits [VideoLoading, VideoLoaded] on success',
         build: () {
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => const Right(tVideos));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => const Right(tVideos));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadVideos()),
         expect: () => [
           const VideoLoading(),
-          const VideoLoaded(
-            videos: tVideos,
-            hasMore: false,
-            currentPage: 1,
-          ),
+          const VideoLoaded(videos: tVideos, hasMore: false, currentPage: 1),
         ],
         verify: (_) {
           verify(() => mockGetVideos(const VideoParams(page: 1))).called(1);
@@ -83,8 +80,9 @@ void main() {
       blocTest<VideoBloc, VideoState>(
         'emits [VideoLoading, VideoError] on failure',
         build: () {
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadVideos()),
@@ -101,8 +99,9 @@ void main() {
             20,
             (i) => VideoArticle(id: '${i + 1}', title: 'Video ${i + 1}'),
           );
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => Right(fullPage));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => Right(fullPage));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadVideos()),
@@ -118,8 +117,9 @@ void main() {
       blocTest<VideoBloc, VideoState>(
         'sets hasMore to false when fewer than 20 results returned',
         build: () {
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => const Right(tVideos));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => const Right(tVideos));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadVideos()),
@@ -134,8 +134,9 @@ void main() {
       blocTest<VideoBloc, VideoState>(
         'emits [VideoLoading, VideoError] with default message when failure has no message',
         build: () {
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => const Left(ServerFailure()));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => const Left(ServerFailure()));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadVideos()),
@@ -179,11 +180,8 @@ void main() {
 
       blocTest<VideoBloc, VideoState>(
         'does nothing when hasMore is false',
-        seed: () => const VideoLoaded(
-          videos: tVideos,
-          currentPage: 1,
-          hasMore: false,
-        ),
+        seed: () =>
+            const VideoLoaded(videos: tVideos, currentPage: 1, hasMore: false),
         build: () => bloc,
         act: (bloc) => bloc.add(const LoadMoreVideos()),
         expect: () => <VideoState>[],
@@ -204,14 +202,12 @@ void main() {
 
       blocTest<VideoBloc, VideoState>(
         'sets hasMore to false on pagination failure and keeps existing data',
-        seed: () => const VideoLoaded(
-          videos: tVideos,
-          currentPage: 1,
-          hasMore: true,
-        ),
+        seed: () =>
+            const VideoLoaded(videos: tVideos, currentPage: 1, hasMore: true),
         build: () {
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadMoreVideos()),
@@ -225,21 +221,16 @@ void main() {
 
       blocTest<VideoBloc, VideoState>(
         'sets hasMore to true when next page returns 20 items',
-        seed: () => const VideoLoaded(
-          videos: tVideos,
-          currentPage: 1,
-          hasMore: true,
-        ),
+        seed: () =>
+            const VideoLoaded(videos: tVideos, currentPage: 1, hasMore: true),
         build: () {
           final fullPage = List.generate(
             20,
-            (i) => VideoArticle(
-              id: '${100 + i}',
-              title: 'New Video ${i + 1}',
-            ),
+            (i) => VideoArticle(id: '${100 + i}', title: 'New Video ${i + 1}'),
           );
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => Right(fullPage));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => Right(fullPage));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadMoreVideos()),
@@ -260,24 +251,19 @@ void main() {
       blocTest<VideoBloc, VideoState>(
         're-fetches from page 1 and replaces all videos',
         seed: () => const VideoLoaded(
-          videos: [
-            VideoArticle(id: 'old-1', title: 'Old Video'),
-          ],
+          videos: [VideoArticle(id: 'old-1', title: 'Old Video')],
           currentPage: 3,
           hasMore: true,
         ),
         build: () {
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => const Right(tVideos));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => const Right(tVideos));
           return bloc;
         },
         act: (bloc) => bloc.add(const RefreshVideos()),
         expect: () => [
-          const VideoLoaded(
-            videos: tVideos,
-            hasMore: false,
-            currentPage: 1,
-          ),
+          const VideoLoaded(videos: tVideos, hasMore: false, currentPage: 1),
         ],
         verify: (_) {
           verify(() => mockGetVideos(const VideoParams(page: 1))).called(1);
@@ -286,14 +272,12 @@ void main() {
 
       blocTest<VideoBloc, VideoState>(
         'keeps existing state when refresh fails and state is VideoLoaded',
-        seed: () => const VideoLoaded(
-          videos: tVideos,
-          currentPage: 2,
-          hasMore: true,
-        ),
+        seed: () =>
+            const VideoLoaded(videos: tVideos, currentPage: 2, hasMore: true),
         build: () {
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
           return bloc;
         },
         act: (bloc) => bloc.add(const RefreshVideos()),
@@ -303,14 +287,13 @@ void main() {
       blocTest<VideoBloc, VideoState>(
         'emits VideoError when refresh fails and state is not VideoLoaded',
         build: () {
-          when(() => mockGetVideos(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockGetVideos(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
           return bloc;
         },
         act: (bloc) => bloc.add(const RefreshVideos()),
-        expect: () => [
-          const VideoError(message: 'Server error'),
-        ],
+        expect: () => [const VideoError(message: 'Server error')],
       );
     });
   });

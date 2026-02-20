@@ -7,6 +7,7 @@ import 'package:metzudat_halikud/core/services/device_id_service.dart';
 import 'package:metzudat_halikud/features/article_detail/domain/entities/article_detail.dart';
 import 'package:metzudat_halikud/features/article_detail/domain/usecases/get_article_detail.dart';
 import 'package:metzudat_halikud/features/article_detail/domain/usecases/record_read.dart';
+import 'package:metzudat_halikud/features/article_detail/domain/repositories/article_detail_repository.dart';
 import 'package:metzudat_halikud/features/article_detail/domain/usecases/toggle_favorite.dart';
 import 'package:metzudat_halikud/features/article_detail/presentation/bloc/article_detail_bloc.dart';
 
@@ -22,12 +23,16 @@ class MockToggleFavorite extends Mock implements ToggleFavorite {}
 
 class MockDeviceIdService extends Mock implements DeviceIdService {}
 
+class MockArticleDetailRepository extends Mock
+    implements ArticleDetailRepository {}
+
 void main() {
   late ArticleDetailBloc bloc;
   late MockGetArticleDetail mockGetArticleDetail;
   late MockRecordRead mockRecordRead;
   late MockToggleFavorite mockToggleFavorite;
   late MockDeviceIdService mockDeviceIdService;
+  late MockArticleDetailRepository mockRepository;
 
   // -------------------------------------------------------------------------
   // Test data
@@ -63,7 +68,8 @@ void main() {
     registerFallbackValue(const GetArticleDetailParams(slug: ''));
     registerFallbackValue(const RecordReadParams(deviceId: '', articleId: ''));
     registerFallbackValue(
-        const ToggleFavoriteParams(deviceId: '', articleId: ''));
+      const ToggleFavoriteParams(deviceId: '', articleId: ''),
+    );
   });
 
   setUp(() {
@@ -71,6 +77,7 @@ void main() {
     mockRecordRead = MockRecordRead();
     mockToggleFavorite = MockToggleFavorite();
     mockDeviceIdService = MockDeviceIdService();
+    mockRepository = MockArticleDetailRepository();
 
     when(() => mockDeviceIdService.deviceId).thenReturn('test-device-id');
 
@@ -79,6 +86,7 @@ void main() {
       mockToggleFavorite,
       mockRecordRead,
       mockDeviceIdService,
+      mockRepository,
     );
   });
 
@@ -103,19 +111,18 @@ void main() {
       blocTest<ArticleDetailBloc, ArticleDetailState>(
         'emits [Loading, Loaded] on success',
         build: () {
-          when(() => mockGetArticleDetail(any()))
-              .thenAnswer((_) async => const Right(tArticleDetail));
-          when(() => mockRecordRead(any()))
-              .thenAnswer((_) async => const Right(null));
+          when(
+            () => mockGetArticleDetail(any()),
+          ).thenAnswer((_) async => const Right(tArticleDetail));
+          when(
+            () => mockRecordRead(any()),
+          ).thenAnswer((_) async => const Right(null));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadArticleDetail(tSlug)),
         expect: () => [
           const ArticleDetailLoading(),
-          const ArticleDetailLoaded(
-            article: tArticleDetail,
-            isFavorite: false,
-          ),
+          const ArticleDetailLoaded(article: tArticleDetail, isFavorite: false),
         ],
         verify: (_) {
           verify(() => mockGetArticleDetail(any())).called(1);
@@ -125,8 +132,9 @@ void main() {
       blocTest<ArticleDetailBloc, ArticleDetailState>(
         'emits [Loading, Error] on failure',
         build: () {
-          when(() => mockGetArticleDetail(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockGetArticleDetail(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadArticleDetail(tSlug)),
@@ -143,8 +151,9 @@ void main() {
       blocTest<ArticleDetailBloc, ArticleDetailState>(
         'emits [Loading, Error] with default message when failure has no message',
         build: () {
-          when(() => mockGetArticleDetail(any()))
-              .thenAnswer((_) async => const Left(ServerFailure()));
+          when(
+            () => mockGetArticleDetail(any()),
+          ).thenAnswer((_) async => const Left(ServerFailure()));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadArticleDetail(tSlug)),
@@ -157,35 +166,40 @@ void main() {
       blocTest<ArticleDetailBloc, ArticleDetailState>(
         'calls recordRead after successful load',
         build: () {
-          when(() => mockGetArticleDetail(any()))
-              .thenAnswer((_) async => const Right(tArticleDetail));
-          when(() => mockRecordRead(any()))
-              .thenAnswer((_) async => const Right(null));
+          when(
+            () => mockGetArticleDetail(any()),
+          ).thenAnswer((_) async => const Right(tArticleDetail));
+          when(
+            () => mockRecordRead(any()),
+          ).thenAnswer((_) async => const Right(null));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadArticleDetail(tSlug)),
         expect: () => [
           const ArticleDetailLoading(),
-          const ArticleDetailLoaded(
-            article: tArticleDetail,
-            isFavorite: false,
-          ),
+          const ArticleDetailLoaded(article: tArticleDetail, isFavorite: false),
         ],
         verify: (_) {
-          verify(() => mockRecordRead(const RecordReadParams(
+          verify(
+            () => mockRecordRead(
+              const RecordReadParams(
                 deviceId: 'test-device-id',
                 articleId: 'article-1',
-              ))).called(1);
+              ),
+            ),
+          ).called(1);
         },
       );
 
       blocTest<ArticleDetailBloc, ArticleDetailState>(
         'preserves isFavorite from article detail response',
         build: () {
-          when(() => mockGetArticleDetail(any()))
-              .thenAnswer((_) async => const Right(tArticleDetailFavorited));
-          when(() => mockRecordRead(any()))
-              .thenAnswer((_) async => const Right(null));
+          when(
+            () => mockGetArticleDetail(any()),
+          ).thenAnswer((_) async => const Right(tArticleDetailFavorited));
+          when(
+            () => mockRecordRead(any()),
+          ).thenAnswer((_) async => const Right(null));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadArticleDetail(tSlug)),
@@ -211,22 +225,30 @@ void main() {
           isFavorite: false,
         ),
         build: () {
-          when(() => mockToggleFavorite(any()))
-              .thenAnswer((_) async => const Right(true));
+          when(
+            () => mockToggleFavorite(any()),
+          ).thenAnswer((_) async => const Right(true));
           return bloc;
         },
         act: (bloc) => bloc.add(const ToggleFavoriteEvent()),
         expect: () => [
           // Optimistic update flips to true; server confirms true.
           // BLoC deduplicates equal states, so only one emission.
-          isA<ArticleDetailLoaded>()
-              .having((s) => s.isFavorite, 'isFavorite', true),
+          isA<ArticleDetailLoaded>().having(
+            (s) => s.isFavorite,
+            'isFavorite',
+            true,
+          ),
         ],
         verify: (_) {
-          verify(() => mockToggleFavorite(const ToggleFavoriteParams(
+          verify(
+            () => mockToggleFavorite(
+              const ToggleFavoriteParams(
                 deviceId: 'test-device-id',
                 articleId: 'article-1',
-              ))).called(1);
+              ),
+            ),
+          ).called(1);
         },
       );
 
@@ -237,16 +259,20 @@ void main() {
           isFavorite: true,
         ),
         build: () {
-          when(() => mockToggleFavorite(any()))
-              .thenAnswer((_) async => const Right(false));
+          when(
+            () => mockToggleFavorite(any()),
+          ).thenAnswer((_) async => const Right(false));
           return bloc;
         },
         act: (bloc) => bloc.add(const ToggleFavoriteEvent()),
         expect: () => [
           // Optimistic update flips to false; server confirms false.
           // BLoC deduplicates equal states, so only one emission.
-          isA<ArticleDetailLoaded>()
-              .having((s) => s.isFavorite, 'isFavorite', false),
+          isA<ArticleDetailLoaded>().having(
+            (s) => s.isFavorite,
+            'isFavorite',
+            false,
+          ),
         ],
       );
 
@@ -257,18 +283,25 @@ void main() {
           isFavorite: false,
         ),
         build: () {
-          when(() => mockToggleFavorite(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockToggleFavorite(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
           return bloc;
         },
         act: (bloc) => bloc.add(const ToggleFavoriteEvent()),
         expect: () => [
           // Optimistic update: isFavorite becomes true
-          isA<ArticleDetailLoaded>()
-              .having((s) => s.isFavorite, 'isFavorite', true),
+          isA<ArticleDetailLoaded>().having(
+            (s) => s.isFavorite,
+            'isFavorite',
+            true,
+          ),
           // Rollback on failure: isFavorite reverts to false
-          isA<ArticleDetailLoaded>()
-              .having((s) => s.isFavorite, 'isFavorite', false),
+          isA<ArticleDetailLoaded>().having(
+            (s) => s.isFavorite,
+            'isFavorite',
+            false,
+          ),
         ],
       );
 
@@ -302,8 +335,7 @@ void main() {
       blocTest<ArticleDetailBloc, ArticleDetailState>(
         'does nothing when state is not ArticleDetailLoaded',
         build: () => bloc,
-        act: (bloc) =>
-            bloc.add(const ShareArticle(SharePlatform.system)),
+        act: (bloc) => bloc.add(const ShareArticle(SharePlatform.system)),
         expect: () => <ArticleDetailState>[],
       );
     });

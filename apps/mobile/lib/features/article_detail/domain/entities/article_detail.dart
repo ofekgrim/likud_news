@@ -1,6 +1,9 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../home/domain/entities/article.dart';
+import 'author.dart';
+import 'content_block.dart';
+import 'tag.dart';
 
 /// Full article detail entity with content body and related articles.
 ///
@@ -28,6 +31,53 @@ class ArticleDetail extends Equatable {
   final List<Article> relatedArticles;
   final bool isFavorite;
 
+  // --- Enhanced article fields ---
+
+  /// Structured body content blocks parsed from TipTap editor output.
+  final List<ContentBlock> bodyBlocks;
+
+  /// Optional alert banner text displayed above the article.
+  final String? alertBannerText;
+
+  /// Whether the alert banner is currently enabled.
+  final bool alertBannerEnabled;
+
+  /// Custom color for the alert banner (hex string).
+  final String? alertBannerColor;
+
+  /// Credit/attribution for the hero image.
+  final String? heroImageCredit;
+
+  /// Hebrew caption for the hero image.
+  final String? heroImageCaptionHe;
+
+  /// Full-resolution URL of the hero image.
+  final String? heroImageFullUrl;
+
+  /// Structured author entity with localized name, role, and avatar.
+  final Author? authorEntity;
+
+  /// Tags classifying this article by topic, person, or location.
+  final List<Tag> tags;
+
+  /// Whether comments are allowed on this article.
+  final bool allowComments;
+
+  /// Estimated reading time in minutes.
+  final int? readingTimeMinutes;
+
+  /// Number of times this article has been shared.
+  final int shareCount;
+
+  /// Number of comments on this article.
+  final int commentCount;
+
+  /// Articles from the same category for "more from" section.
+  final List<Article> sameCategoryArticles;
+
+  /// Recommended articles from other categories (most-read).
+  final List<Article> recommendedArticles;
+
   const ArticleDetail({
     required this.id,
     required this.title,
@@ -49,6 +99,21 @@ class ArticleDetail extends Equatable {
     this.categoryColor,
     this.relatedArticles = const [],
     this.isFavorite = false,
+    this.bodyBlocks = const [],
+    this.alertBannerText,
+    this.alertBannerEnabled = false,
+    this.alertBannerColor,
+    this.heroImageCredit,
+    this.heroImageCaptionHe,
+    this.heroImageFullUrl,
+    this.authorEntity,
+    this.tags = const [],
+    this.allowComments = true,
+    this.readingTimeMinutes,
+    this.shareCount = 0,
+    this.commentCount = 0,
+    this.sameCategoryArticles = const [],
+    this.recommendedArticles = const [],
   });
 
   /// Creates a copy with optional field overrides.
@@ -73,6 +138,21 @@ class ArticleDetail extends Equatable {
     String? categoryColor,
     List<Article>? relatedArticles,
     bool? isFavorite,
+    List<ContentBlock>? bodyBlocks,
+    String? alertBannerText,
+    bool? alertBannerEnabled,
+    String? alertBannerColor,
+    String? heroImageCredit,
+    String? heroImageCaptionHe,
+    String? heroImageFullUrl,
+    Author? authorEntity,
+    List<Tag>? tags,
+    bool? allowComments,
+    int? readingTimeMinutes,
+    int? shareCount,
+    int? commentCount,
+    List<Article>? sameCategoryArticles,
+    List<Article>? recommendedArticles,
   }) {
     return ArticleDetail(
       id: id ?? this.id,
@@ -95,6 +175,21 @@ class ArticleDetail extends Equatable {
       categoryColor: categoryColor ?? this.categoryColor,
       relatedArticles: relatedArticles ?? this.relatedArticles,
       isFavorite: isFavorite ?? this.isFavorite,
+      bodyBlocks: bodyBlocks ?? this.bodyBlocks,
+      alertBannerText: alertBannerText ?? this.alertBannerText,
+      alertBannerEnabled: alertBannerEnabled ?? this.alertBannerEnabled,
+      alertBannerColor: alertBannerColor ?? this.alertBannerColor,
+      heroImageCredit: heroImageCredit ?? this.heroImageCredit,
+      heroImageCaptionHe: heroImageCaptionHe ?? this.heroImageCaptionHe,
+      heroImageFullUrl: heroImageFullUrl ?? this.heroImageFullUrl,
+      authorEntity: authorEntity ?? this.authorEntity,
+      tags: tags ?? this.tags,
+      allowComments: allowComments ?? this.allowComments,
+      readingTimeMinutes: readingTimeMinutes ?? this.readingTimeMinutes,
+      shareCount: shareCount ?? this.shareCount,
+      commentCount: commentCount ?? this.commentCount,
+      sameCategoryArticles: sameCategoryArticles ?? this.sameCategoryArticles,
+      recommendedArticles: recommendedArticles ?? this.recommendedArticles,
     );
   }
 
@@ -143,5 +238,20 @@ class ArticleDetail extends Equatable {
         categoryColor,
         relatedArticles,
         isFavorite,
+        bodyBlocks,
+        alertBannerText,
+        alertBannerEnabled,
+        alertBannerColor,
+        heroImageCredit,
+        heroImageCaptionHe,
+        heroImageFullUrl,
+        authorEntity,
+        tags,
+        allowComments,
+        readingTimeMinutes,
+        shareCount,
+        commentCount,
+        sameCategoryArticles,
+        recommendedArticles,
       ];
 }

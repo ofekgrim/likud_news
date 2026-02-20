@@ -29,12 +29,9 @@ class DropCapParagraph extends StatelessWidget {
         text: TextSpan(
           children: [
             WidgetSpan(
-              alignment: PlaceholderAlignment.top,
+              alignment: PlaceholderAlignment.bottom,
               child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  end: 8,
-                  bottom: 4,
-                ),
+                padding: const EdgeInsetsDirectional.only(top: 4),
                 child: Text(
                   firstChar,
                   style: const TextStyle(

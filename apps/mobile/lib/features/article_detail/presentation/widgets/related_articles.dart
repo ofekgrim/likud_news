@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -32,7 +33,7 @@ class RelatedArticles extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'כתבות קשורות',
+            'related_articles'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,

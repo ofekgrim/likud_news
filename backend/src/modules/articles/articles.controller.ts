@@ -83,6 +83,67 @@ export class ArticlesController {
     return this.articlesService.findOne(id);
   }
 
+  @Get(':id/related')
+  @ApiOperation({ summary: 'Get related articles by shared tags' })
+  @ApiParam({ name: 'id', description: 'Article UUID' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of related articles to return (default: 5)',
+  })
+  @ApiResponse({ status: 200, description: 'List of related articles' })
+  findRelated(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('limit') limit?: number,
+  ) {
+    return this.articlesService.findRelated(id, limit ? Number(limit) : 5);
+  }
+
+  @Get(':id/same-category')
+  @ApiOperation({ summary: 'Get articles from the same category' })
+  @ApiParam({ name: 'id', description: 'Article UUID' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of articles to return (default: 5)',
+  })
+  @ApiResponse({ status: 200, description: 'List of articles in the same category' })
+  findSameCategory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('limit') limit?: number,
+  ) {
+    return this.articlesService.findSameCategory(id, limit ? Number(limit) : 5);
+  }
+
+  @Get(':id/recommendations')
+  @ApiOperation({ summary: 'Get recommended articles (different categories, most read)' })
+  @ApiParam({ name: 'id', description: 'Article UUID' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of recommendations (default: 5)',
+  })
+  @ApiResponse({ status: 200, description: 'Recommended articles' })
+  findRecommendations(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('limit') limit?: number,
+  ) {
+    return this.articlesService.findRecommendations(id, limit ? Number(limit) : 5);
+  }
+
+  @Post(':id/share')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Increment article share count' })
+  @ApiParam({ name: 'id', description: 'Article UUID' })
+  @ApiResponse({ status: 200, description: 'Updated share count' })
+  @ApiResponse({ status: 404, description: 'Article not found' })
+  incrementShareCount(@Param('id', ParseUUIDPipe) id: string) {
+    return this.articlesService.incrementShareCount(id);
+  }
+
   @Get(':slug')
   @ApiOperation({
     summary: 'Get a single article by slug (increments view count)',

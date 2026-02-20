@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/device_id_service.dart';
 import '../../domain/entities/article_detail.dart';
+import '../../domain/repositories/article_detail_repository.dart';
 import '../../domain/usecases/get_article_detail.dart';
 import '../../domain/usecases/record_read.dart';
 import '../../domain/usecases/toggle_favorite.dart';
@@ -48,6 +49,16 @@ class ShareArticle extends ArticleDetailEvent {
   List<Object?> get props => [platform];
 }
 
+/// Changes the font scale for article body text.
+class ChangeFontSize extends ArticleDetailEvent {
+  final double scale;
+
+  const ChangeFontSize(this.scale);
+
+  @override
+  List<Object?> get props => [scale];
+}
+
 /// Supported share targets.
 enum SharePlatform { whatsapp, telegram, facebook, x, copyLink, system }
 
@@ -73,14 +84,16 @@ class ArticleDetailLoading extends ArticleDetailState {
 class ArticleDetailLoaded extends ArticleDetailState {
   final ArticleDetail article;
   final bool isFavorite;
+  final double fontScale;
 
   const ArticleDetailLoaded({
     required this.article,
     required this.isFavorite,
+    this.fontScale = 1.0,
   });
 
   @override
-  List<Object?> get props => [article, isFavorite];
+  List<Object?> get props => [article, isFavorite, fontScale];
 }
 
 class ArticleDetailError extends ArticleDetailState {
@@ -102,6 +115,7 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
   final ToggleFavorite _toggleFavorite;
   final RecordRead _recordRead;
   final DeviceIdService _deviceIdService;
+  final ArticleDetailRepository _repository;
 
   /// Device identifier obtained from [DeviceIdService].
   String get _deviceId => _deviceIdService.deviceId;
@@ -111,10 +125,12 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
     this._toggleFavorite,
     this._recordRead,
     this._deviceIdService,
+    this._repository,
   ) : super(const ArticleDetailInitial()) {
     on<LoadArticleDetail>(_onLoadArticleDetail);
     on<ToggleFavoriteEvent>(_onToggleFavorite);
     on<ShareArticle>(_onShareArticle);
+    on<ChangeFontSize>(_onChangeFontSize);
   }
 
   Future<void> _onLoadArticleDetail(
@@ -160,6 +176,7 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
     emit(ArticleDetailLoaded(
       article: currentState.article,
       isFavorite: !currentState.isFavorite,
+      fontScale: currentState.fontScale,
     ));
 
     final result = await _toggleFavorite(ToggleFavoriteParams(
@@ -172,10 +189,12 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
       (_) => emit(ArticleDetailLoaded(
         article: currentState.article,
         isFavorite: currentState.isFavorite,
+        fontScale: currentState.fontScale,
       )),
       (isFavorite) => emit(ArticleDetailLoaded(
         article: currentState.article,
         isFavorite: isFavorite,
+        fontScale: currentState.fontScale,
       )),
     );
   }
@@ -218,5 +237,21 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
       case SharePlatform.system:
         await Share.share(shareText);
     }
+
+    // Fire-and-forget: increment share count on the server.
+    _repository.incrementShareCount(article.id);
+  }
+
+  void _onChangeFontSize(
+    ChangeFontSize event,
+    Emitter<ArticleDetailState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! ArticleDetailLoaded) return;
+    emit(ArticleDetailLoaded(
+      article: currentState.article,
+      isFavorite: currentState.isFavorite,
+      fontScale: event.scale.clamp(0.8, 1.6),
+    ));
   }
 }

@@ -10,6 +10,7 @@ import {
   MaxLength,
   IsNotEmpty,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ArticleStatus } from '../entities/article.entity';
 
 export class CreateArticleDto {
@@ -124,4 +125,61 @@ export class CreateArticleDto {
   @IsArray()
   @IsUUID('4', { each: true })
   memberIds?: string[];
+
+  @ApiPropertyOptional({ description: 'Structured body blocks (JSONB)' })
+  @IsOptional()
+  @IsArray()
+  @Type(() => Object)
+  bodyBlocks?: Record<string, any>[];
+
+  @ApiPropertyOptional({ description: 'Alert banner text' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  alertBannerText?: string;
+
+  @ApiPropertyOptional({ description: 'Enable alert banner', default: false })
+  @IsOptional()
+  @IsBoolean()
+  alertBannerEnabled?: boolean;
+
+  @ApiPropertyOptional({ description: 'Alert banner color hex', default: '#E53935' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(7)
+  alertBannerColor?: string;
+
+  @ApiPropertyOptional({ description: 'Hero image credit/photographer' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  heroImageCredit?: string;
+
+  @ApiPropertyOptional({ description: 'Hero image caption (Hebrew)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  heroImageCaptionHe?: string;
+
+  @ApiPropertyOptional({ description: 'Hero image full-resolution URL' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  heroImageFullUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Author UUID' })
+  @IsOptional()
+  @IsUUID()
+  authorId?: string;
+
+  @ApiPropertyOptional({ description: 'Tag UUIDs' })
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  tagIds?: string[];
+
+  @ApiPropertyOptional({ description: 'Allow comments', default: true })
+  @IsOptional()
+  @IsBoolean()
+  allowComments?: boolean;
 }

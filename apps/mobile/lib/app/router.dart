@@ -17,6 +17,7 @@ import '../features/categories/presentation/bloc/categories_bloc.dart';
 import '../features/settings/presentation/bloc/settings_bloc.dart';
 import '../features/favorites/presentation/bloc/favorites_bloc.dart';
 import '../features/contact/presentation/bloc/contact_bloc.dart';
+import '../features/article_detail/presentation/bloc/comments_bloc.dart';
 
 // Feature page imports
 import '../features/home/presentation/pages/home_page.dart';
@@ -117,8 +118,11 @@ class AppRouter {
       // Full-screen routes (outside tab shell)
       GoRoute(
         path: '/article/:slug',
-        builder: (context, state) => BlocProvider(
-          create: (_) => getIt<ArticleDetailBloc>(),
+        builder: (context, state) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => getIt<ArticleDetailBloc>()),
+            BlocProvider(create: (_) => getIt<CommentsBloc>()),
+          ],
           child: ArticleDetailPage(
             slug: state.pathParameters['slug']!,
           ),
@@ -196,6 +200,16 @@ class AppRouter {
       GoRoute(
         path: '/privacy',
         builder: (context, state) => const PrivacyPage(),
+      ),
+      GoRoute(
+        path: '/tag/:slug',
+        builder: (context, state) {
+          final slug = state.pathParameters['slug']!;
+          return Scaffold(
+            appBar: AppBar(title: Text('# $slug')),
+            body: const Center(child: Text('Tag feed coming soon')),
+          );
+        },
       ),
     ],
   );

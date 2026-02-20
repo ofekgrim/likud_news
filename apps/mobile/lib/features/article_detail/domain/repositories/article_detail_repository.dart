@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/article_detail.dart';
+import '../entities/comment.dart';
 
 /// Abstract contract for article detail data operations.
 ///
@@ -25,5 +26,29 @@ abstract class ArticleDetailRepository {
   Future<Either<Failure, void>> recordRead({
     required String deviceId,
     required String articleId,
+  });
+
+  /// Fetches comments for an article, paginated.
+  Future<Either<Failure, List<Comment>>> getComments({
+    required String articleId,
+    int page = 1,
+    int limit = 20,
+  });
+
+  /// Submits a new comment on an article.
+  Future<Either<Failure, void>> submitComment({
+    required String articleId,
+    required String authorName,
+    required String body,
+    String? parentId,
+  });
+
+  /// Increments the share count for an article.
+  Future<Either<Failure, void>> incrementShareCount(String articleId);
+
+  /// Likes a comment. Returns the updated likesCount.
+  Future<Either<Failure, int>> likeComment({
+    required String articleId,
+    required String commentId,
   });
 }
