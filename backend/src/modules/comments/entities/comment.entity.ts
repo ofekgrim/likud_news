@@ -8,18 +8,26 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Article } from '../../articles/entities/article.entity';
+import { Story } from '../../stories/entities/story.entity';
 
 @Entity('comments')
 export class Comment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Article, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Article, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'articleId' })
   article: Article;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'uuid', nullable: true })
   articleId: string;
+
+  @ManyToOne(() => Story, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'storyId' })
+  story: Story;
+
+  @Column({ type: 'uuid', nullable: true })
+  storyId: string;
 
   @ManyToOne(() => Comment, (comment) => comment.replies, {
     nullable: true,
@@ -43,7 +51,7 @@ export class Comment {
   @Column({ type: 'text' })
   body: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: true })
   isApproved: boolean;
 
   @Column({ type: 'boolean', default: false })

@@ -197,5 +197,25 @@
   "liked": "Liked",
   "you_might_be_interested": "You Might Be Interested",
   "video_caption": "Caption",
-  "video_credit": "Credit"
+  "video_credit": "Credit",
+
+  "tag_articles": "Articles by Tag",
+  "no_tag_articles": "No articles for this tag",
+  "error_loading_tag_articles": "Error loading tag articles",
+
+  "author_articles": "Author Articles",
+  "no_author_articles": "No articles by this author",
+  "error_loading_author_articles": "Error loading author articles",
+  "articles_by": "Articles by {}",
+
+  "stories": "Stories",
+  "no_stories": "No stories",
+  "read_article": "Read Article",
+  "story_expired": "This story has expired",
+
+  "browse_categories": "Browse by Category",
+  "show_more": "Show More",
+  "no_all_articles": "No articles to display",
+  "search_breaking_hint": "Search breaking news...",
+  "search_all_articles_hint": "Search all articles..."
 }

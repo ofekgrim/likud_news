@@ -27,6 +27,7 @@ class ArticleDetailModel {
   final DateTime? publishedAt;
   final String? categoryId;
   final String? categoryName;
+  final String? categorySlug;
   final String? categoryColor;
   final List<Article> relatedArticles;
   final bool isFavorite;
@@ -47,6 +48,7 @@ class ArticleDetailModel {
   final int commentCount;
   final List<Article> sameCategoryArticles;
   final List<Article> recommendedArticles;
+  final List<Article> latestArticles;
 
   const ArticleDetailModel({
     required this.id,
@@ -66,6 +68,7 @@ class ArticleDetailModel {
     this.publishedAt,
     this.categoryId,
     this.categoryName,
+    this.categorySlug,
     this.categoryColor,
     this.relatedArticles = const [],
     this.isFavorite = false,
@@ -84,10 +87,12 @@ class ArticleDetailModel {
     this.commentCount = 0,
     this.sameCategoryArticles = const [],
     this.recommendedArticles = const [],
+    this.latestArticles = const [],
   });
 
   /// Creates an [ArticleDetailModel] from a JSON map.
   factory ArticleDetailModel.fromJson(Map<String, dynamic> json) {
+    final category = json['category'] as Map<String, dynamic>?;
     return ArticleDetailModel(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -110,8 +115,11 @@ class ArticleDetailModel {
           ? DateTime.tryParse(json['publishedAt'] as String)
           : null,
       categoryId: json['categoryId'] as String?,
-      categoryName: json['categoryName'] as String?,
-      categoryColor: json['categoryColor'] as String?,
+      categoryName: json['categoryName'] as String? ??
+          category?['name'] as String?,
+      categorySlug: category?['slug'] as String?,
+      categoryColor: json['categoryColor'] as String? ??
+          category?['color'] as String?,
       relatedArticles: (json['relatedArticles'] as List<dynamic>?)
               ?.map((e) => _articleFromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -171,6 +179,10 @@ class ArticleDetailModel {
               ?.map((e) => _articleFromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      latestArticles: (json['latestArticles'] as List<dynamic>?)
+              ?.map((e) => _articleFromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
   }
 
@@ -194,6 +206,7 @@ class ArticleDetailModel {
       publishedAt: publishedAt,
       categoryId: categoryId,
       categoryName: categoryName,
+      categorySlug: categorySlug,
       categoryColor: categoryColor,
       relatedArticles: relatedArticles,
       isFavorite: isFavorite,
@@ -212,6 +225,7 @@ class ArticleDetailModel {
       commentCount: commentCount,
       sameCategoryArticles: sameCategoryArticles,
       recommendedArticles: recommendedArticles,
+      latestArticles: latestArticles,
     );
   }
 
@@ -235,6 +249,7 @@ class ArticleDetailModel {
       'publishedAt': publishedAt?.toIso8601String(),
       'categoryId': categoryId,
       'categoryName': categoryName,
+      'categorySlug': categorySlug,
       'categoryColor': categoryColor,
       'isFavorite': isFavorite,
       'alertBannerText': alertBannerText,
@@ -271,7 +286,9 @@ class ArticleDetailModel {
   }
 
   /// Parses a related article from JSON into an [Article] entity.
+  /// Handles both flat fields (categoryName) and nested (category.name).
   static Article _articleFromJson(Map<String, dynamic> json) {
+    final category = json['category'] as Map<String, dynamic>?;
     return Article(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -293,8 +310,10 @@ class ArticleDetailModel {
           ? DateTime.tryParse(json['publishedAt'] as String)
           : null,
       categoryId: json['categoryId'] as String?,
-      categoryName: json['categoryName'] as String?,
-      categoryColor: json['categoryColor'] as String?,
+      categoryName: json['categoryName'] as String? ??
+          category?['name'] as String?,
+      categoryColor: json['categoryColor'] as String? ??
+          category?['color'] as String?,
     );
   }
 }

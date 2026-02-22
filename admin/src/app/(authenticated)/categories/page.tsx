@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogTitle } from '@/components/ui/dialog';
 import { TableRowSkeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { Trash2 } from 'lucide-react';
 
 export default function CategoriesPage() {
   const queryClient = useQueryClient();
@@ -39,6 +40,21 @@ export default function CategoriesPage() {
       closeDialog();
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/categories/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('הקטגוריה נמחקה');
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  function handleDelete(cat: Category) {
+    if (confirm(`למחוק את הקטגוריה "${cat.name}"? כתבות שמשויכות לקטגוריה זו יישארו ללא קטגוריה.`)) {
+      deleteMutation.mutate(cat.id);
+    }
+  }
 
   function openCreate() {
     setEditing(null);
@@ -102,9 +118,19 @@ export default function CategoriesPage() {
                   <td className="px-4 py-3.5 text-gray-500" dir="ltr">{cat.slug}</td>
                   <td className="px-4 py-3.5 text-gray-500">{cat.sortOrder}</td>
                   <td className="px-4 py-3.5">
-                    <Button variant="outline" size="sm" onClick={() => openEdit(cat)}>
-                      עריכה
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => openEdit(cat)}>
+                        עריכה
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(cat)}
+                        className="text-red-500 hover:text-red-600 hover:border-red-300"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))

@@ -27,6 +27,7 @@ class ArticleDetail extends Equatable {
   final DateTime? publishedAt;
   final String? categoryId;
   final String? categoryName;
+  final String? categorySlug;
   final String? categoryColor;
   final List<Article> relatedArticles;
   final bool isFavorite;
@@ -78,6 +79,9 @@ class ArticleDetail extends Equatable {
   /// Recommended articles from other categories (most-read).
   final List<Article> recommendedArticles;
 
+  /// Latest articles across all categories.
+  final List<Article> latestArticles;
+
   const ArticleDetail({
     required this.id,
     required this.title,
@@ -96,6 +100,7 @@ class ArticleDetail extends Equatable {
     this.publishedAt,
     this.categoryId,
     this.categoryName,
+    this.categorySlug,
     this.categoryColor,
     this.relatedArticles = const [],
     this.isFavorite = false,
@@ -114,6 +119,7 @@ class ArticleDetail extends Equatable {
     this.commentCount = 0,
     this.sameCategoryArticles = const [],
     this.recommendedArticles = const [],
+    this.latestArticles = const [],
   });
 
   /// Creates a copy with optional field overrides.
@@ -135,6 +141,7 @@ class ArticleDetail extends Equatable {
     DateTime? publishedAt,
     String? categoryId,
     String? categoryName,
+    String? categorySlug,
     String? categoryColor,
     List<Article>? relatedArticles,
     bool? isFavorite,
@@ -153,6 +160,7 @@ class ArticleDetail extends Equatable {
     int? commentCount,
     List<Article>? sameCategoryArticles,
     List<Article>? recommendedArticles,
+    List<Article>? latestArticles,
   }) {
     return ArticleDetail(
       id: id ?? this.id,
@@ -172,6 +180,7 @@ class ArticleDetail extends Equatable {
       publishedAt: publishedAt ?? this.publishedAt,
       categoryId: categoryId ?? this.categoryId,
       categoryName: categoryName ?? this.categoryName,
+      categorySlug: categorySlug ?? this.categorySlug,
       categoryColor: categoryColor ?? this.categoryColor,
       relatedArticles: relatedArticles ?? this.relatedArticles,
       isFavorite: isFavorite ?? this.isFavorite,
@@ -190,6 +199,7 @@ class ArticleDetail extends Equatable {
       commentCount: commentCount ?? this.commentCount,
       sameCategoryArticles: sameCategoryArticles ?? this.sameCategoryArticles,
       recommendedArticles: recommendedArticles ?? this.recommendedArticles,
+      latestArticles: latestArticles ?? this.latestArticles,
     );
   }
 
@@ -235,6 +245,7 @@ class ArticleDetail extends Equatable {
         publishedAt,
         categoryId,
         categoryName,
+        categorySlug,
         categoryColor,
         relatedArticles,
         isFavorite,
@@ -253,5 +264,6 @@ class ArticleDetail extends Equatable {
         commentCount,
         sameCategoryArticles,
         recommendedArticles,
+        latestArticles,
       ];
 }

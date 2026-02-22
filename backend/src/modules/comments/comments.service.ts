@@ -13,7 +13,7 @@ export class CommentsService {
   ) {}
 
   /**
-   * Submit a new comment on an article. Comments start as unapproved (pending moderation).
+   * Submit a new comment on an article. Comments are auto-approved.
    */
   async submit(
     articleId: string,
@@ -22,7 +22,7 @@ export class CommentsService {
     const comment = this.commentRepository.create({
       ...dto,
       articleId,
-      isApproved: false,
+      isApproved: true,
     });
     return this.commentRepository.save(comment);
   }
@@ -138,6 +138,59 @@ export class CommentsService {
     comment.likesCount = (comment.likesCount || 0) + 1;
     const saved = await this.commentRepository.save(comment);
     return { likesCount: saved.likesCount };
+  }
+
+  /**
+   * Get approved comments for a specific story (public).
+   * Returns top-level comments with their replies, pinned first, then newest first.
+   */
+  async findByStory(
+    storyId: string,
+    query: QueryCommentsDto,
+  ): Promise<{
+    data: Comment[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const { page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+
+    const qb = this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.replies', 'reply', 'reply.isApproved = :approved', {
+        approved: true,
+      })
+      .where('comment.storyId = :storyId', { storyId })
+      .andWhere('comment.isApproved = :isApproved', { isApproved: true })
+      .andWhere('comment.parentId IS NULL')
+      .orderBy('comment.isPinned', 'DESC')
+      .addOrderBy('comment.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  /**
+   * Submit a new comment on a story. Comments are auto-approved.
+   */
+  async submitForStory(storyId: string, dto: CreateCommentDto): Promise<Comment> {
+    const comment = this.commentRepository.create({
+      ...dto,
+      storyId,
+      isApproved: true,
+    });
+    return this.commentRepository.save(comment);
   }
 
   /**

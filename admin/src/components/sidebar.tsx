@@ -16,6 +16,8 @@ import {
   PenTool,
   MessageSquare,
   Tag as TagIcon,
+  CircleDot,
+  PlayCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +29,8 @@ const navGroups = [
       { href: '/articles', label: 'כתבות', icon: Newspaper },
       { href: '/media', label: 'מדיה', icon: Image },
       { href: '/categories', label: 'קטגוריות', icon: FolderOpen },
+      { href: '/stories', label: 'סטוריז', icon: CircleDot },
+      { href: '/videos', label: 'וידאו', icon: PlayCircle },
     ],
   },
   {

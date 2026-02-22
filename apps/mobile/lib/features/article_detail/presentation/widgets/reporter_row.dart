@@ -32,6 +32,9 @@ class ReporterRow extends StatelessWidget {
   /// Whether the article is currently bookmarked.
   final bool isFavorite;
 
+  /// Callback when the author avatar/name is tapped.
+  final VoidCallback? onAuthorTap;
+
   const ReporterRow({
     super.key,
     this.author,
@@ -41,6 +44,7 @@ class ReporterRow extends StatelessWidget {
     this.onBookmark,
     this.onFontSize,
     this.isFavorite = false,
+    this.onAuthorTap,
   });
 
   @override
@@ -67,15 +71,19 @@ class ReporterRow extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Name
-                      Text(
-                        author?.nameHe ?? 'reporter'.tr(),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          fontSize: 14,
+                      GestureDetector(
+                        onTap: onAuthorTap,
+                        behavior: HitTestBehavior.opaque,
+                        child: Text(
+                          author?.nameHe ?? 'reporter'.tr(),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
 
                       // Role
@@ -142,13 +150,14 @@ class ReporterRow extends StatelessWidget {
     );
   }
 
-  /// Builds the circular author avatar.
+  /// Builds the circular author avatar, wrapped in a tap target.
   Widget _buildAvatar() {
     final hasAvatar = author?.avatarThumbnailUrl != null &&
         author!.avatarThumbnailUrl!.isNotEmpty;
 
+    Widget avatar;
     if (hasAvatar) {
-      return ClipOval(
+      avatar = ClipOval(
         child: AppCachedImage(
           imageUrl: author!.avatarThumbnailUrl!,
           width: 40,
@@ -156,17 +165,26 @@ class ReporterRow extends StatelessWidget {
           fit: BoxFit.cover,
         ),
       );
+    } else {
+      avatar = CircleAvatar(
+        radius: 20,
+        backgroundColor: AppColors.surfaceMedium,
+        child: Icon(
+          Icons.person,
+          size: 22,
+          color: AppColors.textTertiary,
+        ),
+      );
     }
 
-    return CircleAvatar(
-      radius: 20,
-      backgroundColor: AppColors.surfaceMedium,
-      child: Icon(
-        Icons.person,
-        size: 22,
-        color: AppColors.textTertiary,
-      ),
-    );
+    if (onAuthorTap != null) {
+      return GestureDetector(
+        onTap: onAuthorTap,
+        behavior: HitTestBehavior.opaque,
+        child: avatar,
+      );
+    }
+    return avatar;
   }
 
   /// Builds the secondary meta row with relative time and reading estimate.

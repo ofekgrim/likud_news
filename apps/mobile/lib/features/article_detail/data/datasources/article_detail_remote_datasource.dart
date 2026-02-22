@@ -27,19 +27,21 @@ abstract class ArticleDetailRemoteDataSource {
     required String articleId,
   });
 
-  /// Fetches comments for an article, paginated.
+  /// Fetches comments for a target (article or story), paginated.
   Future<List<CommentModel>> getComments({
     required String articleId,
     int page = 1,
     int limit = 20,
+    String targetType = 'article',
   });
 
-  /// Submits a new comment on an article.
+  /// Submits a new comment on a target (article or story).
   Future<void> submitComment({
     required String articleId,
     required String authorName,
     required String body,
     String? parentId,
+    String targetType = 'article',
   });
 
   /// Increments the share count for an article.
@@ -49,6 +51,7 @@ abstract class ArticleDetailRemoteDataSource {
   Future<int> likeComment({
     required String articleId,
     required String commentId,
+    String targetType = 'article',
   });
 }
 
@@ -58,6 +61,13 @@ class ArticleDetailRemoteDataSourceImpl
   final ApiClient _apiClient;
 
   const ArticleDetailRemoteDataSourceImpl(this._apiClient);
+
+  /// Returns the base path for comments based on target type.
+  String _commentsBasePath(String targetId, String targetType) {
+    return targetType == 'story'
+        ? '${ApiConstants.stories}/$targetId/comments'
+        : '${ApiConstants.articles}/$targetId/comments';
+  }
 
   @override
   Future<ArticleDetailModel> getArticleBySlug(String slug) async {
@@ -101,9 +111,10 @@ class ArticleDetailRemoteDataSourceImpl
     required String articleId,
     int page = 1,
     int limit = 20,
+    String targetType = 'article',
   }) async {
     final response = await _apiClient.get<Map<String, dynamic>>(
-      '${ApiConstants.articles}/$articleId/comments',
+      _commentsBasePath(articleId, targetType),
       queryParameters: {'page': page, 'limit': limit},
     );
     final data = response.data?['data'] as List<dynamic>? ?? [];
@@ -118,9 +129,10 @@ class ArticleDetailRemoteDataSourceImpl
     required String authorName,
     required String body,
     String? parentId,
+    String targetType = 'article',
   }) async {
     await _apiClient.post(
-      '${ApiConstants.articles}/$articleId/comments',
+      _commentsBasePath(articleId, targetType),
       data: {
         'authorName': authorName,
         'body': body,
@@ -138,9 +150,10 @@ class ArticleDetailRemoteDataSourceImpl
   Future<int> likeComment({
     required String articleId,
     required String commentId,
+    String targetType = 'article',
   }) async {
     final response = await _apiClient.post<Map<String, dynamic>>(
-      '${ApiConstants.articles}/$articleId/comments/$commentId/like',
+      '${_commentsBasePath(articleId, targetType)}/$commentId/like',
     );
     return (response.data?['likesCount'] as int?) ?? 0;
   }

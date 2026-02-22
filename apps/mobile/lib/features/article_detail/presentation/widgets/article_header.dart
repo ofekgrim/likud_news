@@ -70,7 +70,7 @@ class ArticleHeader extends StatelessWidget {
           if (article.heroImageCredit != null &&
               article.heroImageCredit!.isNotEmpty)
             Positioned(
-              bottom: MediaQuery.of(context).size.height * 0.18,
+              bottom: MediaQuery.of(context).size.height * 0.20,
               right: 12,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

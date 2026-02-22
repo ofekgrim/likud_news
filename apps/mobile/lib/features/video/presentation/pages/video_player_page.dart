@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../article_detail/presentation/widgets/comments_section.dart';
 import '../../domain/entities/video_article.dart';
 import '../widgets/video_player_widget.dart';
 
@@ -138,6 +140,18 @@ class VideoPlayerPage extends StatelessWidget {
                           ),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Comments section (LoadComments dispatched in BlocProvider).
+                    CommentsSection(
+                      targetId: video.id,
+                      targetType: 'article',
+                      commentCount: 0,
+                      targetTitle: video.title,
+                    ),
+                    // Bottom spacing for floating nav bar.
+                    SizedBox(
+                      height: AppRouter.bottomNavClearance(context),
                     ),
                   ],
                 ),

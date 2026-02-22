@@ -4,6 +4,7 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/article_model.dart';
 import '../models/category_model.dart';
+import '../models/story_model.dart';
 import '../models/ticker_item_model.dart';
 
 /// Contract for the home feature remote data source.
@@ -16,7 +17,7 @@ abstract class HomeRemoteDataSource {
   /// Fetches a paginated list of feed articles from the API.
   ///
   /// Throws a [DioException] on failure.
-  Future<List<ArticleModel>> getFeedArticles({required int page});
+  Future<List<ArticleModel>> getFeedArticles({required int page, int limit = 10});
 
   /// Fetches active ticker items from the API.
   ///
@@ -27,6 +28,9 @@ abstract class HomeRemoteDataSource {
   ///
   /// Throws a [DioException] on failure.
   Future<List<CategoryModel>> getCategories();
+
+  /// Fetches active stories from the API.
+  Future<List<StoryModel>> getStories();
 }
 
 /// Implementation of [HomeRemoteDataSource] using [ApiClient].
@@ -47,10 +51,10 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   }
 
   @override
-  Future<List<ArticleModel>> getFeedArticles({required int page}) async {
+  Future<List<ArticleModel>> getFeedArticles({required int page, int limit = 10}) async {
     final response = await _apiClient.get(
       ApiConstants.articles,
-      queryParameters: {'page': page},
+      queryParameters: {'page': page, 'limit': limit},
     );
     final data = response.data;
     final List<dynamic> items =
@@ -85,6 +89,19 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
             : data as List<dynamic>;
     return items
         .map((json) => CategoryModel.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<List<StoryModel>> getStories() async {
+    final response = await _apiClient.get(ApiConstants.stories);
+    final data = response.data;
+    final List<dynamic> items =
+        data is Map<String, dynamic> && data.containsKey('data')
+            ? data['data'] as List<dynamic>
+            : data as List<dynamic>;
+    return items
+        .map((json) => StoryModel.fromJson(json as Map<String, dynamic>))
         .toList();
   }
 }

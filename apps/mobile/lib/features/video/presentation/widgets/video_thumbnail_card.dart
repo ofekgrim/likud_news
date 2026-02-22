@@ -13,11 +13,7 @@ class VideoThumbnailCard extends StatelessWidget {
   final VideoArticle video;
   final VoidCallback? onTap;
 
-  const VideoThumbnailCard({
-    super.key,
-    required this.video,
-    this.onTap,
-  });
+  const VideoThumbnailCard({super.key, required this.video, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +37,11 @@ class VideoThumbnailCard extends StatelessWidget {
           children: [
             // Thumbnail with overlays.
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
               child: AspectRatio(
-                aspectRatio: 16 / 9,
+                aspectRatio: 10 / 9.1,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [

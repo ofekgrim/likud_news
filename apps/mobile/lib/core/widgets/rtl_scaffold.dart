@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../app/router.dart';
 import '../../app/theme/app_colors.dart';
 import 'floating_logo.dart';
 
@@ -10,6 +11,7 @@ class RtlScaffold extends StatelessWidget {
   final Widget body;
   final bool showLogo;
   final bool showNotificationBell;
+  final bool showDrawerIcon;
   final VoidCallback? onNotificationTap;
   final Widget? floatingActionButton;
   final PreferredSizeWidget? appBar;
@@ -19,6 +21,7 @@ class RtlScaffold extends StatelessWidget {
     required this.body,
     this.showLogo = true,
     this.showNotificationBell = true,
+    this.showDrawerIcon = false,
     this.onNotificationTap,
     this.floatingActionButton,
     this.appBar,
@@ -30,6 +33,14 @@ class RtlScaffold extends StatelessWidget {
       appBar: appBar ??
           AppBar(
             centerTitle: true,
+            leading: showDrawerIcon
+                ? IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () =>
+                        AppRouter.scaffoldKey.currentState?.openDrawer(),
+                    color: AppColors.textPrimary,
+                  )
+                : null,
             title: showLogo ? const FloatingLogo() : null,
             actions: [
               if (showNotificationBell)

@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/article.dart';
 import '../../domain/entities/category.dart';
+import '../../domain/entities/story.dart';
 import '../../domain/entities/ticker_item.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../datasources/home_remote_datasource.dart';
@@ -34,9 +35,10 @@ class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<Either<Failure, List<Article>>> getFeedArticles({
     required int page,
+    int limit = 10,
   }) async {
     try {
-      final models = await _remoteDataSource.getFeedArticles(page: page);
+      final models = await _remoteDataSource.getFeedArticles(page: page, limit: limit);
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
       return Left(_mapDioException(e));
@@ -61,6 +63,18 @@ class HomeRepositoryImpl implements HomeRepository {
   Future<Either<Failure, List<Category>>> getCategories() async {
     try {
       final models = await _remoteDataSource.getCategories();
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Story>>> getStories() async {
+    try {
+      final models = await _remoteDataSource.getStories();
       return Right(models.map((m) => m.toEntity()).toList());
     } on DioException catch (e) {
       return Left(_mapDioException(e));

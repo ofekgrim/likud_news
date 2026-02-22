@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 
@@ -28,7 +29,7 @@ class MorePage extends StatelessWidget {
       ),
       showNotificationBell: false,
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.only(top: 8, bottom: AppRouter.bottomNavClearance(context)),
         children: [
           // User greeting
           _buildGreeting(context),

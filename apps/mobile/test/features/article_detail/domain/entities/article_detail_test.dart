@@ -81,7 +81,7 @@ void main() {
       test('props list should contain all fields', () {
         final detail = createDetail();
 
-        expect(detail.props.length, equals(35));
+        expect(detail.props.length, equals(36));
         expect(detail.props, [
           '1',
           'Test Article',
@@ -119,6 +119,7 @@ void main() {
           0, // commentCount
           const <Article>[], // sameCategoryArticles
           const <Article>[], // recommendedArticles
+          const <Article>[], // latestArticles
         ]);
       });
     });

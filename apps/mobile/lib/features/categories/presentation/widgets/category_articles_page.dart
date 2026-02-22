@@ -34,6 +34,9 @@ class _CategoryArticlesPageState extends State<CategoryArticlesPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    context
+        .read<CategoriesBloc>()
+        .add(LoadCategoryArticles(slug: widget.slug));
   }
 
   @override

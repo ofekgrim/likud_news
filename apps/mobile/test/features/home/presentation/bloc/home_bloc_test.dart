@@ -7,9 +7,11 @@ import 'package:metzudat_halikud/core/usecases/usecase.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/article.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/category.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/ticker_item.dart';
+import 'package:metzudat_halikud/features/home/domain/entities/story.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_categories.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_feed_articles.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_hero_article.dart';
+import 'package:metzudat_halikud/features/home/domain/usecases/get_stories.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_ticker_items.dart';
 import 'package:metzudat_halikud/features/home/presentation/bloc/home_bloc.dart';
 
@@ -25,12 +27,15 @@ class MockGetTickerItems extends Mock implements GetTickerItems {}
 
 class MockGetCategories extends Mock implements GetCategories {}
 
+class MockGetStories extends Mock implements GetStories {}
+
 void main() {
   late HomeBloc homeBloc;
   late MockGetHeroArticle mockGetHeroArticle;
   late MockGetFeedArticles mockGetFeedArticles;
   late MockGetTickerItems mockGetTickerItems;
   late MockGetCategories mockGetCategories;
+  late MockGetStories mockGetStories;
 
   // -------------------------------------------------------------------------
   // Test data
@@ -73,12 +78,14 @@ void main() {
     mockGetFeedArticles = MockGetFeedArticles();
     mockGetTickerItems = MockGetTickerItems();
     mockGetCategories = MockGetCategories();
+    mockGetStories = MockGetStories();
 
     homeBloc = HomeBloc(
       mockGetHeroArticle,
       mockGetFeedArticles,
       mockGetTickerItems,
       mockGetCategories,
+      mockGetStories,
     );
   });
 
@@ -90,11 +97,14 @@ void main() {
   // Helper: stub all 4 use cases to return success
   // -------------------------------------------------------------------------
 
+  const tStories = <Story>[];
+
   void arrangeAllUseCasesSuccess({
     Article heroArticle = tHeroArticle,
     List<Article> articles = tArticles,
     List<TickerItem> tickerItems = tTickerItems,
     List<Category> categories = tCategories,
+    List<Story> stories = tStories,
   }) {
     when(() => mockGetHeroArticle(any()))
         .thenAnswer((_) async => Right(heroArticle));
@@ -104,6 +114,8 @@ void main() {
         .thenAnswer((_) async => Right(tickerItems));
     when(() => mockGetCategories(any()))
         .thenAnswer((_) async => Right(categories));
+    when(() => mockGetStories(any()))
+        .thenAnswer((_) async => Right(stories));
   }
 
   // -------------------------------------------------------------------------
@@ -157,6 +169,8 @@ void main() {
               .thenAnswer((_) async => const Right(tTickerItems));
           when(() => mockGetCategories(any()))
               .thenAnswer((_) async => const Right(tCategories));
+          when(() => mockGetStories(any()))
+              .thenAnswer((_) async => const Right(tStories));
           return homeBloc;
         },
         act: (bloc) => bloc.add(const LoadHome()),
@@ -177,6 +191,8 @@ void main() {
               .thenAnswer((_) async => const Right(tTickerItems));
           when(() => mockGetCategories(any()))
               .thenAnswer((_) async => const Right(tCategories));
+          when(() => mockGetStories(any()))
+              .thenAnswer((_) async => const Right(tStories));
           return homeBloc;
         },
         act: (bloc) => bloc.add(const LoadHome()),
@@ -240,7 +256,7 @@ void main() {
       blocTest<HomeBloc, HomeState>(
         'sets hasMore false when less than page size returned',
         build: () {
-          // Return fewer than _pageSize (20) articles
+          // Return fewer than _pageSize (10) articles
           const fewArticles = [
             Article(id: '10', title: 'Only One'),
           ];
@@ -265,9 +281,9 @@ void main() {
       blocTest<HomeBloc, HomeState>(
         'sets hasMore true when exactly page size returned',
         build: () {
-          // Return exactly 20 articles
+          // Return exactly 10 articles
           final fullPage = List.generate(
-            20,
+            10,
             (i) => Article(id: '${100 + i}', title: 'Article $i'),
           );
           when(() => mockGetFeedArticles(any()))
@@ -390,6 +406,8 @@ void main() {
               .thenAnswer((_) async => const Right(tTickerItems));
           when(() => mockGetCategories(any()))
               .thenAnswer((_) async => const Right(tCategories));
+          when(() => mockGetStories(any()))
+              .thenAnswer((_) async => const Right(tStories));
           return homeBloc;
         },
         seed: () => const HomeLoaded(
@@ -415,6 +433,8 @@ void main() {
               .thenAnswer((_) async => const Right(tTickerItems));
           when(() => mockGetCategories(any()))
               .thenAnswer((_) async => const Right(tCategories));
+          when(() => mockGetStories(any()))
+              .thenAnswer((_) async => const Right(tStories));
           return homeBloc;
         },
         act: (bloc) => bloc.add(const RefreshFeed()),

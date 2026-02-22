@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Article } from '../articles/entities/article.entity';
 import { Category } from './entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -10,6 +11,8 @@ export class CategoriesService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Article)
+    private readonly articleRepository: Repository<Article>,
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
@@ -50,29 +53,25 @@ export class CategoriesService {
     slug: string,
     page: number = 1,
     limit: number = 20,
-  ): Promise<{ data: Category; total: number }> {
+  ): Promise<{ data: Article[]; meta: { total: number; page: number; limit: number } }> {
     const category = await this.categoryRepository.findOne({
       where: { slug },
-      relations: ['articles'],
     });
     if (!category) {
       throw new NotFoundException(`Category with slug "${slug}" not found`);
     }
 
-    const queryBuilder = this.categoryRepository
-      .createQueryBuilder('category')
-      .leftJoinAndSelect('category.articles', 'article')
-      .where('category.slug = :slug', { slug })
-      .andWhere('article.status = :status', { status: 'published' })
-      .orderBy('article.publishedAt', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit);
-
-    const [result, total] = await queryBuilder.getManyAndCount();
+    const [articles, total] = await this.articleRepository.findAndCount({
+      where: { categoryId: category.id, status: 'published' as any },
+      order: { publishedAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+      relations: ['category', 'authorEntity', 'tags'],
+    });
 
     return {
-      data: result[0],
-      total,
+      data: articles,
+      meta: { total, page, limit },
     };
   }
 

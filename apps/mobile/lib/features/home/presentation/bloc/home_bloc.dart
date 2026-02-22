@@ -5,10 +5,12 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/article.dart';
 import '../../domain/entities/category.dart';
+import '../../domain/entities/story.dart';
 import '../../domain/entities/ticker_item.dart';
 import '../../domain/usecases/get_categories.dart';
 import '../../domain/usecases/get_feed_articles.dart';
 import '../../domain/usecases/get_hero_article.dart';
+import '../../domain/usecases/get_stories.dart';
 import '../../domain/usecases/get_ticker_items.dart';
 
 // ---------------------------------------------------------------------------
@@ -66,6 +68,7 @@ class HomeLoaded extends HomeState {
   final List<Article> articles;
   final List<TickerItem> tickerItems;
   final List<Category> categories;
+  final List<Story> stories;
   final bool hasMore;
   final int currentPage;
 
@@ -74,6 +77,7 @@ class HomeLoaded extends HomeState {
     this.articles = const [],
     this.tickerItems = const [],
     this.categories = const [],
+    this.stories = const [],
     this.hasMore = true,
     this.currentPage = 1,
   });
@@ -84,6 +88,7 @@ class HomeLoaded extends HomeState {
     List<Article>? articles,
     List<TickerItem>? tickerItems,
     List<Category>? categories,
+    List<Story>? stories,
     bool? hasMore,
     int? currentPage,
   }) {
@@ -92,6 +97,7 @@ class HomeLoaded extends HomeState {
       articles: articles ?? this.articles,
       tickerItems: tickerItems ?? this.tickerItems,
       categories: categories ?? this.categories,
+      stories: stories ?? this.stories,
       hasMore: hasMore ?? this.hasMore,
       currentPage: currentPage ?? this.currentPage,
     );
@@ -103,6 +109,7 @@ class HomeLoaded extends HomeState {
     articles,
     tickerItems,
     categories,
+    stories,
     hasMore,
     currentPage,
   ];
@@ -132,16 +139,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetFeedArticles _getFeedArticles;
   final GetTickerItems _getTickerItems;
   final GetCategories _getCategories;
+  final GetStories _getStories;
 
   /// Number of articles per page. When a page returns fewer items,
   /// [HomeLoaded.hasMore] is set to false.
-  static const int _pageSize = 20;
+  static const int _pageSize = 10;
 
   HomeBloc(
     this._getHeroArticle,
     this._getFeedArticles,
     this._getTickerItems,
     this._getCategories,
+    this._getStories,
   ) : super(const HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<LoadMoreArticles>(_onLoadMoreArticles);
@@ -155,15 +164,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     // Fire all requests in parallel.
     final results = await Future.wait([
       _getHeroArticle(const NoParams()),
-      _getFeedArticles(const FeedParams(page: 1)),
+      _getFeedArticles(const FeedParams(page: 1, limit: _pageSize)),
       _getTickerItems(const NoParams()),
       _getCategories(const NoParams()),
+      _getStories(const NoParams()),
     ]);
 
     final heroResult = results[0];
     final feedResult = results[1];
     final tickerResult = results[2];
     final categoriesResult = results[3];
+    final storiesResult = results[4];
 
     // If the feed fails, surface the error. Other sections degrade gracefully.
     final feedEither = feedResult;
@@ -186,6 +197,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       (_) => <Category>[],
       (list) => list as List<Category>,
     );
+    final stories = storiesResult.fold(
+      (_) => <Story>[],
+      (list) => list as List<Story>,
+    );
 
     emit(
       HomeLoaded(
@@ -193,6 +208,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         articles: articles,
         tickerItems: tickerItems,
         categories: categories,
+        stories: stories,
         hasMore: articles.length >= _pageSize,
         currentPage: 1,
       ),
@@ -208,7 +224,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     if (currentState is! HomeLoaded || !currentState.hasMore) return;
 
     final nextPage = currentState.currentPage + 1;
-    final result = await _getFeedArticles(FeedParams(page: nextPage));
+    final result = await _getFeedArticles(FeedParams(page: nextPage, limit: _pageSize));
 
     result.fold(
       (failure) {
@@ -235,15 +251,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     // Reload everything from page 1.
     final results = await Future.wait([
       _getHeroArticle(const NoParams()),
-      _getFeedArticles(const FeedParams(page: 1)),
+      _getFeedArticles(const FeedParams(page: 1, limit: _pageSize)),
       _getTickerItems(const NoParams()),
       _getCategories(const NoParams()),
+      _getStories(const NoParams()),
     ]);
 
     final heroResult = results[0];
     final feedResult = results[1];
     final tickerResult = results[2];
     final categoriesResult = results[3];
+    final storiesResult = results[4];
 
     final feedEither = feedResult;
     if (feedEither.isLeft()) {
@@ -267,6 +285,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       (_) => <Category>[],
       (list) => list as List<Category>,
     );
+    final stories = storiesResult.fold(
+      (_) => <Story>[],
+      (list) => list as List<Story>,
+    );
 
     emit(
       HomeLoaded(
@@ -274,6 +296,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         articles: articles,
         tickerItems: tickerItems,
         categories: categories,
+        stories: stories,
         hasMore: articles.length >= _pageSize,
         currentPage: 1,
       ),

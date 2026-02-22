@@ -28,19 +28,21 @@ abstract class ArticleDetailRepository {
     required String articleId,
   });
 
-  /// Fetches comments for an article, paginated.
+  /// Fetches comments for a target (article or story), paginated.
   Future<Either<Failure, List<Comment>>> getComments({
     required String articleId,
     int page = 1,
     int limit = 20,
+    String targetType = 'article',
   });
 
-  /// Submits a new comment on an article.
+  /// Submits a new comment on a target (article or story).
   Future<Either<Failure, void>> submitComment({
     required String articleId,
     required String authorName,
     required String body,
     String? parentId,
+    String targetType = 'article',
   });
 
   /// Increments the share count for an article.
@@ -50,5 +52,6 @@ abstract class ArticleDetailRepository {
   Future<Either<Failure, int>> likeComment({
     required String articleId,
     required String commentId,
+    String targetType = 'article',
   });
 }

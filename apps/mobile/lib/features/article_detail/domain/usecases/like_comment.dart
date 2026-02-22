@@ -18,6 +18,7 @@ class LikeComment implements UseCase<int, LikeCommentParams> {
     return repository.likeComment(
       articleId: params.articleId,
       commentId: params.commentId,
+      targetType: params.targetType,
     );
   }
 }
@@ -26,12 +27,14 @@ class LikeComment implements UseCase<int, LikeCommentParams> {
 class LikeCommentParams extends Equatable {
   final String articleId;
   final String commentId;
+  final String targetType; // 'article' or 'story'
 
   const LikeCommentParams({
     required this.articleId,
     required this.commentId,
+    this.targetType = 'article',
   });
 
   @override
-  List<Object?> get props => [articleId, commentId];
+  List<Object?> get props => [articleId, commentId, targetType];
 }

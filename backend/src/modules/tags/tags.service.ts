@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tag } from './entities/tag.entity';
+import { Article } from '../articles/entities/article.entity';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 
@@ -14,6 +15,8 @@ export class TagsService {
   constructor(
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+    @InjectRepository(Article)
+    private readonly articleRepository: Repository<Article>,
   ) {}
 
   async create(createTagDto: CreateTagDto): Promise<Tag> {
@@ -68,6 +71,34 @@ export class TagsService {
 
     Object.assign(tag, updateTagDto);
     return this.tagRepository.save(tag);
+  }
+
+  async findArticlesBySlug(
+    slug: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{
+    data: Article[];
+    tag: Tag;
+    meta: { total: number; page: number; limit: number };
+  }> {
+    const tag = await this.findBySlug(slug);
+
+    const [articles, total] = await this.articleRepository
+      .createQueryBuilder('article')
+      .leftJoinAndSelect('article.category', 'category')
+      .innerJoin('article.tags', 'tag', 'tag.id = :tagId', { tagId: tag.id })
+      .where('article.status = :status', { status: 'published' })
+      .orderBy('article.publishedAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: articles,
+      tag,
+      meta: { total, page, limit },
+    };
   }
 
   async remove(id: string): Promise<void> {

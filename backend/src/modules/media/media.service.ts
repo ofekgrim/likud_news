@@ -81,14 +81,14 @@ export class MediaService {
   async findAll(
     page: number = 1,
     limit: number = 20,
-  ): Promise<{ data: Media[]; total: number; page: number; limit: number }> {
+  ): Promise<{ data: Media[]; total: number; page: number; limit: number; totalPages: number }> {
     const [data, total] = await this.mediaRepository.findAndCount({
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
 
-    return { data, total, page, limit };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async uploadLocal(

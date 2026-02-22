@@ -21,6 +21,23 @@ class AppCachedImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final uri = Uri.tryParse(imageUrl);
+    if (imageUrl.isEmpty || uri == null || !uri.hasScheme) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: Container(
+          width: width,
+          height: height,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: Icon(
+            Icons.broken_image_outlined,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            size: 32,
+          ),
+        ),
+      );
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: CachedNetworkImage(

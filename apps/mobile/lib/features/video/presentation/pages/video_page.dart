@@ -2,10 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../app/di.dart';
+import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
+import '../../../article_detail/presentation/bloc/comments_bloc.dart';
 import '../bloc/video_bloc.dart';
 import '../widgets/video_thumbnail_card.dart';
 import 'video_player_page.dart';
@@ -63,7 +66,14 @@ class _VideoPageState extends State<VideoPage> {
   void _navigateToPlayer(BuildContext context, video) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => VideoPlayerPage(video: video),
+        builder: (_) => BlocProvider(
+          create: (_) => getIt<CommentsBloc>()
+            ..add(LoadComments(
+              articleId: video.id,
+              targetType: 'article',
+            )),
+          child: VideoPlayerPage(video: video),
+        ),
       ),
     );
   }
@@ -73,6 +83,11 @@ class _VideoPageState extends State<VideoPage> {
     return RtlScaffold(
       appBar: AppBar(
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => AppRouter.scaffoldKey.currentState?.openDrawer(),
+          color: AppColors.textPrimary,
+        ),
         title: Text(
           'video'.tr(),
           style: const TextStyle(
@@ -219,7 +234,7 @@ class _VideoPageState extends State<VideoPage> {
               ),
             ),
           // Bottom padding.
-          const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+          SliverPadding(padding: EdgeInsets.only(bottom: AppRouter.bottomNavClearance(context))),
         ],
       ),
     );

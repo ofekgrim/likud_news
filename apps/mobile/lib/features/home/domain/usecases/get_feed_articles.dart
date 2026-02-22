@@ -16,16 +16,17 @@ class GetFeedArticles implements UseCase<List<Article>, FeedParams> {
 
   @override
   Future<Either<Failure, List<Article>>> call(FeedParams params) {
-    return repository.getFeedArticles(page: params.page);
+    return repository.getFeedArticles(page: params.page, limit: params.limit);
   }
 }
 
 /// Parameters for the [GetFeedArticles] use case.
 class FeedParams extends Equatable {
   final int page;
+  final int limit;
 
-  const FeedParams({required this.page});
+  const FeedParams({required this.page, this.limit = 10});
 
   @override
-  List<Object?> get props => [page];
+  List<Object?> get props => [page, limit];
 }

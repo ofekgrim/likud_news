@@ -197,5 +197,25 @@
   "liked": "אהבת",
   "you_might_be_interested": "אולי יעניין אותך",
   "video_caption": "כיתוב",
-  "video_credit": "קרדיט"
+  "video_credit": "קרדיט",
+
+  "tag_articles": "כתבות לפי תגית",
+  "no_tag_articles": "אין כתבות בתגית זו",
+  "error_loading_tag_articles": "שגיאה בטעינת כתבות התגית",
+
+  "author_articles": "כתבות הכתב",
+  "no_author_articles": "אין כתבות לכתב זה",
+  "error_loading_author_articles": "שגיאה בטעינת כתבות הכתב",
+  "articles_by": "כתבות מאת {}",
+
+  "stories": "סטוריז",
+  "no_stories": "אין סטוריז",
+  "read_article": "קרא כתבה",
+  "story_expired": "סטורי זה פג תוקף",
+
+  "browse_categories": "עיון לפי קטגוריה",
+  "show_more": "הצג עוד",
+  "no_all_articles": "אין כתבות להצגה",
+  "search_breaking_hint": "חיפוש במבזקים...",
+  "search_all_articles_hint": "חיפוש בכל הכתבות..."
 }

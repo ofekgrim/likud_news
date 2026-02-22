@@ -90,8 +90,10 @@ export class ArticlesService {
       page = 1,
       limit = 20,
       categoryId,
+      category,
       status,
       isBreaking,
+      isHero,
       search,
     } = query;
     const skip = (page - 1) * limit;
@@ -107,12 +109,20 @@ export class ArticlesService {
       qb.andWhere('article.categoryId = :categoryId', { categoryId });
     }
 
+    if (category) {
+      qb.andWhere('category.slug = :categorySlug', { categorySlug: category });
+    }
+
     if (status) {
       qb.andWhere('article.status = :status', { status });
     }
 
     if (isBreaking !== undefined) {
       qb.andWhere('article.isBreaking = :isBreaking', { isBreaking });
+    }
+
+    if (isHero !== undefined) {
+      qb.andWhere('article.isHero = :isHero', { isHero });
     }
 
     if (search) {
@@ -154,18 +164,24 @@ export class ArticlesService {
     // Fire-and-forget view count increment
     void this.incrementViewCount(article.id);
 
-    // Fetch related, same-category, and recommended articles in parallel
-    const [relatedArticles, sameCategoryArticles, recommendedArticles] = await Promise.all([
+    // Fetch related, same-category, recommended, and latest articles in parallel
+    const [relatedArticles, sameCategoryArticles, recommendedArticles, latestArticles] = await Promise.all([
       this.findRelated(article.id, 5),
       this.findSameCategory(article.id, 5),
       this.findRecommendations(article.id, 5),
+      this.findLatest(article.id, 10),
     ]);
 
+    // Serialize entity to plain object first — spreading a TypeORM entity
+    // directly loses properties due to internal property descriptors.
+    const plain = JSON.parse(JSON.stringify(article));
+
     return {
-      ...article,
+      ...plain,
       relatedArticles,
       sameCategoryArticles,
       recommendedArticles,
+      latestArticles,
       categoryName: article.category?.name,
       categoryColor: article.category?.color,
     };
@@ -296,14 +312,16 @@ export class ArticlesService {
 
   /**
    * Full-text search across articles.
+   * Searches title, titleEn, subtitle, content, slug, category name/slug, and tag names.
    */
   async search(searchQuery: string, limit: number = 20): Promise<Article[]> {
     return this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
+      .leftJoin('article.tags', 'tag')
       .where('article.status = :status', { status: ArticleStatus.PUBLISHED })
       .andWhere(
-        '(article.title ILIKE :q OR article.titleEn ILIKE :q OR article.subtitle ILIKE :q OR article.content ILIKE :q)',
+        '(article.title ILIKE :q OR article.titleEn ILIKE :q OR article.subtitle ILIKE :q OR article.content ILIKE :q OR article.slug ILIKE :q OR category.name ILIKE :q OR category.slug ILIKE :q OR tag.name ILIKE :q)',
         { q: `%${searchQuery}%` },
       )
       .orderBy('article.publishedAt', 'DESC')
@@ -382,6 +400,20 @@ export class ArticlesService {
 
     return qb
       .orderBy('article.viewCount', 'DESC')
+      .take(limit)
+      .getMany();
+  }
+
+  /**
+   * Find latest published articles, excluding the current article.
+   */
+  async findLatest(articleId: string, limit: number = 10): Promise<Article[]> {
+    return this.articleRepository
+      .createQueryBuilder('article')
+      .leftJoinAndSelect('article.category', 'category')
+      .where('article.id != :articleId', { articleId })
+      .andWhere('article.status = :status', { status: ArticleStatus.PUBLISHED })
+      .orderBy('article.publishedAt', 'DESC')
       .take(limit)
       .getMany();
   }

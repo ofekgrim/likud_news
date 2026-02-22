@@ -28,20 +28,20 @@ void main() {
   group('GetFeedArticles', () {
     test('should delegate to repository.getFeedArticles(page: 1)', () async {
       // arrange
-      when(() => mockRepository.getFeedArticles(page: 1))
+      when(() => mockRepository.getFeedArticles(page: 1, limit: 10))
           .thenAnswer((_) async => const Right(tArticles));
 
       // act
       await useCase(const FeedParams(page: 1));
 
       // assert
-      verify(() => mockRepository.getFeedArticles(page: 1)).called(1);
+      verify(() => mockRepository.getFeedArticles(page: 1, limit: 10)).called(1);
       verifyNoMoreInteractions(mockRepository);
     });
 
     test('should return Right(List<Article>) on success', () async {
       // arrange
-      when(() => mockRepository.getFeedArticles(page: 1))
+      when(() => mockRepository.getFeedArticles(page: 1, limit: 10))
           .thenAnswer((_) async => const Right(tArticles));
 
       // act
@@ -53,7 +53,7 @@ void main() {
 
     test('should return Left(ServerFailure) on failure', () async {
       // arrange
-      when(() => mockRepository.getFeedArticles(page: 1))
+      when(() => mockRepository.getFeedArticles(page: 1, limit: 10))
           .thenAnswer((_) async => const Left(tServerFailure));
 
       // act
@@ -65,14 +65,14 @@ void main() {
 
     test('should pass the correct page parameter', () async {
       // arrange
-      when(() => mockRepository.getFeedArticles(page: 5))
+      when(() => mockRepository.getFeedArticles(page: 5, limit: 10))
           .thenAnswer((_) async => const Right(tArticles));
 
       // act
       await useCase(const FeedParams(page: 5));
 
       // assert
-      verify(() => mockRepository.getFeedArticles(page: 5)).called(1);
+      verify(() => mockRepository.getFeedArticles(page: 5, limit: 10)).called(1);
     });
   });
 
@@ -95,12 +95,12 @@ void main() {
       expect(params1, isNot(equals(params2)));
     });
 
-    test('props should contain page', () {
+    test('props should contain page and limit', () {
       // arrange
       const params = FeedParams(page: 3);
 
       // assert
-      expect(params.props, [3]);
+      expect(params.props, [3, 10]);
     });
   });
 }

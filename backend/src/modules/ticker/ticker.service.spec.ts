@@ -29,10 +29,10 @@ describe('TickerService', () => {
     id: 'uuid-1',
     text: 'מבזק חדשות ראשון',
     linkUrl: 'https://example.com/article/1',
-    articleId: null,
+    articleId: undefined,
     position: 0,
     isActive: true,
-    expiresAt: null,
+    expiresAt: undefined,
     createdAt: new Date(),
   };
 

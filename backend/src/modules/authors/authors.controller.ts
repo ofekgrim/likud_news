@@ -38,6 +38,18 @@ export class AuthorsController {
     return this.authorsService.findAll(activeOnly);
   }
 
+  @Get(':id/articles')
+  @ApiOperation({ summary: 'Get articles by author with pagination' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  findArticlesById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.authorsService.findArticlesById(id, page ? +page : 1, limit ? +limit : 20);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get an author by ID' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {

@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
+import '../../../../features/categories/presentation/widgets/category_card.dart';
 import '../bloc/home_bloc.dart';
 import '../widgets/breaking_ticker.dart';
 import '../widgets/feed_article_card.dart';
 import '../widgets/hero_card.dart';
 import '../widgets/story_circles.dart';
+import '../widgets/story_viewer.dart';
 
 /// Main home screen of the Metzudat HaLikud news app.
 ///
@@ -35,29 +38,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     context.read<HomeBloc>().add(const LoadHome());
-    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
+    _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (_isNearBottom) {
-      context.read<HomeBloc>().add(const LoadMoreArticles());
-    }
-  }
-
-  bool get _isNearBottom {
-    if (!_scrollController.hasClients) return false;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
-    // Trigger when within 200px of the bottom.
-    return currentScroll >= maxScroll - 200;
   }
 
   Future<void> _onRefresh() async {
@@ -71,6 +57,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return RtlScaffold(
+      showDrawerIcon: true,
       body: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
           if (state is HomeLoading || state is HomeInitial) {
@@ -193,14 +180,25 @@ class _HomePageState extends State<HomePage> {
             ),
 
           // Story circles.
-          if (state.categories.isNotEmpty)
+          if (state.stories.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.only(top: 16),
                 child: StoryCircles(
-                  categories: state.categories,
-                  onCategoryTap: (category) {
-                    context.push('/category/${category.slug ?? category.id}');
+                  stories: state.stories,
+                  onStoryTap: (story, index) {
+                    Navigator.of(context, rootNavigator: true).push(
+                      PageRouteBuilder(
+                        pageBuilder: (_, __, ___) => StoryViewer(
+                          stories: state.stories,
+                          initialIndex: index,
+                        ),
+                        transitionsBuilder: (_, animation, __, child) {
+                          return FadeTransition(opacity: animation, child: child);
+                        },
+                        transitionDuration: const Duration(milliseconds: 200),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -248,48 +246,106 @@ class _HomePageState extends State<HomePage> {
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  if (index < state.articles.length) {
-                    final article = state.articles[index];
-                    return Column(
-                      children: [
-                        FeedArticleCard(
-                          article: article,
-                          onTap: () {
-                            context.push('/article/${article.slug ?? article.id}');
-                          },
-                        ),
-                        if (index < state.articles.length - 1)
-                          const Divider(
-                            height: 1,
-                            indent: 16,
-                            endIndent: 16,
-                            color: AppColors.border,
-                          ),
-                      ],
-                    );
-                  }
-                  // Loading indicator at the bottom.
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: AppColors.likudBlue,
-                        ),
+                  final article = state.articles[index];
+                  return Column(
+                    children: [
+                      FeedArticleCard(
+                        article: article,
+                        onTap: () {
+                          context.push('/article/${article.slug ?? article.id}');
+                        },
                       ),
-                    ),
+                      if (index < state.articles.length - 1)
+                        const Divider(
+                          height: 1,
+                          indent: 16,
+                          endIndent: 16,
+                          color: AppColors.border,
+                        ),
+                    ],
                   );
                 },
-                childCount:
-                    state.articles.length + (state.hasMore ? 1 : 0),
+                childCount: state.articles.length,
+              ),
+            ),
+
+          // Show more button.
+          if (state.hasMore)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      context.read<HomeBloc>().add(const LoadMoreArticles());
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.likudBlue,
+                      side: const BorderSide(color: AppColors.likudBlue),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'show_more'.tr(),
+                      style: const TextStyle(
+                        fontFamily: 'Heebo',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          // Browse categories section header.
+          if (state.categories.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: Text(
+                  'browse_categories'.tr(),
+                  style: const TextStyle(
+                    fontFamily: 'Heebo',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ),
+
+          // Category grid.
+          if (state.categories.isNotEmpty)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.2,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final category = state.categories[index];
+                    return CategoryCard(
+                      category: category,
+                      onTap: () {
+                        context.push('/category/${category.slug}?name=${Uri.encodeComponent(category.name)}');
+                      },
+                    );
+                  },
+                  childCount: state.categories.length,
+                ),
               ),
             ),
 
           // Bottom padding.
-          const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
+          SliverPadding(padding: EdgeInsets.only(bottom: AppRouter.bottomNavClearance(context))),
         ],
       ),
     );

@@ -10,14 +10,14 @@ import '../../../home/domain/entities/article.dart';
 /// Displays a "You might be interested" header followed by a horizontal
 /// [ListView] of article cards. Cards show hero image, category badge,
 /// and title. Returns [SizedBox.shrink] when the articles list is empty.
-class RecommendedArticles extends StatelessWidget {
+class AllArticlesCarousel extends StatelessWidget {
   /// Recommended articles to display.
   final List<Article> articles;
 
   /// Called when an article card is tapped.
   final ValueChanged<Article>? onArticleTap;
 
-  const RecommendedArticles({
+  const AllArticlesCarousel({
     super.key,
     required this.articles,
     this.onArticleTap,
@@ -39,7 +39,7 @@ class RecommendedArticles extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'you_might_be_interested'.tr(),
+              'all_articles'.tr(),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,

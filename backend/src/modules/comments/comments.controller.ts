@@ -121,3 +121,56 @@ export class CommentsController {
     return this.commentsService.reject(id);
   }
 }
+
+/**
+ * Public-facing controller for story comments.
+ * Handles GET/POST under /stories/:storyId/comments
+ */
+@ApiTags('comments')
+@Controller('stories')
+export class StoryCommentsController {
+  constructor(private readonly commentsService: CommentsService) {}
+
+  @Get(':storyId/comments')
+  @ApiOperation({ summary: 'Get approved comments for a story' })
+  @ApiParam({ name: 'storyId', description: 'Story UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of approved comments',
+  })
+  findByStory(
+    @Param('storyId', ParseUUIDPipe) storyId: string,
+    @Query() query: QueryCommentsDto,
+  ) {
+    return this.commentsService.findByStory(storyId, query);
+  }
+
+  @Post(':storyId/comments')
+  @ApiOperation({ summary: 'Submit a comment on a story (pending moderation)' })
+  @ApiParam({ name: 'storyId', description: 'Story UUID' })
+  @ApiResponse({
+    status: 201,
+    description: 'Comment submitted successfully (pending moderation)',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  submit(
+    @Param('storyId', ParseUUIDPipe) storyId: string,
+    @Body() createCommentDto: CreateCommentDto,
+  ) {
+    return this.commentsService.submitForStory(storyId, createCommentDto);
+  }
+
+  @Post(':storyId/comments/:commentId/like')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Like a comment on a story' })
+  @ApiParam({ name: 'storyId', description: 'Story UUID' })
+  @ApiParam({ name: 'commentId', description: 'Comment UUID' })
+  @ApiResponse({ status: 200, description: 'Like recorded' })
+  @ApiResponse({ status: 404, description: 'Comment not found' })
+  like(
+    @Param('storyId', ParseUUIDPipe) _storyId: string,
+    @Param('commentId', ParseUUIDPipe) commentId: string,
+  ) {
+    return this.commentsService.like(commentId);
+  }
+}

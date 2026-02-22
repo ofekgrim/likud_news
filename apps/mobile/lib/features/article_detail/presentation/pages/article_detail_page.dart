@@ -13,7 +13,7 @@ import '../widgets/article_header.dart';
 import '../widgets/block_renderer.dart';
 import '../widgets/category_articles_carousel.dart';
 import '../widgets/comments_section.dart';
-import '../widgets/recommended_articles.dart';
+import '../widgets/recommended_articles.dart' show AllArticlesCarousel;
 import '../widgets/related_articles.dart';
 import '../widgets/reporter_row.dart';
 import '../widgets/tags_section.dart';
@@ -85,9 +85,9 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                     Text(
                       'font_size_title'.tr(),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                          ),
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -112,9 +112,9 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                               setSheetState(() {
                                 tempScale = value;
                               });
-                              context
-                                  .read<ArticleDetailBloc>()
-                                  .add(ChangeFontSize(value));
+                              context.read<ArticleDetailBloc>().add(
+                                ChangeFontSize(value),
+                              );
                             },
                           ),
                         ),
@@ -159,26 +159,29 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
             // When article loads successfully, dispatch LoadComments.
             if (state is ArticleDetailLoaded) {
               context.read<CommentsBloc>().add(
-                    LoadComments(articleId: state.article.id),
-                  );
+                LoadComments(
+                  articleId: state.article.id,
+                  targetType: 'article',
+                ),
+              );
             }
           },
           builder: (context, state) {
             return switch (state) {
-              ArticleDetailInitial() ||
-              ArticleDetailLoading() =>
-                const Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.likudBlue,
-                  ),
-                ),
+              ArticleDetailInitial() || ArticleDetailLoading() => const Center(
+                child: CircularProgressIndicator(color: AppColors.likudBlue),
+              ),
               ArticleDetailError(:final message) => ErrorView(
-                  message: message,
-                  onRetry: () => context
-                      .read<ArticleDetailBloc>()
-                      .add(LoadArticleDetail(widget.slug)),
+                message: message,
+                onRetry: () => context.read<ArticleDetailBloc>().add(
+                  LoadArticleDetail(widget.slug),
                 ),
-              ArticleDetailLoaded(:final article, :final isFavorite, :final fontScale) =>
+              ),
+              ArticleDetailLoaded(
+                :final article,
+                :final isFavorite,
+                :final fontScale,
+              ) =>
                 Stack(
                   children: [
                     // Main content
@@ -196,8 +199,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                 backgroundColor: AppColors.likudDarkBlue,
                                 leading: _BackButton(),
                                 flexibleSpace: FlexibleSpaceBar(
-                                  background:
-                                      ArticleHeader(article: article),
+                                  background: ArticleHeader(article: article),
                                   collapseMode: CollapseMode.parallax,
                                 ),
                               ),
@@ -205,38 +207,33 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                               // Body content
                               SliverToBoxAdapter(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // 1. Alert banner (if enabled)
                                     AlertBannerWidget(
-                                      text:
-                                          article.alertBannerText ?? '',
-                                      colorHex:
-                                          article.alertBannerColor,
-                                      enabled:
-                                          article.alertBannerEnabled,
+                                      text: article.alertBannerText ?? '',
+                                      colorHex: article.alertBannerColor,
+                                      enabled: article.alertBannerEnabled,
                                     ),
 
                                     // 2. Hero image caption
-                                    if (article.heroImageCaption !=
-                                            null &&
-                                        article.heroImageCaption!
-                                            .isNotEmpty)
+                                    if (article.heroImageCaption != null &&
+                                        article.heroImageCaption!.isNotEmpty)
                                       Padding(
-                                        padding:
-                                            const EdgeInsets.fromLTRB(
-                                                16, 12, 16, 0),
+                                        padding: const EdgeInsets.fromLTRB(
+                                          16,
+                                          12,
+                                          16,
+                                          0,
+                                        ),
                                         child: Text(
                                           article.heroImageCaption!,
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall
                                               ?.copyWith(
-                                                color: AppColors
-                                                    .textTertiary,
-                                                fontStyle:
-                                                    FontStyle.italic,
+                                                color: AppColors.textTertiary,
+                                                fontStyle: FontStyle.italic,
                                               ),
                                         ),
                                       ),
@@ -248,17 +245,22 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                       readingTimeMinutes:
                                           article.readingTimeMinutes,
                                       isFavorite: isFavorite,
-                                      onShare: () => context
-                                          .read<ArticleDetailBloc>()
-                                          .add(ShareArticle(
-                                              SharePlatform.system)),
+                                      onShare: () =>
+                                          context.read<ArticleDetailBloc>().add(
+                                            ShareArticle(SharePlatform.system),
+                                          ),
                                       onBookmark: () => context
                                           .read<ArticleDetailBloc>()
-                                          .add(
-                                              const ToggleFavoriteEvent()),
-                                      onFontSize: () =>
-                                          _showFontSizeDialog(
-                                              context, fontScale),
+                                          .add(const ToggleFavoriteEvent()),
+                                      onFontSize: () => _showFontSizeDialog(
+                                        context,
+                                        fontScale,
+                                      ),
+                                      onAuthorTap: article.authorEntity != null
+                                          ? () => context.push(
+                                              '/author/${article.authorEntity!.id}',
+                                            )
+                                          : null,
                                     ),
 
                                     // 4. Block renderer (body content)
@@ -273,82 +275,67 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                     // 5. Tags section
                                     TagsSection(
                                       tags: article.tags,
-                                      onTagTap: (tag) => context
-                                          .push('/tag/${tag.slug}'),
+                                      onTagTap: (tag) => context.push(
+                                        '/tag/${tag.slug}?name=${Uri.encodeComponent(tag.nameHe)}',
+                                      ),
                                     ),
 
-                                    const SizedBox(height: 24),
-
-                                    // 6. Divider
-                                    if (article
-                                        .relatedArticles.isNotEmpty)
+                                    // 6. Related articles (by tags)
+                                    if (article.relatedArticles.isNotEmpty) ...[
+                                      const SizedBox(height: 24),
                                       const Divider(
                                         height: 1,
                                         indent: 16,
                                         endIndent: 16,
                                         color: AppColors.border,
                                       ),
-
-                                    if (article
-                                        .relatedArticles.isNotEmpty)
                                       const SizedBox(height: 20),
-
-                                    // 7. Related articles
-                                    if (article
-                                        .relatedArticles.isNotEmpty)
                                       RelatedArticles(
-                                        articles:
-                                            article.relatedArticles,
+                                        articles: article.relatedArticles,
                                         onArticleTap: (related) {
                                           if (related.slug != null) {
                                             context.push(
-                                                '/article/${related.slug!}');
+                                              '/article/${related.slug!}',
+                                            );
                                           }
                                         },
                                       ),
+                                    ],
 
                                     const SizedBox(height: 24),
 
                                     // 8. Comments section
                                     if (article.allowComments)
                                       CommentsSection(
-                                        articleId: article.id,
-                                        commentCount:
-                                            article.commentCount,
-                                        allowComments:
-                                            article.allowComments,
+                                        targetId: article.id,
+                                        targetType: 'article',
+                                        commentCount: article.commentCount,
+                                        allowComments: article.allowComments,
                                       ),
 
                                     const SizedBox(height: 24),
 
-                                    // 9. Recommended articles
-                                    if (article.recommendedArticles
-                                        .isNotEmpty)
-                                      RecommendedArticles(
-                                        articles: article
-                                            .recommendedArticles,
+                                    // 9. Same category articles carousel
+                                    if (article.sameCategoryArticles.isNotEmpty)
+                                      CategoryArticlesCarousel(
+                                        articles: article.sameCategoryArticles,
+                                        categoryName: article.categoryName,
                                         onArticleTap: (a) {
                                           if (a.slug != null) {
-                                            context.push(
-                                                '/article/${a.slug!}');
+                                            context.push('/article/${a.slug!}');
                                           }
                                         },
                                       ),
 
                                     const SizedBox(height: 24),
 
-                                    // 10. Same category articles carousel
-                                    if (article.sameCategoryArticles
-                                        .isNotEmpty)
-                                      CategoryArticlesCarousel(
-                                        articles: article
-                                            .sameCategoryArticles,
-                                        categoryName:
-                                            article.categoryName,
+                                    // 10. All articles carousel
+                                    if (article.latestArticles.isNotEmpty)
+                                      AllArticlesCarousel(
+                                        articles: article.latestArticles,
                                         onArticleTap: (a) {
                                           if (a.slug != null) {
-                                            context.push(
-                                                '/article/${a.slug!}');
+                                            context.push('/article/${a.slug!}');
                                           }
                                         },
                                       ),

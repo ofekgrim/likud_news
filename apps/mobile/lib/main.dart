@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hive/hive.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'firebase_options.dart';
 import 'app/app.dart';
@@ -30,6 +31,9 @@ void main() async {
   final deviceIdService = DeviceIdService();
   await deviceIdService.init();
   getIt.registerSingleton<DeviceIdService>(deviceIdService);
+
+  // Open Hive box for tutorial overlay tracking
+  await Hive.openBox('tutorial_box');
 
   // Initialize dependency injection
   configureDependencies();

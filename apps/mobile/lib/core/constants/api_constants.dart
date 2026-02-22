@@ -54,4 +54,7 @@ class ApiConstants {
 
   // Config
   static const String config = '/config';
+
+  // Stories
+  static const String stories = '/stories';
 }

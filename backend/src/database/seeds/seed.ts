@@ -2,6 +2,7 @@ import { AppDataSource } from '../data-source';
 import * as bcrypt from 'bcrypt';
 
 async function seed() {
+  const forceReseed = process.argv.includes('--force');
   console.log('Connecting to database...');
   await AppDataSource.initialize();
   console.log('Connected.');
@@ -15,11 +16,29 @@ async function seed() {
     const existingUsers = (await queryRunner.query(
       `SELECT COUNT(*) as count FROM "users"`,
     )) as { count: string }[];
-    if (parseInt(existingUsers[0].count, 10) > 0) {
-      console.log('Database already seeded. Skipping.');
+    if (parseInt(existingUsers[0].count, 10) > 0 && !forceReseed) {
+      console.log('Database already seeded. Use --force to reseed.');
       await queryRunner.release();
       await AppDataSource.destroy();
       return;
+    }
+
+    if (forceReseed && parseInt(existingUsers[0].count, 10) > 0) {
+      console.log('Force reseed: clearing existing data...');
+      // Delete in reverse dependency order
+      await queryRunner.query('DELETE FROM "comments"');
+      await queryRunner.query('DELETE FROM "article_tags"');
+      await queryRunner.query('DELETE FROM "article_members"');
+      await queryRunner.query('DELETE FROM "stories"');
+      await queryRunner.query('DELETE FROM "ticker_items"');
+      await queryRunner.query('DELETE FROM "media"');
+      await queryRunner.query('DELETE FROM "articles"');
+      await queryRunner.query('DELETE FROM "tags"');
+      await queryRunner.query('DELETE FROM "authors"');
+      await queryRunner.query('DELETE FROM "members"');
+      await queryRunner.query('DELETE FROM "categories"');
+      await queryRunner.query('DELETE FROM "users"');
+      console.log('Existing data cleared.');
     }
 
     // ─── 1. Seed Super Admin User ─────────────────────────────────────
@@ -94,6 +113,20 @@ async function seed() {
         slug: 'culture',
         color: '#880E4F',
         sortOrder: 8,
+      },
+      {
+        name: 'וידאו',
+        nameEn: 'Video',
+        slug: 'video',
+        color: '#D32F2F',
+        sortOrder: 9,
+      },
+      {
+        name: 'מגזין',
+        nameEn: 'Magazine',
+        slug: 'magazine',
+        color: '#7B1FA2',
+        sortOrder: 10,
       },
     ];
 
@@ -254,10 +287,11 @@ async function seed() {
         authorIndex: 0,
         alertBannerEnabled: false,
         readingTimeMinutes: 2,
+        heroImageUrl: 'https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?w=800&h=450&fit=crop',
         bodyBlocks: JSON.stringify([
           { type: 'heading', text: 'נאום מרכזי בכנס השנתי', level: 2 },
           { type: 'paragraph', text: 'ראש הממשלה בנימין נתניהו נשא היום נאום מרכזי בכנס השנתי של תנועת הליכוד. בנאומו, התייחס נתניהו להישגי הממשלה בתחום הביטחון, הכלכלה והחברה.' },
-          { type: 'image', url: 'https://placehold.co/800x400', caption: 'ראש הממשלה בכנס הליכוד' },
+          { type: 'image', url: 'https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?w=800&h=400&fit=crop', caption: 'ראש הממשלה בכנס הליכוד' },
           { type: 'paragraph', text: '"אנחנו ממשיכים להוביל את מדינת ישראל קדימה, עם כלכלה חזקה, ביטחון מוצק ומעמד בינלאומי חסר תקדים", אמר נתניהו.' },
           { type: 'quote', text: 'אנחנו ממשיכים להוביל את מדינת ישראל קדימה' },
         ]),
@@ -277,6 +311,7 @@ async function seed() {
         alertBannerEnabled: true,
         alertBannerText: 'מבזק: הסכם דיפלומטי חדש נחתם',
         readingTimeMinutes: 3,
+        heroImageUrl: 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?w=800&h=450&fit=crop',
         bodyBlocks: JSON.stringify([
           { type: 'heading', text: 'הסכם היסטורי בתחום הטכנולוגיה והמסחר', level: 2 },
           { type: 'paragraph', text: 'מדינת ישראל חתמה היום על הסכם שיתוף פעולה חדש עם מדינה נוספת באזור. ההסכם כולל שיתוף פעולה בתחומי הטכנולוגיה, המסחר, החקלאות והחינוך.' },
@@ -297,6 +332,7 @@ async function seed() {
         authorIndex: 0,
         alertBannerEnabled: false,
         readingTimeMinutes: 2,
+        heroImageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&h=450&fit=crop',
         bodyBlocks: JSON.stringify([
           { type: 'heading', text: 'תכנית רב-שנתית חדשה', level: 2 },
           { type: 'paragraph', text: 'שר הביטחון הציג היום את התכנית הרב-שנתית החדשה לחיזוק צה"ל. התכנית כוללת השקעות משמעותיות בטכנולוגיות מתקדמות, סייבר, ומערכות נשק חדשניות.' },
@@ -317,6 +353,7 @@ async function seed() {
         authorIndex: 1,
         alertBannerEnabled: false,
         readingTimeMinutes: 3,
+        heroImageUrl: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=450&fit=crop',
         bodyBlocks: JSON.stringify([
           { type: 'heading', text: 'נתונים חיוביים ברבעון האחרון', level: 2 },
           { type: 'paragraph', text: 'הלשכה המרכזית לסטטיסטיקה פרסמה היום נתונים חיוביים על הכלכלה הישראלית ברבעון האחרון.' },
@@ -338,6 +375,7 @@ async function seed() {
         authorIndex: 0,
         alertBannerEnabled: false,
         readingTimeMinutes: 2,
+        heroImageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=450&fit=crop',
         bodyBlocks: JSON.stringify([
           { type: 'heading', text: 'רפורמה מקיפה במערכת החינוך', level: 2 },
           { type: 'paragraph', text: 'שר החינוך הציג היום רפורמה מקיפה במערכת החינוך הישראלית. הרפורמה כוללת שיפור משמעותי בתנאי ההעסקה של מורים, עדכון תכניות הלימוד בתחומי המדעים והטכנולוגיה, והשקעה בתשתיות חינוכיות.' },
@@ -400,6 +438,7 @@ async function seed() {
         alertBannerEnabled: true,
         alertBannerText: 'מבזק: ניצחון מרשים לנבחרת ישראל',
         readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&h=450&fit=crop',
         bodyBlocks: JSON.stringify([
           { type: 'paragraph', text: 'נבחרת ישראל בכדורגל ניצחה הערב במשחק מוקדמות בתוצאה מרשימה. שער הניצחון נקלע בדקה ה-89 של המשחק, מה שהקפיץ את עשרות אלפי האוהדים ביציעים.' },
           { type: 'paragraph', text: 'מאמן הנבחרת ציין כי הקבוצה הראתה רוח לחימה ונחישות.' },
@@ -446,6 +485,566 @@ async function seed() {
           { type: 'paragraph', text: 'הצעת החוק כוללת הסדרת תנאי עבודה, הגנה על אופציות עובדים ומנגנוני פיצוי במקרה של פיטורים.' },
         ]),
       },
+      // ── New articles (indices 10-24): 3 per category ──────────────
+      {
+        title: 'הקואליציה אישרה חוק חדש להגברת השקיפות בממשלה',
+        subtitle: 'החוק מחייב פרסום פרוטוקולים של ישיבות ממשלה בתוך 30 יום',
+        content: 'הכנסת אישרה הלילה בקריאה שנייה ושלישית את חוק השקיפות הממשלתית, ביוזמת סיעת הליכוד. החוק החדש מחייב את מזכירות הממשלה לפרסם פרוטוקולים מלאים של ישיבות ממשלה בתוך 30 יום מקיומן.',
+        slug: 'coalition-transparency-law-approved',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 0,
+        publishedAt: new Date(now.getTime() - 10 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'חוק השקיפות אושר ברוב של 61 חברי כנסת', level: 2 },
+          { type: 'paragraph', text: 'הכנסת אישרה הלילה בקריאה שנייה ושלישית את חוק השקיפות הממשלתית, ביוזמת סיעת הליכוד.' },
+          { type: 'paragraph', text: 'ראש הממשלה נתניהו ציין כי "החוק הזה מוכיח שהליכוד מחויב לשקיפות מלאה מול הציבור".' },
+        ]),
+      },
+      {
+        title: 'מערכת כיפת ברזל החדשה עברה ניסוי מוצלח בנגב',
+        subtitle: 'הדור הבא של כיפת ברזל מסוגל ליירט מספר כפול של איומים בו-זמנית',
+        content: 'משרד הביטחון הודיע היום על השלמת ניסוי מוצלח של הדור הבא של מערכת כיפת ברזל. המערכת המשודרגת הדגימה יכולת יירוט של מספר כפול של טילים בו-זמנית.',
+        slug: 'iron-dome-next-gen-successful-test',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 1,
+        publishedAt: new Date(now.getTime() - 11 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 4,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'הניסוי בוצע בהצלחה מלאה באזור הנגב', level: 2 },
+          { type: 'paragraph', text: 'משרד הביטחון הודיע היום על השלמת ניסוי מוצלח של הדור הבא של מערכת כיפת ברזל.' },
+          { type: 'paragraph', text: 'שר הביטחון הדגיש כי "מדובר בקפיצת מדרגה משמעותית ביכולות ההגנה של ישראל".' },
+        ]),
+      },
+      {
+        title: 'ישראל וירדן חתמו על הסכם חדש לשיתוף פעולה ביטחוני בגבול',
+        subtitle: 'ההסכם כולל סיורים משותפים ומערכת התרעה משולבת',
+        content: 'ישראל וירדן חתמו השבוע על הסכם ביטחוני חדש המרחיב את שיתוף הפעולה בגבול המשותף. ההסכם כולל הקמת חדר מצב משותף וסיורים מתואמים.',
+        slug: 'israel-jordan-border-security-agreement',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 1,
+        publishedAt: new Date(now.getTime() - 12 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'שיתוף פעולה ביטחוני היסטורי', level: 2 },
+          { type: 'paragraph', text: 'ישראל וירדן חתמו השבוע על הסכם ביטחוני חדש המרחיב את שיתוף הפעולה בגבול המשותף.' },
+          { type: 'paragraph', text: '"הביטחון ההדדי שלנו תלוי בשיתוף פעולה", אמר ראש הממשלה נתניהו בטקס החתימה.' },
+        ]),
+      },
+      {
+        title: 'יצוא ההייטק הישראלי שבר שיא חדש ברבעון האחרון',
+        subtitle: 'יצוא שירותי טכנולוגיה הגיע ל-20 מיליארד דולר',
+        content: 'הלשכה המרכזית לסטטיסטיקה פרסמה היום נתונים המצביעים על שיא חדש ביצוא ההייטק הישראלי. יצוא שירותי הטכנולוגיה הגיע ל-20 מיליארד דולר.',
+        slug: 'tech-exports-record-quarter',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 2,
+        publishedAt: new Date(now.getTime() - 13 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'אומת הסטארט-אפ ממשיכה להוביל', level: 2 },
+          { type: 'paragraph', text: 'יצוא שירותי הטכנולוגיה הגיע ל-20 מיליארד דולר, עלייה של 18% לעומת הרבעון המקביל אשתקד.' },
+          { type: 'paragraph', text: 'תחומי הסייבר והבינה המלאכותית היו המנועים המרכזיים של הצמיחה.' },
+        ]),
+      },
+      {
+        title: 'הממשלה אישרה תוכנית לבניית 50,000 דירות חדשות בפריפריה',
+        subtitle: 'התוכנית כוללת הקלות במכרזים ותמריצים לקבלנים',
+        content: 'הממשלה אישרה היום תוכנית מקיפה לבניית 50,000 יחידות דיור חדשות בפריפריה בהשקעה של 15 מיליארד שקלים.',
+        slug: 'government-50k-housing-plan-periphery',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 2,
+        publishedAt: new Date(now.getTime() - 14 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'פתרון מקיף למשבר הדיור בפריפריה', level: 2 },
+          { type: 'paragraph', text: 'הממשלה אישרה היום תוכנית מקיפה לבניית 50,000 יחידות דיור חדשות בפריפריה.' },
+          { type: 'paragraph', text: 'ראש הממשלה: "הפריפריה היא העתיד של ישראל. אנחנו משקיעים בדיור, בתעסוקה ובתשתיות".' },
+        ]),
+      },
+      {
+        title: 'תוכנית חדשה לקליטת עלייה: מרכזי שילוב בכל עיר גדולה',
+        subtitle: 'המרכזים יספקו שירותי שפה, תעסוקה ותמיכה קהילתית לעולים חדשים',
+        content: 'משרד העלייה והקליטה הכריז היום על הקמת 20 מרכזי שילוב חדשים ברחבי הארץ לעולים חדשים.',
+        slug: 'new-immigration-integration-centers',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 3,
+        publishedAt: new Date(now.getTime() - 15 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: '20 מרכזי שילוב חדשים ייפתחו ברחבי הארץ', level: 2 },
+          { type: 'paragraph', text: 'משרד העלייה והקליטה הכריז על הקמת 20 מרכזי שילוב חדשים במסגרת תוכנית "בית חדש בישראל".' },
+          { type: 'paragraph', text: '"כל עולה חדש הוא חיזוק למדינת ישראל", אמר שר העלייה והקליטה.' },
+        ]),
+      },
+      {
+        title: 'עיריית ירושלים תקים 12 מתנ"סים חדשים בשכונות מזרח העיר',
+        subtitle: 'המתנ"סים יכללו חוגים, ספריות, חדרי מחשבים ומרכזי נוער',
+        content: 'עיריית ירושלים פרסמה תוכנית להקמת 12 מרכזים קהילתיים חדשים בשכונות מזרח ירושלים בהשקעה של 500 מיליון שקלים.',
+        slug: 'jerusalem-12-new-community-centers-east',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 3,
+        publishedAt: new Date(now.getTime() - 16 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 2,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'השקעה של 500 מיליון שקלים בקהילות מזרח ירושלים', level: 2 },
+          { type: 'paragraph', text: 'עיריית ירושלים פרסמה תוכנית להקמת 12 מרכזים קהילתיים חדשים בשכונות מזרח ירושלים.' },
+          { type: 'paragraph', text: '"ירושלים היא עיר אחת לכל תושביה", ציין ראש העיר.' },
+        ]),
+      },
+      {
+        title: 'משרד החינוך משיק תוכנית STEM לאומית ב-500 בתי ספר',
+        subtitle: 'התוכנית תכלול מעבדות רובוטיקה, קורסי תכנות וסדנאות בינה מלאכותית',
+        content: 'משרד החינוך הכריז היום על השקת תוכנית STEM לאומית שתופעל ב-500 בתי ספר ברחבי הארץ.',
+        slug: 'national-stem-program-500-schools',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 4,
+        publishedAt: new Date(now.getTime() - 17 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'מהפכת ה-STEM בבתי הספר בישראל', level: 2 },
+          { type: 'paragraph', text: 'משרד החינוך הכריז על השקת תוכנית STEM לאומית בתקציב של 2 מיליארד שקלים על פני חמש שנים.' },
+          { type: 'paragraph', text: 'דגש מיוחד יושם על בתי ספר בפריפריה.' },
+        ]),
+      },
+      {
+        title: 'אוניברסיטת בן-גוריון תפתח קמפוס חדש בערד בתמיכת הממשלה',
+        subtitle: 'הקמפוס יתמחה במדעי המדבר, אנרגיה מתחדשת וחקלאות חכמה',
+        content: 'אוניברסיטת בן-גוריון בנגב הודיעה על פתיחת קמפוס חדש בעיר ערד בתמיכת תקציבית מלאה של הממשלה.',
+        slug: 'bgu-new-campus-arad-desert-studies',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 4,
+        publishedAt: new Date(now.getTime() - 18 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'קמפוס חדש בלב הנגב — השקעה בעתיד', level: 2 },
+          { type: 'paragraph', text: 'הקמפוס, שהקמתו מתוקצבת ב-1.5 מיליארד שקלים, יכלול מעבדות מחקר מתקדמות.' },
+          { type: 'paragraph', text: '"ערד היא מקום אידיאלי למחקר מדעי המדבר", ציין נשיא האוניברסיטה.' },
+        ]),
+      },
+      {
+        title: 'בית חולים חדש ייפתח בבאר שבע עם 800 מיטות אשפוז',
+        subtitle: 'המרכז הרפואי החדש יכלול מחלקות ייחודיות לרפואת שטח וטראומה',
+        content: 'משרד הבריאות הכריז על הקמת בית חולים חדש בבאר שבע שיכלול 800 מיטות אשפוז בהשקעה של 4 מיליארד שקלים.',
+        slug: 'new-hospital-beer-sheva-800-beds',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 5,
+        publishedAt: new Date(now.getTime() - 19 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'מרכז רפואי חדש ומתקדם בנגב', level: 2 },
+          { type: 'paragraph', text: 'המתחם הרפואי יכלול 800 מיטות אשפוז, חדרי ניתוח מתקדמים ומרכז למחקר קליני.' },
+          { type: 'paragraph', text: '"תושבי הנגב זכאים לשירותי בריאות ברמה הגבוהה ביותר", אמר שר הבריאות.' },
+        ]),
+      },
+      {
+        title: 'ישראל מובילה מחקר בינלאומי חדשני בתחום בריאות הנפש',
+        subtitle: 'מכון וייצמן פיתח שיטת טיפול חדשה בהפרעות חרדה',
+        content: 'מכון ויצמן למדע הודיע על פריצת דרך במחקר בריאות הנפש בשיתוף 15 מדינות.',
+        slug: 'israel-leads-mental-health-research-breakthrough',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 5,
+        publishedAt: new Date(now.getTime() - 20 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 4,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'פריצת דרך ישראלית ברפואת הנפש', level: 2 },
+          { type: 'paragraph', text: 'השיטה החדשה מציגה שיפור של 60% בתסמיני חרדה באמצעות נוירופידבק בזמן אמת.' },
+          { type: 'paragraph', text: 'המחקר פורסם בכתב העת Nature Neuroscience.' },
+        ]),
+      },
+      {
+        title: 'נבחרת ישראל בכדורסל העפילה לגביע העולם לאחר ניצחון דרמטי',
+        subtitle: 'ישראל גברה על צרפת 85-82 בהארכה',
+        content: 'נבחרת ישראל בכדורסל העפילה הערב לגביע העולם לאחר ניצחון דרמטי על צרפת 85-82 בהארכה.',
+        slug: 'israel-basketball-world-cup-qualification',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 6,
+        publishedAt: new Date(now.getTime() - 21 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'ניצחון היסטורי: ישראל בגביע העולם', level: 2 },
+          { type: 'paragraph', text: 'אולם בלומפילד ביפו רעד מקריאות השמחה של 10,000 אוהדים.' },
+          { type: 'paragraph', text: 'ראש הממשלה נתניהו: "אתם שגרירים של ישראל".' },
+        ]),
+      },
+      {
+        title: 'שחיינית ישראלית שברה שיא עולמי ב-200 מטר גב במשחקי המכביה',
+        subtitle: 'אנסטסיה גורבנקו סיימה בזמן של 2:03.45',
+        content: 'השחיינית הישראלית אנסטסיה גורבנקו שברה את השיא העולמי ב-200 מטר גב במשחקי המכביה בירושלים.',
+        slug: 'israeli-swimmer-world-record-maccabiah',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 6,
+        publishedAt: new Date(now.getTime() - 22 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 2,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'שיא עולמי לישראל במשחקי המכביה', level: 2 },
+          { type: 'paragraph', text: 'הקהל בבריכה האולימפית הריע בהתלהבות כשהזמן 2:03.45 הופיע על הלוח.' },
+          { type: 'paragraph', text: '"ההשקעה של המדינה בספורט התחרותי מניבה הישגים", אמר שר התרבות והספורט.' },
+        ]),
+      },
+      {
+        title: 'סרט ישראלי זכה בפרס הזהב בפסטיבל קאן הבינלאומי',
+        subtitle: 'הסרט "צללים בנגב" של הבמאי נדב לפיד זכה בדקל הזהב',
+        content: 'הסרט הישראלי "צללים בנגב" זכה בדקל הזהב בפסטיבל קאן הבינלאומי.',
+        slug: 'israeli-film-wins-cannes-golden-palm',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 7,
+        publishedAt: new Date(now.getTime() - 23 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'דקל הזהב — הישג היסטורי לקולנוע הישראלי', level: 2 },
+          { type: 'paragraph', text: 'חבר השופטים תיאר את הסרט כ"יצירת מופת אנושית ומרגשת שחוצה גבולות תרבותיים".' },
+          { type: 'paragraph', text: 'שרת התרבות הודיעה על הגדלת תקציב קרן הקולנוע הישראלי ב-50 מיליון שקלים.' },
+        ]),
+      },
+      {
+        title: 'מוזיאון ישראל ייפתח אגף חדש המוקדש לאמנות יהודית מהתפוצות',
+        subtitle: 'האגף יציג אוספים נדירים מקהילות יהודיות בצפון אפריקה, תימן ואירופה',
+        content: 'מוזיאון ישראל בירושלים הכריז על פתיחת אגף חדש שיוקדש לאמנות יהודית מהתפוצות בהשקעה של 200 מיליון שקלים.',
+        slug: 'israel-museum-new-diaspora-jewish-art-wing',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 7,
+        publishedAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 3,
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'אגף חדש לאמנות יהודית במוזיאון ישראל', level: 2 },
+          { type: 'paragraph', text: 'האגף יכלול 15 אולמות תצוגה, מעבדת שימור ומרכז מחקר דיגיטלי.' },
+          { type: 'paragraph', text: '"ירושלים היא הבית הטבעי לאמנות היהודית מכל התפוצות", אמר ראש הממשלה.' },
+        ]),
+      },
+      // ── Video articles (categoryIndex: 8) ──────────────────────────────
+      {
+        title: 'צפו: ראש הממשלה נתניהו בנאום בכנסת על תכנית הביטחון',
+        subtitle: 'נאום מלא מישיבת הכנסת המיוחדת',
+        content: 'צפו בנאום המלא של ראש הממשלה בנימין נתניהו בכנסת, בו הציג את תכנית הביטחון הלאומית החדשה.',
+        slug: 'video-netanyahu-knesset-security-speech',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&h=450&fit=crop',
+        videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        bodyBlocks: JSON.stringify([
+          { type: 'youtube', videoId: 'dQw4w9WgXcQ', caption: 'נאום ראש הממשלה בכנסת' },
+        ]),
+      },
+      {
+        title: 'סיכום שבועי: הרגעים הבולטים מהכנסת השבוע',
+        subtitle: 'כל מה שקרה בכנסת בדקות ספורות',
+        content: 'סיכום שבועי של הרגעים הבולטים מישיבות הכנסת השבוע, כולל הצבעות, נאומים ודיונים סוערים.',
+        slug: 'video-weekly-knesset-highlights',
+        status: 'published',
+        isHero: true,
+        isBreaking: false,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 5 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800&h=450&fit=crop',
+        videoUrl: 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+        bodyBlocks: JSON.stringify([
+          { type: 'youtube', videoId: 'jNQXAC9IVRw', caption: 'סיכום שבועי מהכנסת' },
+        ]),
+      },
+      {
+        title: 'ראיון בלעדי: שר הכלכלה על תוכנית הצמיחה החדשה',
+        subtitle: 'ראיון מעמיק עם שר הכלכלה ניר ברקת',
+        content: 'בראיון בלעדי, שר הכלכלה ניר ברקת מפרט את תוכנית הצמיחה הכלכלית החדשה וההשפעה הצפויה על חיי האזרחים.',
+        slug: 'video-exclusive-economy-minister-interview',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 8 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&h=450&fit=crop',
+        videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        bodyBlocks: JSON.stringify([
+          { type: 'youtube', videoId: 'dQw4w9WgXcQ', caption: 'ראיון עם שר הכלכלה' },
+        ]),
+      },
+      {
+        title: 'צפו: טקס חתימת הסכם שיתוף פעולה בינלאומי',
+        subtitle: 'רגעי השיא מטקס החתימה ההיסטורי',
+        content: 'צפו ברגעי השיא מטקס החתימה ההיסטורי על הסכם שיתוף פעולה בינלאומי חדש.',
+        slug: 'video-international-agreement-signing-ceremony',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 12 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?w=800&h=450&fit=crop',
+        videoUrl: 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+        bodyBlocks: JSON.stringify([
+          { type: 'youtube', videoId: 'jNQXAC9IVRw', caption: 'טקס חתימת ההסכם' },
+        ]),
+      },
+      {
+        title: 'סיור מודרך: פרויקט התשתיות הגדול בנגב',
+        subtitle: 'צפו בהתקדמות פרויקט הכביש המהיר צפון-דרום',
+        content: 'סיור מצולם באתר הבנייה של פרויקט הכביש המהיר החדש שיקשר בין צפון הארץ לדרומה.',
+        slug: 'video-negev-infrastructure-project-tour',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 16 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=800&h=450&fit=crop',
+        videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        bodyBlocks: JSON.stringify([
+          { type: 'youtube', videoId: 'dQw4w9WgXcQ', caption: 'סיור בפרויקט התשתיות' },
+        ]),
+      },
+      // ── Additional video articles — diverse sources (categoryIndex: 8) ──
+      {
+        title: 'צפו: ח"כ ליכוד בראיון ברשת X על חוק הלאום',
+        subtitle: 'ראיון שהפך ויראלי ברשתות החברתיות',
+        content: 'ח"כ ליכוד בראיון ויראלי ברשת X, בו הסביר את עמדת המפלגה בנושא חוק הלאום ותגובות הציבור.',
+        slug: 'video-x-likud-mk-nationality-law-interview',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 20 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&h=450&fit=crop',
+        bodyBlocks: JSON.stringify([
+          { type: 'video', url: 'https://x.com/LikudParty/status/1234567890/video/1', source: 'x' },
+          { type: 'paragraph', text: 'הראיון המלא שהפך ויראלי ברשתות החברתיות' },
+        ]),
+      },
+      {
+        title: 'שידור חי: עצרת הליכוד בכיכר רבין — שידור מפייסבוק',
+        subtitle: 'אלפי תומכים התכנסו באירוע מרכזי',
+        content: 'שידור חי מעצרת הליכוד ההמונית בכיכר רבין, עם נאומים של בכירי המפלגה והופעות אורחים.',
+        slug: 'video-facebook-likud-rally-rabin-square',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop',
+        bodyBlocks: JSON.stringify([
+          { type: 'video', url: 'https://www.facebook.com/Likud/videos/9876543210', source: 'facebook' },
+          { type: 'paragraph', text: 'צפו בשידור החי המלא מעצרת הליכוד בכיכר רבין' },
+        ]),
+      },
+      {
+        title: 'מאחורי הקלעים: יום בשגרת ח"כ — ריל מאינסטגרם',
+        subtitle: 'יום שלם עם ח"כ מהליכוד — מהבוקר ועד הלילה',
+        content: 'ריל מאינסטגרם שמציג יום בחייו של ח"כ מהליכוד — מפגישות ועדה ועד הצבעות בכנסת.',
+        slug: 'video-instagram-reel-mk-daily-life',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 28 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=800&h=450&fit=crop',
+        bodyBlocks: JSON.stringify([
+          { type: 'video', url: 'https://www.instagram.com/reel/CxYz1234567', source: 'instagram' },
+          { type: 'paragraph', text: 'ריל ויראלי שמציג את הצד האנושי של הפוליטיקה' },
+        ]),
+      },
+      {
+        title: 'דוקומנטרי קצר: 40 שנה להסכם השלום עם מצרים',
+        subtitle: 'סרט דוקומנטרי מקורי של מצודת הליכוד',
+        content: 'דוקומנטרי קצר מקורי המציין 40 שנה להסכם השלום ההיסטורי עם מצרים, בראשות מנחם בגין.',
+        slug: 'video-direct-upload-peace-agreement-documentary',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 32 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?w=800&h=450&fit=crop',
+        bodyBlocks: JSON.stringify([
+          { type: 'video', url: 'https://cdn.likud-news.co.il/videos/peace-documentary.mp4', source: 'upload' },
+          { type: 'paragraph', text: 'דוקומנטרי מקורי מאת צוות מצודת הליכוד' },
+        ]),
+      },
+      {
+        title: 'סיכום ועדת הכספים — דיון תקציב הביטחון',
+        subtitle: 'צפו בדיון הסוער על תקציב הביטחון',
+        content: 'סיכום מצולם של דיון ועדת הכספים בנושא תקציב הביטחון, כולל רגעי השיא.',
+        slug: 'video-youtube-budget-committee-defense',
+        status: 'published',
+        isHero: false,
+        isBreaking: true,
+        categoryIndex: 8,
+        publishedAt: new Date(now.getTime() - 36 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 1,
+        heroImageUrl: 'https://images.unsplash.com/photo-1606857521015-7f9fcf423740?w=800&h=450&fit=crop',
+        bodyBlocks: JSON.stringify([
+          { type: 'youtube', videoId: 'M7lc1UVf-VE', caption: 'דיון תקציב הביטחון בוועדת הכספים' },
+          { type: 'paragraph', text: 'דיון סוער בוועדת הכספים על הקצאות תקציב הביטחון' },
+        ]),
+      },
+      // ── Magazine articles (categoryIndex: 9) ──────────────────────────
+      {
+        title: 'הליכוד: מסע של 50 שנה — מהמהפך ועד היום',
+        subtitle: 'כתבת עומק על ההיסטוריה המפוארת של תנועת הליכוד',
+        content: 'כתבת עומק מקיפה על חמישים שנות הליכוד — מהמהפך ההיסטורי של 1977 ועד ימינו. סיפור של מנהיגות, חזון ומסירות למדינת ישראל.',
+        slug: 'magazine-likud-50-years-history',
+        status: 'published',
+        isHero: true,
+        isBreaking: false,
+        categoryIndex: 9,
+        publishedAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 12,
+        heroImageUrl: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&h=600&fit=crop',
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'חמישים שנה של מנהיגות', level: 2 },
+          { type: 'paragraph', text: 'תנועת הליכוד, שהוקמה בשנת 1973 כאיחוד של מפלגות הימין, הפכה לכוח המוביל בפוליטיקה הישראלית.' },
+          { type: 'paragraph', text: 'מהמהפך ההיסטורי של 1977, שבו עלה מנחם בגין לראשות הממשלה, ועד ימינו — הליכוד עיצב את דמותה של ישראל.' },
+          { type: 'quote', text: 'הליכוד הוא לא רק מפלגה — הוא תנועה של עם', attribution: 'מנחם בגין' },
+        ]),
+      },
+      {
+        title: 'מאחורי הקלעים: יום בחיי חבר כנסת מהליכוד',
+        subtitle: 'כתבה מיוחדת מלווה חבר כנסת מרגע ההגעה לכנסת ועד סוף היום',
+        content: 'מה קורה מאחורי הקלעים של הכנסת? ליווינו חבר כנסת מהליכוד לאורך יום עבודה שלם כדי לגלות.',
+        slug: 'magazine-day-in-life-likud-mk',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 9,
+        publishedAt: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 8,
+        heroImageUrl: 'https://images.unsplash.com/photo-1575505586569-646b2ca898fc?w=1200&h=600&fit=crop',
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'יום בכנסת — מאחורי הקלעים', level: 2 },
+          { type: 'paragraph', text: '06:00 — ההגעה לכנסת. חבר הכנסת מתחיל את יומו בפגישת תדרוך עם צוות הלשכה.' },
+          { type: 'paragraph', text: 'במהלך היום — ישיבות ועדה, הצבעות במליאה, פגישות עם בוחרים.' },
+        ]),
+      },
+      {
+        title: 'ישראל 2030: החזון הכלכלי של הממשלה לעשור הבא',
+        subtitle: 'ניתוח מעמיק של תכנית הצמיחה הלאומית',
+        content: 'כתבת עומק על תכנית "ישראל 2030" — חזון הממשלה לפיתוח כלכלי, טכנולוגי וחברתי בעשור הקרוב.',
+        slug: 'magazine-israel-2030-economic-vision',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 9,
+        publishedAt: new Date(now.getTime() - 15 * 60 * 60 * 1000),
+        authorIndex: 0,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 10,
+        heroImageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=600&fit=crop',
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'תכנית ישראל 2030', level: 2 },
+          { type: 'paragraph', text: 'תכנית ישראל 2030 מציבה יעדים שאפתניים: צמיחה כלכלית של 4% בשנה, הפחתת פערים חברתיים ומעבר לאנרגיה מתחדשת.' },
+          { type: 'paragraph', text: 'שר הכלכלה: "אנחנו בונים את ישראל של המחר — חזקה, חדשנית ומאוחדת".' },
+        ]),
+      },
+      {
+        title: 'פרופיל: הדור הצעיר של מנהיגי הליכוד',
+        subtitle: 'הכירו את הפנים החדשות שמעצבות את עתיד התנועה',
+        content: 'פרופיל מעמיק של הדור הצעיר של מנהיגי תנועת הליכוד — חברי כנסת צעירים, ראשי ערים ופעילים שמעצבים את עתיד התנועה.',
+        slug: 'magazine-young-likud-leaders-profile',
+        status: 'published',
+        isHero: false,
+        isBreaking: false,
+        categoryIndex: 9,
+        publishedAt: new Date(now.getTime() - 20 * 60 * 60 * 1000),
+        authorIndex: 1,
+        alertBannerEnabled: false,
+        readingTimeMinutes: 7,
+        heroImageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=600&fit=crop',
+        bodyBlocks: JSON.stringify([
+          { type: 'heading', text: 'הדור הבא של המנהיגות', level: 2 },
+          { type: 'paragraph', text: 'הדור הצעיר של הליכוד מביא עימו חשיבה חדשה, ניסיון מגוון וחזון לעתיד.' },
+          { type: 'paragraph', text: 'הכירו את האנשים שיעצבו את פני התנועה בשנים הקרובות.' },
+        ]),
+      },
     ];
 
     const articleIds: string[] = [];
@@ -455,12 +1054,12 @@ async function seed() {
           "id", "title", "subtitle", "content", "slug", "status",
           "isHero", "isBreaking", "categoryId", "publishedAt", "viewCount",
           "bodyBlocks", "authorId", "alertBannerEnabled", "alertBannerText",
-          "readingTimeMinutes"
+          "readingTimeMinutes", "heroImageUrl"
         )
         VALUES (
           uuid_generate_v4(), $1, $2, $3, $4, $5::article_status_enum,
           $6, $7, $8, $9, $10,
-          $11::jsonb, $12, $13, $14, $15
+          $11::jsonb, $12, $13, $14, $15, $16
         )
         RETURNING "id"`,
         [
@@ -479,6 +1078,7 @@ async function seed() {
           article.alertBannerEnabled,
           (article as any).alertBannerText || null,
           article.readingTimeMinutes,
+          (article as any).heroImageUrl || null,
         ],
       )) as { id: string }[];
       articleIds.push(result[0].id);
@@ -496,6 +1096,24 @@ async function seed() {
       { articleIdx: 5, memberIdx: 4 },
       { articleIdx: 6, memberIdx: 3 },
       { articleIdx: 7, memberIdx: 0 },
+      // New articles (8-24)
+      { articleIdx: 8, memberIdx: 1 },
+      { articleIdx: 9, memberIdx: 2 },
+      { articleIdx: 10, memberIdx: 0 },
+      { articleIdx: 11, memberIdx: 1 },
+      { articleIdx: 12, memberIdx: 2 },
+      { articleIdx: 13, memberIdx: 3 },
+      { articleIdx: 14, memberIdx: 4 },
+      { articleIdx: 15, memberIdx: 0 },
+      { articleIdx: 16, memberIdx: 1 },
+      { articleIdx: 17, memberIdx: 2 },
+      { articleIdx: 18, memberIdx: 3 },
+      { articleIdx: 19, memberIdx: 4 },
+      { articleIdx: 20, memberIdx: 0 },
+      { articleIdx: 21, memberIdx: 1 },
+      { articleIdx: 22, memberIdx: 2 },
+      { articleIdx: 23, memberIdx: 3 },
+      { articleIdx: 24, memberIdx: 4 },
     ];
 
     for (const link of articleMemberLinks) {
@@ -523,6 +1141,37 @@ async function seed() {
       { articleIdx: 7, tagIdx: 0 }, // Football victory -> Politics (general)
       { articleIdx: 8, tagIdx: 4 }, // Culture festival -> Jerusalem
       { articleIdx: 9, tagIdx: 2 }, // Hightech bill -> Economy
+      // New articles (10-24) — 2 tags each
+      { articleIdx: 10, tagIdx: 0 }, // Coalition law -> Politics
+      { articleIdx: 10, tagIdx: 3 }, // Coalition law -> Netanyahu
+      { articleIdx: 11, tagIdx: 1 }, // Iron Dome -> National Security
+      { articleIdx: 11, tagIdx: 0 }, // Iron Dome -> Politics
+      { articleIdx: 12, tagIdx: 1 }, // Jordan border -> National Security
+      { articleIdx: 12, tagIdx: 3 }, // Jordan border -> Netanyahu
+      { articleIdx: 13, tagIdx: 2 }, // Tech exports -> Economy
+      { articleIdx: 13, tagIdx: 0 }, // Tech exports -> Politics
+      { articleIdx: 14, tagIdx: 2 }, // Housing plan -> Economy
+      { articleIdx: 14, tagIdx: 3 }, // Housing plan -> Netanyahu
+      { articleIdx: 15, tagIdx: 0 }, // Immigration -> Politics
+      { articleIdx: 15, tagIdx: 4 }, // Immigration -> Jerusalem
+      { articleIdx: 16, tagIdx: 4 }, // Jerusalem centers -> Jerusalem
+      { articleIdx: 16, tagIdx: 0 }, // Jerusalem centers -> Politics
+      { articleIdx: 17, tagIdx: 0 }, // STEM program -> Politics
+      { articleIdx: 17, tagIdx: 2 }, // STEM program -> Economy
+      { articleIdx: 18, tagIdx: 2 }, // BGU campus -> Economy
+      { articleIdx: 18, tagIdx: 3 }, // BGU campus -> Netanyahu
+      { articleIdx: 19, tagIdx: 0 }, // Hospital -> Politics
+      { articleIdx: 19, tagIdx: 2 }, // Hospital -> Economy
+      { articleIdx: 20, tagIdx: 0 }, // Mental health -> Politics
+      { articleIdx: 20, tagIdx: 1 }, // Mental health -> National Security
+      { articleIdx: 21, tagIdx: 3 }, // Basketball -> Netanyahu
+      { articleIdx: 21, tagIdx: 4 }, // Basketball -> Jerusalem
+      { articleIdx: 22, tagIdx: 4 }, // Swimmer -> Jerusalem
+      { articleIdx: 22, tagIdx: 0 }, // Swimmer -> Politics
+      { articleIdx: 23, tagIdx: 3 }, // Cannes film -> Netanyahu
+      { articleIdx: 23, tagIdx: 0 }, // Cannes film -> Politics
+      { articleIdx: 24, tagIdx: 4 }, // Museum art -> Jerusalem
+      { articleIdx: 24, tagIdx: 3 }, // Museum art -> Netanyahu
     ];
 
     for (const link of articleTagLinks) {
@@ -553,7 +1202,7 @@ async function seed() {
       {
         id: 'blk-image-1',
         type: 'image',
-        url: 'https://placehold.co/800x400/0099DB/FFFFFF?text=Likud+Conference',
+        url: 'https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?w=800&h=400&fit=crop',
         captionHe: 'ראש הממשלה בכנס הליכוד השנתי',
         credit: 'צילום: לשכת העיתונות הממשלתית',
         altText: 'ראש הממשלה נואם בכנס',
@@ -691,6 +1340,167 @@ async function seed() {
         ],
       );
       console.log(`  -> Created ticker item: ${item.text.substring(0, 50)}...`);
+    }
+
+    // ─── 11. Seed Stories ─────────────────────────────────────────────
+    console.log('Seeding stories...');
+    const storyIds: string[] = [];
+    const stories = [
+      {
+        title: 'נתניהו: ישראל מובילה את המזרח התיכון לעידן חדש',
+        imageUrl: 'https://images.unsplash.com/photo-1529655683826-aba9b3e77383?w=800',
+        mediaType: 'image',
+        durationSeconds: 5,
+        videoUrl: null,
+        articleIdx: 0,
+        sortOrder: 1,
+      },
+      {
+        title: 'הליכוד מציג: תוכנית כלכלית חדשה',
+        imageUrl: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800',
+        mediaType: 'image',
+        durationSeconds: 7,
+        videoUrl: null,
+        articleIdx: 1,
+        sortOrder: 2,
+      },
+      {
+        title: 'סיור בכנסת עם חברי הליכוד',
+        imageUrl: 'https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=800',
+        mediaType: 'image',
+        durationSeconds: 10,
+        videoUrl: null,
+        articleIdx: null,
+        sortOrder: 3,
+      },
+      {
+        title: 'ראיון בלעדי עם שר החוץ',
+        imageUrl: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?w=800',
+        mediaType: 'video',
+        durationSeconds: 15,
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        articleIdx: 25,
+        sortOrder: 4,
+      },
+      {
+        title: 'הפגנת תמיכה בירושלים',
+        imageUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=800',
+        mediaType: 'video',
+        durationSeconds: 12,
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        articleIdx: null,
+        sortOrder: 5,
+      },
+    ];
+
+    for (const story of stories) {
+      const result = await queryRunner.query(
+        `INSERT INTO "stories" ("id", "title", "imageUrl", "mediaType", "durationSeconds", "videoUrl", "articleId", "sortOrder", "isActive", "expiresAt")
+         VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5, $6, $7, true, NOW() + INTERVAL '7 days')
+         RETURNING "id"`,
+        [
+          story.title,
+          story.imageUrl,
+          story.mediaType,
+          story.durationSeconds,
+          story.videoUrl,
+          story.articleIdx !== null ? articleIds[story.articleIdx] : null,
+          story.sortOrder,
+        ],
+      );
+      storyIds.push(result[0].id);
+      console.log(`  -> Created story: ${story.title}`);
+    }
+
+    // ─── 12. Seed Comments ────────────────────────────────────────────
+    console.log('Seeding comments...');
+    const commentIds: string[] = [];
+
+    // Article comments (spread across first 3 articles)
+    const articleComments = [
+      // Article 0 — 5 comments
+      { articleIdx: 0, authorName: 'דני כהן', body: 'כתבה מצוינת, מסכים עם כל מילה!', isApproved: true, isPinned: true, likesCount: 24 },
+      { articleIdx: 0, authorName: 'שרה לוי', body: 'תודה על הסיקור המקצועי', isApproved: true, isPinned: false, likesCount: 12 },
+      { articleIdx: 0, authorName: 'יוסי מזרחי', body: 'חשוב שנשמע גם את הצד השני', isApproved: true, isPinned: false, likesCount: 8 },
+      { articleIdx: 0, authorName: 'מיכל אברהם', body: 'מחכה לעדכונים נוספים בנושא', isApproved: true, isPinned: false, likesCount: 0 },
+      { articleIdx: 0, authorName: 'אבי ישראלי', body: 'הליכוד בכיוון הנכון!', isApproved: true, isPinned: false, likesCount: 15 },
+
+      // Article 1 — 5 comments
+      { articleIdx: 1, authorName: 'רון דוד', body: 'מעניין מאוד, תודה על השיתוף', isApproved: true, isPinned: false, likesCount: 6 },
+      { articleIdx: 1, authorName: 'נועה גולן', body: 'האם יש תאריך יעד לתוכנית?', isApproved: true, isPinned: false, likesCount: 3 },
+      { articleIdx: 1, authorName: 'עמית שלום', body: 'צעד חשוב קדימה', isApproved: true, isPinned: true, likesCount: 18 },
+      { articleIdx: 1, authorName: 'ליאור ברק', body: 'צריך לבדוק את הנתונים', isApproved: true, isPinned: false, likesCount: 0 },
+      { articleIdx: 1, authorName: 'תמר חיים', body: 'מקווה שזה יצא לפועל', isApproved: true, isPinned: false, likesCount: 9 },
+
+      // Article 2 — 5 comments
+      { articleIdx: 2, authorName: 'גיל שמעון', body: 'סיקור מעולה כרגיל', isApproved: true, isPinned: false, likesCount: 7 },
+      { articleIdx: 2, authorName: 'הדר כץ', body: 'איפה אפשר לקרוא עוד על הנושא?', isApproved: true, isPinned: false, likesCount: 2 },
+      { articleIdx: 2, authorName: 'אלון פרידמן', body: 'ביבי מלך!', isApproved: true, isPinned: false, likesCount: 31 },
+      { articleIdx: 2, authorName: 'רחל נתן', body: 'תוכן ממש איכותי', isApproved: true, isPinned: false, likesCount: 0 },
+      { articleIdx: 2, authorName: 'משה ביטון', body: 'שיתפתי עם כל המשפחה', isApproved: true, isPinned: false, likesCount: 4 },
+    ];
+
+    for (const comment of articleComments) {
+      const result = await queryRunner.query(
+        `INSERT INTO "comments" ("id", "articleId", "authorName", "body", "isApproved", "isPinned", "likesCount")
+         VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5, $6)
+         RETURNING "id"`,
+        [
+          articleIds[comment.articleIdx],
+          comment.authorName,
+          comment.body,
+          comment.isApproved,
+          comment.isPinned,
+          comment.likesCount,
+        ],
+      );
+      commentIds.push(result[0].id);
+      console.log(`  -> Created comment by ${comment.authorName} on article ${comment.articleIdx}`);
+    }
+
+    // Replies to some comments (3 replies)
+    const replies = [
+      { parentIdx: 0, articleIdx: 0, authorName: 'דניאל רוזן', body: 'מסכים איתך לחלוטין!', isApproved: true, likesCount: 5 },
+      { parentIdx: 2, articleIdx: 0, authorName: 'דני כהן', body: 'בהחלט, אבל הכיוון ברור', isApproved: true, likesCount: 3 },
+      { parentIdx: 7, articleIdx: 1, authorName: 'רון דוד', body: 'מסכים, זה באמת צעד חשוב', isApproved: true, likesCount: 2 },
+    ];
+
+    for (const reply of replies) {
+      await queryRunner.query(
+        `INSERT INTO "comments" ("id", "articleId", "parentId", "authorName", "body", "isApproved", "isPinned", "likesCount")
+         VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5, false, $6)`,
+        [
+          articleIds[reply.articleIdx],
+          commentIds[reply.parentIdx],
+          reply.authorName,
+          reply.body,
+          reply.isApproved,
+          reply.likesCount,
+        ],
+      );
+      console.log(`  -> Created reply by ${reply.authorName}`);
+    }
+
+    // Story comments (3 comments on first 2 stories)
+    const storyComments = [
+      { storyIdx: 0, authorName: 'יעל דביר', body: 'סטורי מדהים!', isApproved: true, likesCount: 11 },
+      { storyIdx: 0, authorName: 'עידו סגל', body: 'תמשיכו ככה', isApproved: true, likesCount: 5 },
+      { storyIdx: 1, authorName: 'מאיה לב', body: 'מחכה לעוד תוכן כזה', isApproved: true, likesCount: 8 },
+    ];
+
+    for (const comment of storyComments) {
+      await queryRunner.query(
+        `INSERT INTO "comments" ("id", "storyId", "authorName", "body", "isApproved", "isPinned", "likesCount")
+         VALUES (uuid_generate_v4(), $1, $2, $3, $4, false, $5)`,
+        [
+          storyIds[comment.storyIdx],
+          comment.authorName,
+          comment.body,
+          comment.isApproved,
+          comment.likesCount,
+        ],
+      );
+      console.log(`  -> Created story comment by ${comment.authorName}`);
     }
 
     // ─── Commit ───────────────────────────────────────────────────────

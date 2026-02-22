@@ -17,6 +17,7 @@ import { PushToken } from './modules/push/entities/push-token.entity';
 import { Comment } from './modules/comments/entities/comment.entity';
 import { Author } from './modules/authors/entities/author.entity';
 import { Tag } from './modules/tags/entities/tag.entity';
+import { Story } from './modules/stories/entities/story.entity';
 
 // Feature modules
 import { ArticlesModule } from './modules/articles/articles.module';
@@ -35,6 +36,7 @@ import { SearchModule } from './modules/search/search.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { AuthorsModule } from './modules/authors/authors.module';
 import { TagsModule } from './modules/tags/tags.module';
+import { StoriesModule } from './modules/stories/stories.module';
 
 @Module({
   imports: [
@@ -73,6 +75,7 @@ import { TagsModule } from './modules/tags/tags.module';
           Comment,
           Author,
           Tag,
+          Story,
         ],
         migrations: ['dist/database/migrations/*{.ts,.js}'],
       }),
@@ -95,6 +98,7 @@ import { TagsModule } from './modules/tags/tags.module';
     CommentsModule,
     AuthorsModule,
     TagsModule,
+    StoriesModule,
   ],
   controllers: [],
   providers: [],

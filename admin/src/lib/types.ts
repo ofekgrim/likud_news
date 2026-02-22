@@ -170,6 +170,28 @@ export interface Comment {
   article?: { id: string; title: string; slug: string };
 }
 
+// ── Stories ──────────────────────────────────────────────────────────────
+
+export interface Story {
+  id: string;
+  title: string;
+  imageUrl: string;
+  thumbnailUrl?: string;
+  videoUrl?: string;
+  durationSeconds: number;
+  mediaType: 'image' | 'video';
+  linkUrl?: string;
+  articleId?: string;
+  linkedArticleId?: string;
+  article?: { id: string; title: string; slug: string };
+  linkedArticle?: { id: string; title: string; slug: string };
+  sortOrder: number;
+  isActive: boolean;
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ── Content Block Types (Block Editor) ───────────────────────────────────
 
 export type ContentBlockType =

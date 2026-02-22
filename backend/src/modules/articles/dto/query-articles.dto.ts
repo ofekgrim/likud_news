@@ -42,6 +42,11 @@ export class QueryArticlesDto {
   @IsUUID()
   categoryId?: string;
 
+  @ApiPropertyOptional({ description: 'Filter by category slug' })
+  @IsOptional()
+  @IsString()
+  category?: string;
+
   @ApiPropertyOptional({
     description: 'Filter by article status',
     enum: ArticleStatus,
@@ -55,6 +60,12 @@ export class QueryArticlesDto {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isBreaking?: boolean;
+
+  @ApiPropertyOptional({ description: 'Filter by hero article flag' })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isHero?: boolean;
 
   @ApiPropertyOptional({
     description: 'Search query (searches title, subtitle, content)',

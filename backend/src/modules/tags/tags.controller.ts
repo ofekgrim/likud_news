@@ -6,9 +6,10 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
@@ -28,6 +29,22 @@ export class TagsController {
   @ApiOperation({ summary: 'Get all tags' })
   findAll() {
     return this.tagsService.findAll();
+  }
+
+  @Get(':slug/articles')
+  @ApiOperation({ summary: 'Get articles by tag slug with pagination' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  findArticlesBySlug(
+    @Param('slug') slug: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.tagsService.findArticlesBySlug(
+      slug,
+      page ? +page : 1,
+      limit ? +limit : 20,
+    );
   }
 
   @Get(':id')

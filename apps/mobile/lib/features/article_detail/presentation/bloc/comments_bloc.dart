@@ -18,15 +18,20 @@ sealed class CommentsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Loads the first page of comments for the given article.
+/// Loads the first page of comments for the given article or story.
 class LoadComments extends CommentsEvent {
   final String articleId;
   final int page;
+  final String targetType; // 'article' or 'story'
 
-  const LoadComments({required this.articleId, this.page = 1});
+  const LoadComments({
+    required this.articleId,
+    this.page = 1,
+    this.targetType = 'article',
+  });
 
   @override
-  List<Object?> get props => [articleId, page];
+  List<Object?> get props => [articleId, page, targetType];
 }
 
 /// Loads the next page of comments (pagination).
@@ -34,22 +39,24 @@ class LoadMoreComments extends CommentsEvent {
   const LoadMoreComments();
 }
 
-/// Submits a new comment (or reply) on the current article.
+/// Submits a new comment (or reply) on the current article or story.
 class SubmitCommentEvent extends CommentsEvent {
   final String articleId;
   final String authorName;
   final String body;
   final String? parentId;
+  final String targetType; // 'article' or 'story'
 
   const SubmitCommentEvent({
     required this.articleId,
     required this.authorName,
     required this.body,
     this.parentId,
+    this.targetType = 'article',
   });
 
   @override
-  List<Object?> get props => [articleId, authorName, body, parentId];
+  List<Object?> get props => [articleId, authorName, body, parentId, targetType];
 }
 
 /// Likes a comment (optimistic local update + API call).
@@ -194,6 +201,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
 
   // Internal state for pagination and UI tracking.
   String _articleId = '';
+  String _targetType = 'article';
   int _currentPage = 1;
   List<Comment> _allComments = [];
   Set<String> _likedCommentIds = {};
@@ -239,6 +247,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     Emitter<CommentsState> emit,
   ) async {
     _articleId = event.articleId;
+    _targetType = event.targetType;
     _currentPage = 1;
     _allComments = [];
     emit(const CommentsLoading());
@@ -246,6 +255,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     final result = await _getComments(GetCommentsParams(
       articleId: event.articleId,
       page: 1,
+      targetType: _targetType,
     ));
 
     result.fold(
@@ -276,6 +286,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     final result = await _getComments(GetCommentsParams(
       articleId: _articleId,
       page: nextPage,
+      targetType: _targetType,
     ));
 
     result.fold(
@@ -307,6 +318,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       authorName: event.authorName,
       body: event.body,
       parentId: event.parentId,
+      targetType: event.targetType,
     ));
 
     result.fold(
@@ -320,7 +332,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       (_) {
         emit(const CommentSubmitted());
         // Reload comments after successful submission.
-        add(LoadComments(articleId: event.articleId));
+        add(LoadComments(articleId: event.articleId, targetType: event.targetType));
       },
     );
   }
@@ -339,6 +351,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
     _likeComment(LikeCommentParams(
       articleId: _articleId,
       commentId: event.commentId,
+      targetType: _targetType,
     ));
   }
 

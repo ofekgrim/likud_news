@@ -20,6 +20,7 @@ class GetComments implements UseCase<List<Comment>, GetCommentsParams> {
       articleId: params.articleId,
       page: params.page,
       limit: params.limit,
+      targetType: params.targetType,
     );
   }
 }
@@ -29,13 +30,15 @@ class GetCommentsParams extends Equatable {
   final String articleId;
   final int page;
   final int limit;
+  final String targetType; // 'article' or 'story'
 
   const GetCommentsParams({
     required this.articleId,
     this.page = 1,
     this.limit = 20,
+    this.targetType = 'article',
   });
 
   @override
-  List<Object?> get props => [articleId, page, limit];
+  List<Object?> get props => [articleId, page, limit, targetType];
 }

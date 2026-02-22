@@ -11,15 +11,19 @@ import '../bloc/comments_bloc.dart';
 ///
 /// Uses [CommentsBloc] to load, display, submit, like, and reply to comments.
 class CommentsSection extends StatefulWidget {
-  final String articleId;
+  final String targetId;
+  final String targetType; // 'article' or 'story'
   final int commentCount;
   final bool allowComments;
+  final String? targetTitle;
 
   const CommentsSection({
     super.key,
-    required this.articleId,
+    required this.targetId,
+    this.targetType = 'article',
     required this.commentCount,
     this.allowComments = true,
+    this.targetTitle,
   });
 
   @override
@@ -78,10 +82,11 @@ class _CommentsSectionState extends State<CommentsSection> {
 
     context.read<CommentsBloc>().add(
           SubmitCommentEvent(
-            articleId: widget.articleId,
+            articleId: widget.targetId,
             authorName: name,
             body: body,
             parentId: parentId,
+            targetType: widget.targetType,
           ),
         );
 
@@ -116,6 +121,24 @@ class _CommentsSectionState extends State<CommentsSection> {
             children: [
               // Section header
               _buildHeader(),
+
+              // Optional target title
+              if (widget.targetTitle != null) ...[
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, bottom: 8),
+                  child: Text(
+                    widget.targetTitle!,
+                    style: const TextStyle(
+                      fontFamily: 'Heebo',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
 
               // Comments closed notice

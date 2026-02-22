@@ -64,12 +64,14 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
     required String articleId,
     int page = 1,
     int limit = 20,
+    String targetType = 'article',
   }) async {
     try {
       final models = await _remoteDataSource.getComments(
         articleId: articleId,
         page: page,
         limit: limit,
+        targetType: targetType,
       );
       return Right(models.map((m) => m.toEntity()).toList());
     } on Exception catch (e) {
@@ -83,6 +85,7 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
     required String authorName,
     required String body,
     String? parentId,
+    String targetType = 'article',
   }) async {
     try {
       await _remoteDataSource.submitComment(
@@ -90,6 +93,7 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
         authorName: authorName,
         body: body,
         parentId: parentId,
+        targetType: targetType,
       );
       return const Right(null);
     } on Exception catch (e) {
@@ -111,11 +115,13 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
   Future<Either<Failure, int>> likeComment({
     required String articleId,
     required String commentId,
+    String targetType = 'article',
   }) async {
     try {
       final likesCount = await _remoteDataSource.likeComment(
         articleId: articleId,
         commentId: commentId,
+        targetType: targetType,
       );
       return Right(likesCount);
     } on Exception catch (e) {

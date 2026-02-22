@@ -17,6 +17,11 @@ abstract class BreakingNewsRemoteDatasource {
   /// Throws [ServerException] on failure.
   Future<List<Article>> getBreakingArticles();
 
+  /// Fetches all published articles with pagination.
+  ///
+  /// Throws [ServerException] on failure.
+  Future<List<Article>> getAllArticles({int page = 1, int limit = 10});
+
   /// Returns a stream of newly published breaking articles via SSE.
   Stream<Article> watchBreakingNews();
 }
@@ -40,6 +45,35 @@ class BreakingNewsRemoteDatasourceImpl implements BreakingNewsRemoteDatasource {
 
       if (data is Map<String, dynamic>) {
         // Supports both { "data": [...] } and { "articles": [...] } shapes.
+        items = (data['data'] ?? data['articles'] ?? []) as List<dynamic>;
+      } else if (data is List) {
+        items = data;
+      } else {
+        items = [];
+      }
+
+      return items
+          .cast<Map<String, dynamic>>()
+          .map(_articleFromJson)
+          .toList();
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<List<Article>> getAllArticles({int page = 1, int limit = 10}) async {
+    try {
+      final response = await _apiClient.get<dynamic>(
+        ApiConstants.articles,
+        queryParameters: {'page': page, 'limit': limit, 'status': 'published'},
+      );
+
+      final data = response.data;
+      final List<dynamic> items;
+
+      if (data is Map<String, dynamic>) {
         items = (data['data'] ?? data['articles'] ?? []) as List<dynamic>;
       } else if (data is List) {
         items = data;
