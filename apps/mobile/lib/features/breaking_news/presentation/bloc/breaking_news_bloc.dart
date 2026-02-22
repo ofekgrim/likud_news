@@ -9,6 +9,7 @@ import '../../../../core/usecases/usecase.dart';
 import '../../../home/domain/entities/article.dart';
 import '../../domain/usecases/get_all_articles.dart';
 import '../../domain/usecases/get_breaking_articles.dart';
+import '../../domain/usecases/search_articles.dart';
 import '../../domain/usecases/watch_breaking_news.dart';
 
 // ---------------------------------------------------------------------------
@@ -58,6 +59,19 @@ class LoadMoreAllArticles extends BreakingNewsEvent {
   const LoadMoreAllArticles();
 }
 
+/// Triggers a server-side search for articles.
+///
+/// If query is empty, clears the search results.
+/// Queries shorter than 2 characters are ignored.
+class SearchArticlesRequested extends BreakingNewsEvent {
+  final String query;
+
+  const SearchArticlesRequested(this.query);
+
+  @override
+  List<Object?> get props => [query];
+}
+
 // ---------------------------------------------------------------------------
 // States
 // ---------------------------------------------------------------------------
@@ -87,6 +101,9 @@ class BreakingNewsLoaded extends BreakingNewsState {
   final List<Article> allArticles;
   final int allArticlesPage;
   final bool allArticlesHasMore;
+  final List<Article> searchResults;
+  final bool isSearching;
+  final String searchQuery;
 
   const BreakingNewsLoaded({
     required this.articles,
@@ -94,6 +111,9 @@ class BreakingNewsLoaded extends BreakingNewsState {
     this.allArticles = const [],
     this.allArticlesPage = 0,
     this.allArticlesHasMore = true,
+    this.searchResults = const [],
+    this.isSearching = false,
+    this.searchQuery = '',
   });
 
   BreakingNewsLoaded copyWith({
@@ -102,6 +122,9 @@ class BreakingNewsLoaded extends BreakingNewsState {
     List<Article>? allArticles,
     int? allArticlesPage,
     bool? allArticlesHasMore,
+    List<Article>? searchResults,
+    bool? isSearching,
+    String? searchQuery,
   }) {
     return BreakingNewsLoaded(
       articles: articles ?? this.articles,
@@ -109,11 +132,14 @@ class BreakingNewsLoaded extends BreakingNewsState {
       allArticles: allArticles ?? this.allArticles,
       allArticlesPage: allArticlesPage ?? this.allArticlesPage,
       allArticlesHasMore: allArticlesHasMore ?? this.allArticlesHasMore,
+      searchResults: searchResults ?? this.searchResults,
+      isSearching: isSearching ?? this.isSearching,
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 
   @override
-  List<Object?> get props => [articles, isLive, allArticles, allArticlesPage, allArticlesHasMore];
+  List<Object?> get props => [articles, isLive, allArticles, allArticlesPage, allArticlesHasMore, searchResults, isSearching, searchQuery];
 }
 
 /// Error state with a user-facing message.
@@ -146,6 +172,7 @@ class BreakingNewsBloc extends Bloc<BreakingNewsEvent, BreakingNewsState> {
   final GetBreakingArticles _getBreakingArticles;
   final WatchBreakingNews _watchBreakingNews;
   final GetAllArticles _getAllArticles;
+  final SearchArticles _searchArticles;
 
   static const int _pageSize = 10;
 
@@ -155,6 +182,7 @@ class BreakingNewsBloc extends Bloc<BreakingNewsEvent, BreakingNewsState> {
     this._getBreakingArticles,
     this._watchBreakingNews,
     this._getAllArticles,
+    this._searchArticles,
   ) : super(const BreakingNewsInitial()) {
     on<LoadBreakingNews>(_onLoad);
     on<NewBreakingArticle>(_onNewArticle);
@@ -162,6 +190,7 @@ class BreakingNewsBloc extends Bloc<BreakingNewsEvent, BreakingNewsState> {
     on<_SseDisconnected>(_onSseDisconnected);
     on<LoadAllArticles>(_onLoadAllArticles);
     on<LoadMoreAllArticles>(_onLoadMoreAllArticles);
+    on<SearchArticlesRequested>(_onSearchArticles);
   }
 
   Future<void> _onLoad(
@@ -278,6 +307,69 @@ class BreakingNewsBloc extends Bloc<BreakingNewsEvent, BreakingNewsState> {
         ));
       },
     );
+  }
+
+  Future<void> _onSearchArticles(
+    SearchArticlesRequested event,
+    Emitter<BreakingNewsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! BreakingNewsLoaded) return;
+
+    final query = event.query.trim();
+
+    // Empty query: clear search results
+    if (query.isEmpty) {
+      emit(currentState.copyWith(
+        searchResults: const [],
+        isSearching: false,
+        searchQuery: '',
+      ));
+      return;
+    }
+
+    // Too short: skip server call but mark as searching with empty results
+    if (query.length < 2) {
+      emit(currentState.copyWith(
+        searchResults: const [],
+        isSearching: true,
+        searchQuery: query,
+      ));
+      return;
+    }
+
+    // Mark as searching
+    emit(currentState.copyWith(
+      isSearching: true,
+      searchQuery: query,
+    ));
+
+    final result = await _searchArticles(
+      SearchArticlesParams(query: query),
+    );
+
+    // Only emit if the query is still current (user may have typed more)
+    final latestState = state;
+    if (latestState is BreakingNewsLoaded && latestState.searchQuery == query) {
+      result.fold(
+        (failure) {
+          // On failure, keep isSearching true but with empty results
+          emit(latestState.copyWith(
+            searchResults: const [],
+            isSearching: true,
+            searchQuery: query,
+          ));
+        },
+        (data) {
+          final articles = data['articles'] as List<Article>;
+          emit(latestState.copyWith(
+            searchResults: articles,
+            isSearching: true,
+            searchQuery: query,
+          ));
+        },
+      );
+    }
   }
 
   void _subscribeSse() {

@@ -14,6 +14,11 @@ abstract class BreakingNewsRepository {
   /// Fetch all published articles with pagination.
   Future<Either<Failure, List<Article>>> getAllArticles({int page = 1, int limit = 10});
 
+  /// Search articles on the server with pagination.
+  ///
+  /// Returns a map with 'articles' (List<Article>), 'total', 'page', 'totalPages'.
+  Future<Either<Failure, Map<String, dynamic>>> searchArticles(String query, {int page = 1, int limit = 20});
+
   /// Subscribe to the SSE stream for real-time breaking news updates.
   ///
   /// Each emitted [Article] represents a newly published breaking item.

@@ -42,6 +42,13 @@
   "members": "חברי ליכוד",
   "search_members_hint": "חיפוש חברים...",
   "no_members": "אין חברים להצגה",
+  "member_office": "משרד",
+  "member_contact": "יצירת קשר",
+  "member_personal_page": "עמוד אישי",
+  "member_articles": "כתבות קשורות",
+  "member_phone": "טלפון",
+  "member_email": "אימייל",
+  "member_website": "אתר",
 
   "error_loading_magazine": "שגיאה בטעינת כתבות המגזין",
   "error_refreshing_magazine": "שגיאה ברענון המגזין",

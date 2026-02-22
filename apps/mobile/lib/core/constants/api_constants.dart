@@ -10,6 +10,7 @@ class ApiConstants {
   static const String articlesHero = '/articles/hero';
   static const String articlesBreaking = '/articles/breaking';
   static const String articlesMostRead = '/articles/most-read';
+  static const String searchArticles = '/articles/search';
 
   // Categories
   static const String categories = '/categories';

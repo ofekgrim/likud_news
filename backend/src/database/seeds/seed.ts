@@ -150,48 +150,175 @@ async function seed() {
         nameEn: 'Benjamin Netanyahu',
         title: 'ראש הממשלה',
         titleEn: 'Prime Minister',
-        bio: 'ראש ממשלת ישראל ויושב ראש תנועת הליכוד.',
+        bio: 'ראש ממשלת ישראל ויושב ראש תנועת הליכוד. ראש הממשלה הארוך ביותר בתולדות המדינה.',
+        slug: 'benjamin-netanyahu',
+        photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop',
+        office: 'משרד ראש הממשלה, ירושלים',
+        phone: '+972-2-670-5555',
+        email: 'pm@pmo.gov.il',
+        website: 'https://www.pmo.gov.il',
+        socialTwitter: 'https://x.com/netanyahu',
+        socialFacebook: 'https://facebook.com/Netanyahu',
+        socialInstagram: 'https://instagram.com/benjamin.netanyahu',
+        coverImageUrl: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1200&h=400&fit=crop',
+        personalPageHtml: '<h2>בנימין נתניהו - ראש ממשלת ישראל</h2><p>בנימין (ביבי) נתניהו הוא ראש ממשלת ישראל ויושב ראש תנועת הליכוד. נתניהו משמש כראש הממשלה הארוך ביותר בתולדות ישראל.</p><h3>קריירה פוליטית</h3><p>נתניהו נבחר לראשונה לכנסת בשנת 1988 ושימש בתפקידים בכירים כולל שגריר ישראל באו"ם, סגן שר החוץ ושר האוצר.</p><h3>הישגים</h3><ul><li>הסכמי אברהם - נורמליזציה עם מדינות ערב</li><li>מבצע חיסונים מהיר נגד קורונה</li><li>חיזוק הכלכלה הישראלית</li></ul>',
         sortOrder: 1,
+        bioBlocks: [
+          { id: 'nb-1', type: 'heading', text: 'בנימין נתניהו — ראש ממשלת ישראל', level: 2 },
+          { id: 'nb-2', type: 'image', url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=500&fit=crop', credit: 'Unsplash', captionHe: 'ראש הממשלה בנימין נתניהו', altText: 'Benjamin Netanyahu portrait' },
+          { id: 'nb-3', type: 'paragraph', text: 'בנימין (ביבי) נתניהו נולד ב-21 באוקטובר 1949 בתל אביב. הוא ראש ממשלת ישראל ויושב ראש תנועת הליכוד, ומשמש כראש הממשלה הארוך ביותר בתולדות המדינה.' },
+          { id: 'nb-4', type: 'heading', text: 'קריירה צבאית', level: 3 },
+          { id: 'nb-5', type: 'paragraph', text: 'נתניהו שירת ביחידת סיירת מטכ"ל והשתתף במבצעים מיוחדים. את שירותו הצבאי סיים בדרגת קפטן.' },
+          { id: 'nb-6', type: 'quote', text: 'אם המדינה מצפה מהחיילים שלה להילחם, מחובתה לעמוד מאחוריהם.', attribution: 'בנימין נתניהו' },
+          { id: 'nb-7', type: 'divider' },
+          { id: 'nb-8', type: 'heading', text: 'הישגים מרכזיים', level: 3 },
+          { id: 'nb-9', type: 'bullet_list', items: ['הסכמי אברהם — נורמליזציה עם איחוד האמירויות, בחריין, מרוקו וסודן', 'מבצע חיסונים מהיר שהפך את ישראל למובילת עולמית בחיסוני קורונה', 'חיזוק הכלכלה הישראלית והפיכתה למעצמת הייטק עולמית', 'ביסוס יחסים אסטרטגיים עם ארה"ב ומעצמות נוספות'] },
+          { id: 'nb-10', type: 'divider' },
+          { id: 'nb-11', type: 'heading', text: 'קריירה פוליטית', level: 3 },
+          { id: 'nb-12', type: 'paragraph', text: 'נתניהו נבחר לראשונה לכנסת בשנת 1988. שימש כשגריר ישראל באו"ם (1984-1988), סגן שר החוץ (1988-1991), ושר האוצר (2003-2005). כיהן כראש ממשלה לראשונה בין 1996-1999, ושוב מ-2009 ואילך.' },
+          { id: 'nb-13', type: 'image', url: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&h=450&fit=crop', credit: 'Unsplash', captionHe: 'נאום בכנס הליכוד', altText: 'Netanyahu at Likud convention' },
+          { id: 'nb-14', type: 'youtube', videoId: 'dQw4w9WgXcQ', caption: 'נאום ראש הממשלה נתניהו באו"ם' },
+        ],
       },
       {
         name: 'ישראל כ"ץ',
         nameEn: 'Israel Katz',
         title: 'שר החוץ',
         titleEn: 'Minister of Foreign Affairs',
-        bio: 'חבר כנסת ושר בכיר בתנועת הליכוד.',
+        bio: 'חבר כנסת ושר בכיר בתנועת הליכוד. מהדמויות הבולטות בתנועה עם ניסיון של עשרות שנים בפוליטיקה.',
+        slug: 'israel-katz',
+        photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+        office: 'משרד החוץ, ירושלים',
+        phone: '+972-2-530-3111',
+        email: 'sar@mfa.gov.il',
+        website: 'https://www.mfa.gov.il',
+        socialTwitter: 'https://x.com/Israel_katz',
+        socialFacebook: 'https://facebook.com/IsraelKatzOfficial',
+        socialInstagram: '',
+        coverImageUrl: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&h=400&fit=crop',
+        personalPageHtml: '<h2>ישראל כ"ץ - שר החוץ</h2><p>ישראל כ"ץ הוא פוליטיקאי ישראלי המכהן כשר החוץ. חבר מרכז הליכוד ומהדמויות הבולטות בתנועה.</p>',
         sortOrder: 2,
+        bioBlocks: [
+          { id: 'ik-1', type: 'heading', text: 'ישראל כ"ץ — שר החוץ', level: 2 },
+          { id: 'ik-2', type: 'image', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=500&fit=crop', credit: 'Unsplash', captionHe: 'שר החוץ ישראל כ"ץ', altText: 'Israel Katz portrait' },
+          { id: 'ik-3', type: 'paragraph', text: 'ישראל כ"ץ הוא פוליטיקאי ישראלי ותיק, חבר הכנסת ושר בכיר בממשלות ישראל. כ"ץ הוא מהדמויות הבולטות והמשפיעות ביותר בתנועת הליכוד.' },
+          { id: 'ik-4', type: 'heading', text: 'תפקידים בממשלה', level: 3 },
+          { id: 'ik-5', type: 'bullet_list', items: ['שר החוץ', 'שר התחבורה והבטיחות בדרכים (לשעבר)', 'שר המודיעין (לשעבר)', 'שר האוצר (לשעבר)', 'שר החקלאות (לשעבר)'] },
+          { id: 'ik-6', type: 'divider' },
+          { id: 'ik-7', type: 'heading', text: 'הישגים', level: 3 },
+          { id: 'ik-8', type: 'paragraph', text: 'בתקופת כהונתו כשר התחבורה קידם כ"ץ פרויקטי תשתית ענקיים, כולל הרכבת הקלה בתל אביב, הרחבת כביש 6 ושדרוג מערכת הרכבות.' },
+          { id: 'ik-9', type: 'quote', text: 'ישראל חייבת להיות מובילה בדיפלומטיה בינלאומית ולחזק את מעמדה בזירה הגלובלית.', attribution: 'ישראל כ"ץ' },
+        ],
       },
       {
         name: 'ניר ברקת',
         nameEn: 'Nir Barkat',
         title: 'שר הכלכלה',
         titleEn: 'Minister of Economy',
-        bio: 'ראש עיריית ירושלים לשעבר וחבר כנסת מטעם הליכוד.',
+        bio: 'ראש עיריית ירושלים לשעבר, יזם הייטק וחבר כנסת מטעם הליכוד.',
+        slug: 'nir-barkat',
+        photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
+        office: 'משרד הכלכלה והתעשייה, ירושלים',
+        phone: '+972-2-666-2000',
+        email: 'sar@economy.gov.il',
+        website: 'https://www.gov.il/he/departments/ministry_of_economy',
+        socialTwitter: 'https://x.com/NirBarkat',
+        socialFacebook: 'https://facebook.com/NirBarkat',
+        socialInstagram: 'https://instagram.com/nirbarkat',
+        coverImageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=400&fit=crop',
+        personalPageHtml: '<h2>ניר ברקת - שר הכלכלה</h2><p>ניר ברקת הוא איש עסקים ופוליטיקאי, כיהן כראש עיריית ירושלים ומכהן כעת כשר הכלכלה והתעשייה.</p><h3>ניסיון מקצועי</h3><p>ברקת ייסד חברות הייטק מובילות וכיהן כראש עיריית ירושלים בין 2008-2018.</p>',
         sortOrder: 3,
+        bioBlocks: [
+          { id: 'br-1', type: 'heading', text: 'ניר ברקת — שר הכלכלה והתעשייה', level: 2 },
+          { id: 'br-2', type: 'paragraph', text: 'ניר ברקת הוא יזם הייטק, איש עסקים ופוליטיקאי ישראלי. כיהן כראש עיריית ירושלים בין 2008 ל-2018, ומכהן כעת כשר הכלכלה והתעשייה.' },
+          { id: 'br-3', type: 'image', url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=450&fit=crop', credit: 'Unsplash', captionHe: 'שר הכלכלה ניר ברקת', altText: 'Economy ministry building' },
+          { id: 'br-4', type: 'heading', text: 'עולם ההייטק', level: 3 },
+          { id: 'br-5', type: 'paragraph', text: 'ברקת הקים מספר חברות הייטק מצליחות, בהן BRM Group שהשקיעה בעשרות חברות טכנולוגיה. הניסיון העסקי שלו מהווה בסיס לתפיסה הכלכלית שלו כשר.' },
+          { id: 'br-6', type: 'quote', text: 'הכלכלה הישראלית היא מנוע הצמיחה של המדינה. עלינו לטפח חדשנות ויזמות.', attribution: 'ניר ברקת' },
+          { id: 'br-7', type: 'divider' },
+          { id: 'br-8', type: 'heading', text: 'ירושלים — עיר הבירה', level: 3 },
+          { id: 'br-9', type: 'paragraph', text: 'בתקופת כהונתו כראש עיריית ירושלים, ברקת הוביל פרויקטים משמעותיים לפיתוח העיר, כולל הרכבת הקלה, פארק טכנולוגי והתחדשות עירונית.' },
+          { id: 'br-10', type: 'bullet_list', items: ['הקמת פארק הייטק בהר חוצבים', 'פיתוח תשתיות תחבורה כולל הרכבת הקלה', 'חיזוק התיירות — מ-2 מיליון ל-4 מיליון תיירים בשנה', 'השקעה בחינוך ורווחה'] },
+          { id: 'br-11', type: 'image', url: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=800&h=450&fit=crop', credit: 'Unsplash', captionHe: 'ירושלים — עיר ההייטק', altText: 'Jerusalem skyline' },
+          { id: 'br-12', type: 'youtube', videoId: 'dQw4w9WgXcQ', caption: 'ניר ברקת על חזון הכלכלה הישראלית' },
+        ],
       },
       {
         name: 'יולי אדלשטיין',
         nameEn: 'Yuli Edelstein',
         title: 'שר הבריאות',
         titleEn: 'Minister of Health',
-        bio: 'יושב ראש הכנסת לשעבר וחבר כנסת מטעם הליכוד.',
+        bio: 'אסיר ציון לשעבר, יושב ראש הכנסת לשעבר וחבר כנסת מטעם הליכוד.',
+        slug: 'yuli-edelstein',
+        photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+        office: 'משרד הבריאות, ירושלים',
+        phone: '+972-2-508-1111',
+        email: 'sar@health.gov.il',
+        website: 'https://www.health.gov.il',
+        socialTwitter: 'https://x.com/YuliEdelstein',
+        socialFacebook: 'https://facebook.com/YuliEdelstein',
+        socialInstagram: '',
+        coverImageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&h=400&fit=crop',
+        personalPageHtml: '<h2>יולי אדלשטיין - שר הבריאות</h2><p>יולי אדלשטיין הוא פוליטיקאי ישראלי, עולה מברית המועצות ואסיר ציון לשעבר. כיהן כיושב ראש הכנסת.</p>',
         sortOrder: 4,
+        bioBlocks: [
+          { id: 'ye-1', type: 'heading', text: 'יולי אדלשטיין — שר הבריאות', level: 2 },
+          { id: 'ye-2', type: 'image', url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=500&fit=crop', credit: 'Unsplash', captionHe: 'שר הבריאות יולי אדלשטיין', altText: 'Yuli Edelstein portrait' },
+          { id: 'ye-3', type: 'paragraph', text: 'יולי יואל אדלשטיין נולד ב-5 בפברואר 1958 בצ\'רנובצי, אוקראינה (בריה"מ לשעבר). הוא עלה לישראל ב-1987 לאחר שנות מאסר בכלא סובייטי בשל פעילותו הציונית.' },
+          { id: 'ye-4', type: 'heading', text: 'אסיר ציון', level: 3 },
+          { id: 'ye-5', type: 'paragraph', text: 'אדלשטיין נעצר ב-1984 על ידי השלטונות הסובייטיים בגין "החזקת סמים" — אשמה מפוברקת שנועדה להעניש אותו על הוראת עברית ופעילות ציונית. ריצה שלוש שנות מאסר במחנות עבודה בסיביר.' },
+          { id: 'ye-6', type: 'quote', text: 'החירות אינה מובנת מאליה. נלחמתי עליה בכלא הסובייטי ואמשיך להילחם עליה בכנסת ישראל.', attribution: 'יולי אדלשטיין' },
+          { id: 'ye-7', type: 'divider' },
+          { id: 'ye-8', type: 'heading', text: 'תפקידים ציבוריים', level: 3 },
+          { id: 'ye-9', type: 'bullet_list', items: ['יושב ראש הכנסת ה-19, ה-20 וה-21 (2013-2020)', 'שר הבריאות', 'שר הקליטה (לשעבר)', 'שר ההסברה והתפוצות (לשעבר)'] },
+          { id: 'ye-10', type: 'paragraph', text: 'כיושב ראש הכנסת, אדלשטיין ידוע בניהול ישיבות בכבוד ובמקצועיות, ובקידום הדיאלוג הפרלמנטרי הבינלאומי.' },
+        ],
       },
       {
         name: 'מירי רגב',
         nameEn: 'Miri Regev',
         title: 'שרת התחבורה',
         titleEn: 'Minister of Transportation',
-        bio: 'דוברת צה"ל לשעבר וחברת כנסת מטעם הליכוד.',
+        bio: 'דוברת צה"ל לשעבר, שרת התרבות והספורט לשעבר וחברת כנסת מטעם הליכוד.',
+        slug: 'miri-regev',
+        photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop',
+        office: 'משרד התחבורה, ירושלים',
+        phone: '+972-3-954-4000',
+        email: 'sar@mot.gov.il',
+        website: 'https://www.gov.il/he/departments/ministry_of_transport',
+        socialTwitter: 'https://x.com/MiriRegev',
+        socialFacebook: 'https://facebook.com/MiriRegevOfficial',
+        socialInstagram: 'https://instagram.com/maboreket',
+        coverImageUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1200&h=400&fit=crop',
+        personalPageHtml: '<h2>מירי רגב - שרת התחבורה</h2><p>מירי רגב היא פוליטיקאית ישראלית וקצינה בכירה לשעבר בצה"ל. כיהנה כדוברת צה"ל ושרת התרבות והספורט.</p>',
         sortOrder: 5,
+        bioBlocks: [
+          { id: 'mr-1', type: 'heading', text: 'מירי רגב — שרת התחבורה והבטיחות בדרכים', level: 2 },
+          { id: 'mr-2', type: 'image', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=500&fit=crop', credit: 'Unsplash', captionHe: 'שרת התחבורה מירי רגב', altText: 'Miri Regev portrait' },
+          { id: 'mr-3', type: 'paragraph', text: 'מירי רגב היא פוליטיקאית ישראלית, חברת הכנסת מטעם הליכוד וקצינה בכירה לשעבר בצה"ל. רגב שימשה כדוברת צה"ל ובעקבות כך זכתה לפרסום רב בציבור הישראלי.' },
+          { id: 'mr-4', type: 'heading', text: 'שירות צבאי', level: 3 },
+          { id: 'mr-5', type: 'paragraph', text: 'רגב שירתה בצה"ל והגיעה לדרגת תת-אלוף. בין תפקידיה הבולטים: דוברת צה"ל (2005-2007), שם ניהלה את תקשורת הצבא מול הציבור והתקשורת הבינלאומית.' },
+          { id: 'mr-6', type: 'divider' },
+          { id: 'mr-7', type: 'heading', text: 'שרת התרבות והספורט', level: 3 },
+          { id: 'mr-8', type: 'paragraph', text: 'בתקופת כהונתה כשרת התרבות והספורט (2015-2020), רגב קידמה את הנגשת התרבות לפריפריה וחיזקה את ענף הספורט הישראלי.' },
+          { id: 'mr-9', type: 'bullet_list', items: ['הנגשת מופעי תרבות לפריפריה', 'תמיכה בספורט ההישגי הישראלי', 'קידום סינמה ותרבות ישראלית בעולם', 'פיתוח מתקני ספורט ברשויות מקומיות'] },
+          { id: 'mr-10', type: 'quote', text: 'התחבורה היא עורק החיים של המדינה. השקעה בתשתיות היא השקעה בעתיד.', attribution: 'מירי רגב' },
+          { id: 'mr-11', type: 'heading', text: 'תחבורה ותשתיות', level: 3 },
+          { id: 'mr-12', type: 'paragraph', text: 'כשרת התחבורה, רגב מובילה מהפכת תחבורה ציבורית כולל הרחבת הרכבת הקלה, פיתוח נתיבי אוטובוס מהירים ושדרוג תשתיות הכבישים.' },
+          { id: 'mr-13', type: 'image', url: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&h=450&fit=crop', credit: 'Unsplash', captionHe: 'תחבורה ציבורית בישראל', altText: 'Public transport in Israel' },
+          { id: 'mr-14', type: 'youtube', videoId: 'dQw4w9WgXcQ', caption: 'שרת התחבורה מירי רגב על תוכנית התחבורה הלאומית' },
+        ],
       },
     ];
 
     const memberIds: string[] = [];
     for (const member of members) {
       const result = (await queryRunner.query(
-        `INSERT INTO "members" ("id", "name", "nameEn", "title", "titleEn", "bio", "isActive", "sortOrder")
-         VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5, true, $6)
+        `INSERT INTO "members" ("id", "name", "nameEn", "title", "titleEn", "bio", "isActive", "sortOrder",
+         "slug", "photoUrl", "office", "phone", "email", "website", "socialTwitter", "socialFacebook", "socialInstagram",
+         "coverImageUrl", "personalPageHtml", "bioBlocks")
+         VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5, true, $6,
+         $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
          RETURNING "id"`,
         [
           member.name,
@@ -200,6 +327,18 @@ async function seed() {
           member.titleEn,
           member.bio,
           member.sortOrder,
+          member.slug,
+          member.photoUrl,
+          member.office,
+          member.phone,
+          member.email,
+          member.website,
+          member.socialTwitter || null,
+          member.socialFacebook || null,
+          member.socialInstagram || null,
+          member.coverImageUrl,
+          member.personalPageHtml,
+          JSON.stringify(member.bioBlocks),
         ],
       )) as { id: string }[];
       memberIds.push(result[0].id);
@@ -267,6 +406,28 @@ async function seed() {
       tagIds.push(result[0].id);
       console.log(`  -> Created tag: ${tag.nameHe} (${tag.nameEn})`);
     }
+
+    // ── Auto-create person tags for members ─────────────────────────────
+    console.log('Creating person tags for members...');
+    for (const member of members) {
+      const tagSlug = member.name
+        .replace(/[^\w\u0590-\u05FF]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .toLowerCase();
+
+      const existing = await queryRunner.query(
+        `SELECT "id" FROM "tags" WHERE "slug" = $1`,
+        [tagSlug],
+      );
+      if (existing.length === 0) {
+        await queryRunner.query(
+          `INSERT INTO "tags" ("id", "nameHe", "nameEn", "slug", "tagType")
+           VALUES (uuid_generate_v4(), $1, $2, $3, 'person'::tag_type_enum)`,
+          [member.name, member.nameEn || null, tagSlug],
+        );
+      }
+    }
+    console.log('  ✓ Person tags created for all members');
 
     // ─── 6. Seed Articles ─────────────────────────────────────────────
     console.log('Seeding articles...');

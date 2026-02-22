@@ -81,7 +81,7 @@ void main() {
       test('props list should contain all fields', () {
         final detail = createDetail();
 
-        expect(detail.props.length, equals(36));
+        expect(detail.props.length, equals(37));
         expect(detail.props, [
           '1',
           'Test Article',
@@ -100,6 +100,7 @@ void main() {
           tPublishedAt,
           '5',
           'Politics',
+          null, // categorySlug
           '#FF0000',
           const <Article>[],
           false,

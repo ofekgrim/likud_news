@@ -311,22 +311,42 @@ export class ArticlesService {
   }
 
   /**
-   * Full-text search across articles.
-   * Searches title, titleEn, subtitle, content, slug, category name/slug, and tag names.
+   * Full-text search across articles with pagination.
+   * Searches title, titleEn, subtitle, content, slug, hashtags, category name/slug, and tag names.
    */
-  async search(searchQuery: string, limit: number = 20): Promise<Article[]> {
-    return this.articleRepository
+  async search(
+    searchQuery: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{
+    data: Article[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const qb = this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
       .leftJoin('article.tags', 'tag')
       .where('article.status = :status', { status: ArticleStatus.PUBLISHED })
       .andWhere(
-        '(article.title ILIKE :q OR article.titleEn ILIKE :q OR article.subtitle ILIKE :q OR article.content ILIKE :q OR article.slug ILIKE :q OR category.name ILIKE :q OR category.slug ILIKE :q OR tag.name ILIKE :q)',
+        '(article.title ILIKE :q OR article.titleEn ILIKE :q OR article.subtitle ILIKE :q OR article.content ILIKE :q OR article.slug ILIKE :q OR article.hashtags ILIKE :q OR category.name ILIKE :q OR category.slug ILIKE :q OR tag."nameHe" ILIKE :q OR tag."nameEn" ILIKE :q)',
         { q: `%${searchQuery}%` },
       )
       .orderBy('article.publishedAt', 'DESC')
-      .take(limit)
-      .getMany();
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   /**

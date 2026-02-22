@@ -22,6 +22,12 @@ abstract class BreakingNewsRemoteDatasource {
   /// Throws [ServerException] on failure.
   Future<List<Article>> getAllArticles({int page = 1, int limit = 10});
 
+  /// Searches articles on the server with pagination.
+  ///
+  /// Returns a map with 'articles', 'total', 'page', and 'totalPages'.
+  /// Throws [ServerException] on failure.
+  Future<Map<String, dynamic>> searchArticles(String query, {int page = 1, int limit = 20});
+
   /// Returns a stream of newly published breaking articles via SSE.
   Stream<Article> watchBreakingNews();
 }
@@ -85,6 +91,48 @@ class BreakingNewsRemoteDatasourceImpl implements BreakingNewsRemoteDatasource {
           .cast<Map<String, dynamic>>()
           .map(_articleFromJson)
           .toList();
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> searchArticles(String query, {int page = 1, int limit = 20}) async {
+    try {
+      final response = await _apiClient.get<dynamic>(
+        ApiConstants.searchArticles,
+        queryParameters: {'q': query, 'page': page, 'limit': limit},
+      );
+
+      final data = response.data;
+      final List<dynamic> items;
+      int total = 0;
+      int responsePage = page;
+      int totalPages = 1;
+
+      if (data is Map<String, dynamic>) {
+        items = (data['data'] ?? data['articles'] ?? []) as List<dynamic>;
+        total = (data['total'] as int?) ?? 0;
+        responsePage = (data['page'] as int?) ?? page;
+        totalPages = (data['totalPages'] as int?) ?? 1;
+      } else if (data is List) {
+        items = data;
+      } else {
+        items = [];
+      }
+
+      final articles = items
+          .cast<Map<String, dynamic>>()
+          .map(_articleFromJson)
+          .toList();
+
+      return {
+        'articles': articles,
+        'total': total,
+        'page': responsePage,
+        'totalPages': totalPages,
+      };
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException(message: e.toString());

@@ -54,10 +54,19 @@ export interface Member {
   title?: string;
   titleEn?: string;
   bio?: string;
+  bioEn?: string;
+  bioBlocks?: ContentBlock[];
   photoUrl?: string;
   socialTwitter?: string;
   socialFacebook?: string;
   socialInstagram?: string;
+  slug?: string;
+  office?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  coverImageUrl?: string;
+  personalPageHtml?: string;
   isActive: boolean;
   sortOrder: number;
 }

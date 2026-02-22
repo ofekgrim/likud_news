@@ -1,39 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../app/theme/app_colors.dart';
 
-/// Floating "מצודת הליכוד" logo overlay.
+/// Floating "מצודת הליכוד" logo badge with fortress icon.
 ///
-/// Positioned at top-center of screens per the Israel Hayom-style design.
+/// Pill-shaped gradient badge displayed in the app bar center.
+/// Contains the fortress+menorah SVG icon and two-line Hebrew text.
 class FloatingLogo extends StatelessWidget {
   final double height;
 
-  const FloatingLogo({super.key, this.height = 40});
+  const FloatingLogo({super.key, this.height = 44});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsetsDirectional.only(
+        start: 10,
+        end: 16,
+        top: 4,
+        bottom: 4,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.likudBlue,
-        borderRadius: BorderRadius.circular(8),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF00C4F5),
+            Color(0xFF0068A0),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(height / 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.15),
+            color: const Color(0xFF003050).withValues(alpha: 0.2),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: const Text(
-        'מצודת הליכוד',
-        style: TextStyle(
-          fontFamily: 'Heebo',
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: AppColors.white,
-          letterSpacing: 0.5,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Fortress + menorah icon.
+          SvgPicture.asset(
+            'assets/images/fortress_icon.svg',
+            height: height * 0.72,
+          ),
+          const SizedBox(width: 8),
+          // Two-line Hebrew text.
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'מצודת',
+                style: TextStyle(
+                  fontFamily: 'Heebo',
+                  fontSize: height * 0.26,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.white,
+                  height: 1.15,
+                ),
+              ),
+              Text(
+                'הליכוד',
+                style: TextStyle(
+                  fontFamily: 'Heebo',
+                  fontSize: height * 0.32,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.white,
+                  letterSpacing: 0.5,
+                  height: 1.1,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

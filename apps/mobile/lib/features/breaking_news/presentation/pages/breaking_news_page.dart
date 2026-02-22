@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../home/domain/entities/article.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../bloc/breaking_news_bloc.dart';
@@ -29,6 +32,9 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
   late final TabController _tabController;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _debounceTimer;
+
+  static const _debounceDuration = Duration(milliseconds: 400);
 
   @override
   void initState() {
@@ -40,6 +46,7 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _searchController.dispose();
@@ -53,6 +60,17 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
         context.read<BreakingNewsBloc>().add(const LoadAllArticles());
       }
     }
+  }
+
+  void _onSearchChanged(String value) {
+    final query = value.toLowerCase();
+    setState(() => _searchQuery = query);
+
+    // Debounce the server-side search
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_debounceDuration, () {
+      context.read<BreakingNewsBloc>().add(SearchArticlesRequested(query));
+    });
   }
 
   @override
@@ -78,7 +96,7 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: TextField(
         controller: _searchController,
-        onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+        onChanged: _onSearchChanged,
         textDirection: TextDirection.rtl,
         style: const TextStyle(fontFamily: 'Heebo', fontSize: 14),
         decoration: InputDecoration(
@@ -94,7 +112,9 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
                   icon: const Icon(Icons.clear, size: 18),
                   onPressed: () {
                     _searchController.clear();
+                    _debounceTimer?.cancel();
                     setState(() => _searchQuery = '');
+                    context.read<BreakingNewsBloc>().add(const SearchArticlesRequested(''));
                   },
                 )
               : null,
@@ -223,25 +243,37 @@ class _BreakingList extends StatelessWidget {
                     .add(const LoadBreakingNews());
               },
             ),
-          BreakingNewsLoaded(:final articles) => () {
-              var filtered = breakingOnly
-                  ? articles.where((a) => a.isBreaking).toList()
-                  : articles;
+          BreakingNewsLoaded(:final articles, :final searchResults, :final isSearching) => () {
+              // Use server search results when actively searching and results are available
+              List<Article> filtered;
+              if (isSearching && searchQuery.isNotEmpty && searchResults.isNotEmpty) {
+                // Server results — optionally filter to breaking-only if on that tab
+                filtered = breakingOnly
+                    ? searchResults.where((a) => a.isBreaking).toList()
+                    : searchResults;
+              } else {
+                // Default: local data with local filter as fallback
+                filtered = breakingOnly
+                    ? articles.where((a) => a.isBreaking).toList()
+                    : articles;
 
-              if (searchQuery.isNotEmpty) {
-                final q = searchQuery;
-                filtered = filtered.where((a) {
-                  return a.title.toLowerCase().contains(q) ||
-                      (a.subtitle?.toLowerCase().contains(q) ?? false) ||
-                      (a.slug?.toLowerCase().contains(q) ?? false) ||
-                      (a.categoryName?.toLowerCase().contains(q) ?? false) ||
-                      a.hashtags.any((tag) => tag.toLowerCase().contains(q));
-                }).toList();
+                if (searchQuery.isNotEmpty) {
+                  final q = searchQuery;
+                  filtered = filtered.where((a) {
+                    return a.title.toLowerCase().contains(q) ||
+                        (a.subtitle?.toLowerCase().contains(q) ?? false) ||
+                        (a.slug?.toLowerCase().contains(q) ?? false) ||
+                        (a.categoryName?.toLowerCase().contains(q) ?? false) ||
+                        a.hashtags.any((tag) => tag.toLowerCase().contains(q));
+                  }).toList();
+                }
               }
 
               if (filtered.isEmpty) {
                 return EmptyView(
-                  message: 'no_breaking'.tr(),
+                  message: searchQuery.isNotEmpty
+                      ? 'no_results'.tr()
+                      : 'no_breaking'.tr(),
                   icon: Icons.newspaper_outlined,
                 );
               }
@@ -310,27 +342,40 @@ class _AllArticlesList extends StatelessWidget {
           return _buildShimmer();
         }
 
-        var articles = state.allArticles;
+        // Use server search results when actively searching
+        List<Article> articles;
+        final bool showPagination;
 
-        if (searchQuery.isNotEmpty) {
-          final q = searchQuery;
-          articles = articles.where((a) {
-            return a.title.toLowerCase().contains(q) ||
-                (a.subtitle?.toLowerCase().contains(q) ?? false) ||
-                (a.slug?.toLowerCase().contains(q) ?? false) ||
-                (a.categoryName?.toLowerCase().contains(q) ?? false) ||
-                a.hashtags.any((tag) => tag.toLowerCase().contains(q));
-          }).toList();
+        if (state.isSearching && searchQuery.isNotEmpty && state.searchResults.isNotEmpty) {
+          articles = state.searchResults;
+          showPagination = false; // No pagination for search results
+        } else {
+          articles = state.allArticles;
+          showPagination = state.allArticlesHasMore;
+
+          // Local filter as fallback while server results are loading
+          if (searchQuery.isNotEmpty) {
+            final q = searchQuery;
+            articles = articles.where((a) {
+              return a.title.toLowerCase().contains(q) ||
+                  (a.subtitle?.toLowerCase().contains(q) ?? false) ||
+                  (a.slug?.toLowerCase().contains(q) ?? false) ||
+                  (a.categoryName?.toLowerCase().contains(q) ?? false) ||
+                  a.hashtags.any((tag) => tag.toLowerCase().contains(q));
+            }).toList();
+          }
         }
 
-        if (articles.isEmpty && state.allArticlesPage == 0) {
+        if (articles.isEmpty && state.allArticlesPage == 0 && !state.isSearching) {
           // Not yet loaded — show shimmer
           return _buildShimmer();
         }
 
         if (articles.isEmpty) {
           return EmptyView(
-            message: 'no_all_articles'.tr(),
+            message: searchQuery.isNotEmpty
+                ? 'no_results'.tr()
+                : 'no_all_articles'.tr(),
             icon: Icons.article_outlined,
           );
         }
@@ -349,7 +394,7 @@ class _AllArticlesList extends StatelessWidget {
               bottom: AppRouter.bottomNavClearance(context),
             ),
             physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: articles.length + (state.allArticlesHasMore ? 1 : 0),
+            itemCount: articles.length + (showPagination ? 1 : 0),
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               if (index < articles.length) {

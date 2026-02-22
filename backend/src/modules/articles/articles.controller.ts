@@ -74,6 +74,42 @@ export class ArticlesController {
     return this.articlesService.findMostRead(limit ? Number(limit) : 10);
   }
 
+  @Get('search')
+  @ApiOperation({ summary: 'Search articles by keyword with pagination' })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    type: String,
+    description: 'Search query (minimum 2 characters)',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Results per page (default: 20)',
+  })
+  @ApiResponse({ status: 200, description: 'Paginated search results' })
+  search(
+    @Query('q') query: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    if (!query || query.trim().length < 2) {
+      return { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
+    }
+    return this.articlesService.search(
+      query.trim(),
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20,
+    );
+  }
+
   @Get(':id/by-id')
   @ApiOperation({ summary: 'Get a single article by UUID' })
   @ApiParam({ name: 'id', description: 'Article UUID' })

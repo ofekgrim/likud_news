@@ -13,8 +13,9 @@ import '../widgets/member_card.dart';
 
 /// Members directory page.
 ///
-/// Displays a searchable grid of all Likud members. The search
-/// bar at the top filters members locally by name or title.
+/// Displays a searchable list of all Likud members using business card
+/// style cards. The search bar at the top filters members locally by
+/// name, title, or office.
 class MembersPage extends StatefulWidget {
   const MembersPage({super.key});
 
@@ -44,7 +45,8 @@ class _MembersPageState extends State<MembersPage> {
     return members.where((member) {
       return member.name.toLowerCase().contains(query) ||
           (member.nameEn?.toLowerCase().contains(query) ?? false) ||
-          (member.title?.toLowerCase().contains(query) ?? false);
+          (member.title?.toLowerCase().contains(query) ?? false) ||
+          (member.office?.toLowerCase().contains(query) ?? false);
     }).toList();
   }
 
@@ -118,7 +120,7 @@ class _MembersPageState extends State<MembersPage> {
               ),
             ),
           ),
-          // Members grid.
+          // Members list.
           Expanded(
             child: BlocBuilder<MembersBloc, MembersState>(
               builder: (context, state) {
@@ -148,30 +150,34 @@ class _MembersPageState extends State<MembersPage> {
   }
 
   Widget _buildLoadingState() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.85,
-      ),
-      itemCount: 6,
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
       physics: const NeverScrollableScrollPhysics(),
+      itemCount: 6,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (_, __) => Container(
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.all(16),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          textDirection: TextDirection.rtl,
           children: [
-            ShimmerLoading(width: 72, height: 72, borderRadius: 36),
-            SizedBox(height: 10),
-            ShimmerLoading(width: 80, height: 14, borderRadius: 4),
-            SizedBox(height: 6),
-            ShimmerLoading(width: 60, height: 10, borderRadius: 4),
+            const ShimmerLoading(width: 56, height: 56, borderRadius: 28),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  ShimmerLoading(width: 120, height: 16, borderRadius: 4),
+                  SizedBox(height: 6),
+                  ShimmerLoading(width: 90, height: 14, borderRadius: 4),
+                  SizedBox(height: 6),
+                  ShimmerLoading(width: 70, height: 12, borderRadius: 4),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -196,15 +202,10 @@ class _MembersPageState extends State<MembersPage> {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.85,
-      ),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
       itemCount: filtered.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final member = filtered[index];
         return MemberCard(

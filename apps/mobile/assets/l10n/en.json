@@ -42,6 +42,13 @@
   "members": "Likud Members",
   "search_members_hint": "Search members...",
   "no_members": "No members to display",
+  "member_office": "Office",
+  "member_contact": "Contact",
+  "member_personal_page": "Personal Page",
+  "member_articles": "Related Articles",
+  "member_phone": "Phone",
+  "member_email": "Email",
+  "member_website": "Website",
 
   "error_loading_magazine": "Error loading magazine articles",
   "error_refreshing_magazine": "Error refreshing magazine",
