@@ -32,6 +32,7 @@ class HomePageWithFeed extends StatefulWidget {
 class _HomePageWithFeedState extends State<HomePageWithFeed> {
   final _scrollController = ScrollController();
   late final FeedBloc _feedBloc;
+  bool _showRefreshButton = false;
 
   @override
   void initState() {
@@ -45,7 +46,7 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
     _feedBloc.add(const feed_events.LoadFeed());
     _feedBloc.add(const feed_events.SubscribeToUpdates());
 
-    // Setup scroll listener for pagination
+    // Setup scroll listener for pagination and refresh button visibility
     _scrollController.addListener(_onScroll);
   }
 
@@ -57,9 +58,18 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
   }
 
   void _onScroll() {
+    // Load more when near bottom
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent * 0.9) {
       _feedBloc.add(const feed_events.LoadMoreFeed());
+    }
+
+    // Show/hide refresh button based on scroll position (show after scrolling 500px)
+    final shouldShow = _scrollController.position.pixels > 500;
+    if (shouldShow != _showRefreshButton) {
+      setState(() {
+        _showRefreshButton = shouldShow;
+      });
     }
   }
 
@@ -84,6 +94,25 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
       value: _feedBloc,
       child: RtlScaffold(
         showDrawerIcon: true,
+        floatingActionButton: _showRefreshButton
+            ? FloatingActionButton(
+                onPressed: () async {
+                  // Scroll to top with animation
+                  await _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                  // Trigger refresh
+                  _onRefresh();
+                },
+                backgroundColor: AppColors.likudBlue,
+                child: const Icon(
+                  Icons.refresh,
+                  color: Colors.white,
+                ),
+              )
+            : null,
         body: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, homeState) {
             if (homeState is HomeLoading || homeState is HomeInitial) {

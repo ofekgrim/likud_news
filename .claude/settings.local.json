@@ -28,7 +28,8 @@
       "Bash(chmod:*)",
       "Bash(pkill:*)",
       "Bash(npm run test:feed:*)",
-      "Bash(npm run seed:feed:*)"
+      "Bash(npm run seed:feed:*)",
+      "Bash(npm run seed:comprehensive:*)"
     ]
   }
 }

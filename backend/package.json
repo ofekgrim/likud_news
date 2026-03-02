@@ -24,6 +24,7 @@
     "seed": "ts-node src/database/seeds/seed.ts",
     "seed:elections": "ts-node src/database/seeds/seed-elections.ts",
     "seed:feed": "ts-node src/database/seeds/seed-feed-test.ts",
+    "seed:comprehensive": "ts-node src/database/seeds/seed-comprehensive-feed.ts",
     "test:feed": "ts-node scripts/test-feed-qa.ts",
     "qa:all": "npm run seed:feed && npm run test:feed"
   },
