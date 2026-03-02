@@ -62,6 +62,7 @@ export default function EditArticlePage() {
     authorId: '',
     tagIds: [] as string[],
     allowComments: true,
+    sendPushNotification: false,
   });
 
   useEffect(() => {
@@ -364,6 +365,19 @@ export default function EditArticlePage() {
                   />
                   <span className="text-sm">אפשר תגובות</span>
                 </label>
+                {form.status === 'published' && article?.status !== 'published' && (
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.sendPushNotification}
+                      onChange={(e) =>
+                        setForm({ ...form, sendPushNotification: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded accent-blue-500"
+                    />
+                    <span className="text-sm">שלח התראה בפרסום</span>
+                  </label>
+                )}
               </div>
             </CardContent>
           </Card>

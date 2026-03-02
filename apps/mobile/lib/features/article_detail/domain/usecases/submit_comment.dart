@@ -17,7 +17,6 @@ class SubmitComment implements UseCase<void, SubmitCommentParams> {
   Future<Either<Failure, void>> call(SubmitCommentParams params) {
     return repository.submitComment(
       articleId: params.articleId,
-      authorName: params.authorName,
       body: params.body,
       parentId: params.parentId,
       targetType: params.targetType,
@@ -28,19 +27,17 @@ class SubmitComment implements UseCase<void, SubmitCommentParams> {
 /// Parameters for [SubmitComment].
 class SubmitCommentParams extends Equatable {
   final String articleId;
-  final String authorName;
   final String body;
   final String? parentId;
   final String targetType; // 'article' or 'story'
 
   const SubmitCommentParams({
     required this.articleId,
-    required this.authorName,
     required this.body,
     this.parentId,
     this.targetType = 'article',
   });
 
   @override
-  List<Object?> get props => [articleId, authorName, body, parentId, targetType];
+  List<Object?> get props => [articleId, body, parentId, targetType];
 }

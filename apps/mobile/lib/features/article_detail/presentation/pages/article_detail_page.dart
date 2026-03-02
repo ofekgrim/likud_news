@@ -43,6 +43,15 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+
+    // Dispatch load event once after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final bloc = context.read<ArticleDetailBloc>();
+      if (bloc.state is ArticleDetailInitial) {
+        bloc.add(LoadArticleDetail(widget.slug));
+      }
+    });
   }
 
   @override
@@ -142,15 +151,6 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Dispatch load event when the page builds for the first time.
-    // The BLoC will de-duplicate if already loading.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final bloc = context.read<ArticleDetailBloc>();
-      if (bloc.state is ArticleDetailInitial) {
-        bloc.add(LoadArticleDetail(widget.slug));
-      }
-    });
-
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -304,13 +304,27 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
 
                                     const SizedBox(height: 24),
 
-                                    // 8. Comments section
+                                    // 8. Comments section with live count
                                     if (article.allowComments)
-                                      CommentsSection(
-                                        targetId: article.id,
-                                        targetType: 'article',
-                                        commentCount: article.commentCount,
-                                        allowComments: article.allowComments,
+                                      BlocBuilder<CommentsBloc, CommentsState>(
+                                        builder: (context, commentsState) {
+                                          // Calculate live count from CommentsBloc if loaded
+                                          int displayCount = article.commentCount;
+                                          if (commentsState is CommentsLoaded) {
+                                            displayCount =
+                                                commentsState.comments.length +
+                                                    commentsState.comments
+                                                        .map((c) => c.replies.length)
+                                                        .fold(0, (sum, count) => sum + count);
+                                          }
+
+                                          return CommentsSection(
+                                            targetId: article.id,
+                                            targetType: 'article',
+                                            commentCount: displayCount,
+                                            allowComments: article.allowComments,
+                                          );
+                                        },
                                       ),
 
                                     const SizedBox(height: 24),

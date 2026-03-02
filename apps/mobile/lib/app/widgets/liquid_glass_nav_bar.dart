@@ -30,7 +30,7 @@ class LiquidGlassNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return LiquidGlassContainer(
       borderRadius: 30,
-      blurSigma: 20,
+      blurSigma: 1,
       backgroundColor: Colors.white,
       backgroundOpacity: 0.85,
       border: Border.all(

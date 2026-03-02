@@ -128,17 +128,35 @@ class RelatedArticles extends StatelessWidget {
                       ),
 
                     // Title
-                    Expanded(
-                      child: Text(
-                        article.title,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
+                    Text(
+                      article.title,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                        color: AppColors.textPrimary,
                       ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    const Spacer(),
+
+                    // Engagement stats row
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        if (article.viewCount > 0)
+                          _StatBadge(
+                            icon: Icons.visibility_outlined,
+                            label: _formatCount(article.viewCount),
+                          ),
+                        if (article.commentCount > 0)
+                          _StatBadge(
+                            icon: Icons.chat_bubble_outline,
+                            label: _formatCount(article.commentCount),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -160,5 +178,47 @@ class RelatedArticles extends StatelessWidget {
       }
     }
     return AppColors.likudBlue;
+  }
+
+  String _formatCount(int count) {
+    if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}K';
+    }
+    return count.toString();
+  }
+}
+
+/// Compact engagement stat badge for related articles.
+class _StatBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _StatBadge({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 12,
+          color: AppColors.textTertiary,
+        ),
+        const SizedBox(width: 3),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Heebo',
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textTertiary,
+          ),
+        ),
+      ],
+    );
   }
 }

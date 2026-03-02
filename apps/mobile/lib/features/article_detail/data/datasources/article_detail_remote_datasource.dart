@@ -11,7 +11,8 @@ import '../models/comment_model.dart';
 /// toggle favorites, and record read events.
 abstract class ArticleDetailRemoteDataSource {
   /// Fetches the full article detail by its URL [slug].
-  Future<ArticleDetailModel> getArticleBySlug(String slug);
+  /// Pass [deviceId] to get favorite status for the current device.
+  Future<ArticleDetailModel> getArticleBySlug(String slug, {String? deviceId});
 
   /// Toggles the favorite status for an article.
   ///
@@ -38,7 +39,6 @@ abstract class ArticleDetailRemoteDataSource {
   /// Submits a new comment on a target (article or story).
   Future<void> submitComment({
     required String articleId,
-    required String authorName,
     required String body,
     String? parentId,
     String targetType = 'article',
@@ -70,9 +70,12 @@ class ArticleDetailRemoteDataSourceImpl
   }
 
   @override
-  Future<ArticleDetailModel> getArticleBySlug(String slug) async {
+  Future<ArticleDetailModel> getArticleBySlug(String slug, {String? deviceId}) async {
     final response = await _apiClient.get<Map<String, dynamic>>(
       '${ApiConstants.articles}/$slug',
+      queryParameters: {
+        if (deviceId != null) 'deviceId': deviceId,
+      },
     );
     return ArticleDetailModel.fromJson(response.data!);
   }
@@ -126,7 +129,6 @@ class ArticleDetailRemoteDataSourceImpl
   @override
   Future<void> submitComment({
     required String articleId,
-    required String authorName,
     required String body,
     String? parentId,
     String targetType = 'article',
@@ -134,7 +136,6 @@ class ArticleDetailRemoteDataSourceImpl
     await _apiClient.post(
       _commentsBasePath(articleId, targetType),
       data: {
-        'authorName': authorName,
         'body': body,
         if (parentId != null) 'parentId': parentId,
       },

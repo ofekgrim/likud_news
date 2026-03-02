@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/comment.dart';
 import '../bloc/comments_bloc.dart';
+import '../../../../core/utils/auth_guard.dart';
+import '../../../../core/services/permission_service.dart' as perm;
+import '../../../../core/widgets/auth_prompt_dialog.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 /// Instagram-style comments section with avatars, likes, replies, and
 /// a bottom input bar.
@@ -31,10 +36,8 @@ class CommentsSection extends StatefulWidget {
 }
 
 class _CommentsSectionState extends State<CommentsSection> {
-  final _nameController = TextEditingController();
   final _bodyController = TextEditingController();
   final _bodyFocusNode = FocusNode();
-  bool _nameEntered = false;
 
   // Avatar color palette — 8 pleasing colors for initials circles.
   static const _avatarColors = [
@@ -63,16 +66,31 @@ class _CommentsSectionState extends State<CommentsSection> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _bodyController.dispose();
     _bodyFocusNode.dispose();
     super.dispose();
   }
 
   void _submitComment() {
-    final name = _nameController.text.trim();
+    // Check auth + MEMBER role for posting comments.
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      requireAuth(context);
+      return;
+    }
+    final userRole = perm.AppUserRole.fromString(authState.user.role.name);
+    if (!perm.PermissionService.canPerform(perm.AppPermission.postComment, userRole)) {
+      showAuthPromptDialog(
+        context,
+        requiredRole: perm.PermissionService.minimumRoleFor(perm.AppPermission.postComment),
+        currentRole: userRole,
+        actionDescription: 'become_member_to_comment'.tr(),
+      );
+      return;
+    }
+
     final body = _bodyController.text.trim();
-    if (name.isEmpty || body.isEmpty) return;
+    if (body.isEmpty) return;
 
     final blocState = context.read<CommentsBloc>().state;
     String? parentId;
@@ -83,7 +101,6 @@ class _CommentsSectionState extends State<CommentsSection> {
     context.read<CommentsBloc>().add(
           SubmitCommentEvent(
             articleId: widget.targetId,
-            authorName: name,
             body: body,
             parentId: parentId,
             targetType: widget.targetType,
@@ -92,7 +109,6 @@ class _CommentsSectionState extends State<CommentsSection> {
 
     _bodyController.clear();
     _bodyFocusNode.unfocus();
-    setState(() => _nameEntered = true);
 
     // Clear reply target after submitting.
     context.read<CommentsBloc>().add(const ClearReplyTarget());
@@ -338,70 +354,45 @@ class _CommentsSectionState extends State<CommentsSection> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Name field — shown until first successful entry
-          if (!_nameEntered || _nameController.text.trim().isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: TextField(
-                controller: _nameController,
-                textDirection: TextDirection.rtl,
-                decoration: InputDecoration(
-                  hintText: 'your_name'.tr(),
-                  hintStyle: TextStyle(
-                    color: AppColors.textTertiary,
-                    fontSize: 13,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.surfaceLight,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  isDense: true,
-                  prefixIcon: Padding(
-                    padding: const EdgeInsetsDirectional.only(start: 8),
-                    child: Icon(
-                      Icons.person_outline,
-                      size: 20,
-                      color: AppColors.textTertiary,
-                    ),
-                  ),
-                  prefixIconConstraints:
-                      const BoxConstraints(minWidth: 36, minHeight: 0),
-                ),
-                style: const TextStyle(
-                  fontFamily: 'Heebo',
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-            ),
-
           // Body input row with avatar + text field + send button
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Avatar
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: _nameController.text.trim().isNotEmpty
-                    ? _avatarColor(_nameController.text.trim())
-                    : AppColors.surfaceMedium,
-                child: Text(
-                  _nameController.text.trim().isNotEmpty
-                      ? _initials(_nameController.text.trim())
-                      : '?',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+              // Avatar — show profile image if available
+              Builder(
+                builder: (context) {
+                  final authState = context.read<AuthBloc>().state;
+                  final name = authState is AuthAuthenticated
+                      ? (authState.user.displayName ?? '')
+                      : '';
+                  final avatarUrl = authState is AuthAuthenticated
+                      ? authState.user.avatarUrl
+                      : null;
+                  if (avatarUrl != null && avatarUrl.isNotEmpty) {
+                    return ClipOval(
+                      child: AppCachedImage(
+                        imageUrl: avatarUrl,
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.cover,
+                      ),
+                    );
+                  }
+                  return CircleAvatar(
+                    radius: 16,
+                    backgroundColor: name.isNotEmpty
+                        ? _avatarColor(name)
+                        : AppColors.surfaceMedium,
+                    child: Text(
+                      name.isNotEmpty ? _initials(name) : '?',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 8),
 
@@ -449,8 +440,7 @@ class _CommentsSectionState extends State<CommentsSection> {
                     curr is CommentSubmitted,
                 builder: (context, state) {
                   final isSubmitting = state is CommentSubmitting;
-                  final canSubmit = _nameController.text.trim().isNotEmpty &&
-                      _bodyController.text.trim().isNotEmpty &&
+                  final canSubmit = _bodyController.text.trim().isNotEmpty &&
                       !isSubmitting;
 
                   return IconButton(
@@ -517,21 +507,32 @@ class _CommentTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar
-          CircleAvatar(
-            radius: avatarRadius,
-            backgroundColor: _CommentsSectionState._avatarColor(
-              comment.authorName,
-            ),
-            child: Text(
-              _CommentsSectionState._initials(comment.authorName),
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: avatarRadius * 0.65,
-                fontWeight: FontWeight.w700,
+          // Avatar — show profile image if available, else initials
+          if (comment.authorAvatarUrl != null &&
+              comment.authorAvatarUrl!.isNotEmpty)
+            ClipOval(
+              child: AppCachedImage(
+                imageUrl: comment.authorAvatarUrl!,
+                width: avatarRadius * 2,
+                height: avatarRadius * 2,
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            CircleAvatar(
+              radius: avatarRadius,
+              backgroundColor: _CommentsSectionState._avatarColor(
+                comment.authorName,
+              ),
+              child: Text(
+                _CommentsSectionState._initials(comment.authorName),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: avatarRadius * 0.65,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
-          ),
           const SizedBox(width: 10),
 
           // Content column
@@ -539,7 +540,7 @@ class _CommentTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Author name + pin
+                // Author name + verified badge + pin
                 Row(
                   children: [
                     Text(
@@ -551,6 +552,15 @@ class _CommentTile extends StatelessWidget {
                         color: AppColors.textPrimary,
                       ),
                     ),
+                    if (comment.authorRole == 'verified_member' ||
+                        comment.authorRole == 'verifiedMember') ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.verified,
+                        size: 15,
+                        color: AppColors.likudBlue,
+                      ),
+                    ],
                     if (comment.isPinned) ...[
                       const SizedBox(width: 4),
                       Icon(
@@ -628,9 +638,12 @@ class _CommentTile extends StatelessWidget {
                     GestureDetector(
                       onTap: isLiked
                           ? null
-                          : () => context.read<CommentsBloc>().add(
+                          : () {
+                              if (!requireAuth(context)) return;
+                              context.read<CommentsBloc>().add(
                                 LikeCommentEvent(commentId: comment.id),
-                              ),
+                              );
+                            },
                       child: Icon(
                         isLiked ? Icons.favorite : Icons.favorite_border,
                         size: 18,

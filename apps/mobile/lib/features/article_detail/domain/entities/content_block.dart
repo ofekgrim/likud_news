@@ -188,3 +188,33 @@ class VideoBlock extends ContentBlock {
   List<Object?> get props =>
       [id, type, source, videoId, url, thumbnailUrl, caption, credit, mimeType];
 }
+
+/// An Instagram embed block (post, reel, or IGTV).
+class InstagramEmbedBlock extends ContentBlock {
+  final String postUrl;
+  final String? caption;
+
+  const InstagramEmbedBlock({
+    required super.id,
+    required this.postUrl,
+    this.caption,
+  }) : super(type: 'instagram');
+
+  @override
+  List<Object?> get props => [id, type, postUrl, caption];
+}
+
+/// A Facebook video/post embed block.
+class FacebookEmbedBlock extends ContentBlock {
+  final String postUrl;
+  final String? caption;
+
+  const FacebookEmbedBlock({
+    required super.id,
+    required this.postUrl,
+    this.caption,
+  }) : super(type: 'facebook');
+
+  @override
+  List<Object?> get props => [id, type, postUrl, caption];
+}

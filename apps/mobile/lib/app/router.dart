@@ -2,7 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
+import '../core/services/app_logger.dart';
 import 'di.dart';
 
 // BLoC imports
@@ -20,9 +22,23 @@ import '../features/contact/presentation/bloc/contact_bloc.dart';
 import '../features/article_detail/presentation/bloc/comments_bloc.dart';
 import '../features/tag_articles/presentation/bloc/tag_articles_bloc.dart';
 import '../features/author_articles/presentation/bloc/author_articles_bloc.dart';
+import '../features/candidates/presentation/bloc/candidates_bloc.dart';
+import '../features/candidate_quiz/presentation/bloc/quiz_bloc.dart';
+import '../features/candidate_quiz/presentation/bloc/quiz_list_bloc.dart';
+import '../features/election_day/presentation/bloc/election_day_bloc.dart';
+import '../features/election_day/presentation/pages/election_day_page.dart';
+import '../features/community_polls/presentation/bloc/polls_bloc.dart';
+import '../features/community_polls/presentation/pages/polls_page.dart';
+import '../features/campaign_events/presentation/bloc/events_bloc.dart';
+import '../features/campaign_events/presentation/pages/events_page.dart';
+import '../features/campaign_events/presentation/pages/event_detail_page.dart';
+import '../features/membership/presentation/bloc/membership_bloc.dart';
+import '../features/membership/presentation/pages/membership_page.dart';
+import '../features/gamification/presentation/bloc/gamification_bloc.dart';
+import '../features/gamification/presentation/pages/gamification_page.dart';
 
 // Feature page imports
-import '../features/home/presentation/pages/home_page.dart';
+import '../features/home/presentation/pages/home_page_with_feed.dart';
 import '../features/breaking_news/presentation/pages/breaking_news_page.dart';
 import '../features/video/presentation/pages/video_page.dart';
 import '../features/stories/presentation/pages/stories_page.dart';
@@ -41,9 +57,29 @@ import '../features/accessibility/presentation/pages/accessibility_page.dart';
 import '../features/privacy/presentation/pages/privacy_page.dart';
 import '../features/tag_articles/presentation/pages/tag_articles_page.dart';
 import '../features/author_articles/presentation/pages/author_articles_page.dart';
+import '../features/candidates/presentation/pages/candidates_page.dart';
+import '../features/candidates/presentation/pages/candidate_detail_page.dart';
+import '../features/candidate_quiz/presentation/pages/quiz_list_page.dart';
+import '../features/candidate_quiz/presentation/pages/quiz_intro_page.dart';
+import '../features/candidate_quiz/presentation/pages/quiz_page.dart';
+import '../features/candidate_quiz/presentation/pages/quiz_results_page.dart';
 import '../features/video/domain/entities/video_article.dart';
 import '../features/video/presentation/pages/video_player_page.dart';
 import '../features/article_detail/domain/entities/content_block.dart';
+import '../features/auth/presentation/bloc/auth_bloc.dart';
+import '../features/auth/presentation/pages/login_page.dart';
+import '../features/auth/presentation/pages/otp_verification_page.dart';
+import '../features/auth/presentation/pages/register_page.dart';
+import 'router_refresh.dart';
+import '../features/user_profile/presentation/bloc/user_profile_bloc.dart';
+import '../features/user_profile/presentation/pages/profile_page.dart';
+import '../features/user_profile/presentation/pages/edit_profile_page.dart';
+import '../features/user_profile/presentation/pages/notification_prefs_page.dart';
+import '../features/enhanced_favorites/presentation/bloc/enhanced_favorites_bloc.dart';
+import '../features/enhanced_favorites/presentation/pages/folders_page.dart';
+import '../features/enhanced_favorites/presentation/pages/folder_detail_page.dart';
+import '../features/enhanced_favorites/domain/entities/bookmark_folder.dart';
+import '../features/enhanced_favorites/domain/repositories/enhanced_favorites_repository.dart';
 import 'widgets/liquid_glass_nav_bar.dart';
 import 'widgets/app_drawer.dart';
 
@@ -61,9 +97,37 @@ class AppRouter {
     return MediaQuery.of(context).padding.bottom + 90;
   }
 
-  static final GoRouter router = GoRouter(
+  static GoRouter createRouter(AuthBloc authBloc) => GoRouter(
     initialLocation: '/',
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: false, // Replaced by TalkerRouteObserver
+    observers: [TalkerRouteObserver(AppLogger.instance)],
+    refreshListenable: GoRouterRefreshStream(authBloc.stream),
+    redirect: (context, state) {
+      final authState = authBloc.state;
+      final location = state.matchedLocation;
+
+      // Still checking auth — don't redirect
+      if (authState is AuthInitial || authState is AuthLoading) return null;
+
+      final isAuthenticated = authState is AuthAuthenticated;
+
+      // Auth routes that logged-in users shouldn't see
+      final isAuthRoute = location == '/login' ||
+          location == '/register' ||
+          location == '/otp-verify';
+
+      // Protected routes that require login
+      final isProtectedRoute = location.startsWith('/profile') ||
+          location.startsWith('/folders');
+
+      // Authenticated on auth page → go home
+      if (isAuthenticated && isAuthRoute) return '/';
+
+      // Unauthenticated on protected route → go to login
+      if (!isAuthenticated && isProtectedRoute) return '/login';
+
+      return null;
+    },
     routes: [
       // Bottom tab navigation shell
       StatefulShellRoute.indexedStack(
@@ -78,7 +142,7 @@ class AppRouter {
                 path: '/',
                 builder: (context, state) => BlocProvider(
                   create: (_) => getIt<HomeBloc>(),
-                  child: const HomePage(),
+                  child: const HomePageWithFeed(),
                 ),
               ),
             ],
@@ -210,6 +274,82 @@ class AppRouter {
         path: '/privacy',
         builder: (context, state) => const PrivacyPage(),
       ),
+
+      // Auth routes
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => BlocProvider.value(
+          value: getIt<AuthBloc>(),
+          child: const LoginPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/otp-verify',
+        builder: (context, state) {
+          final phone = state.extra as String? ?? '';
+          return BlocProvider.value(
+            value: getIt<AuthBloc>(),
+            child: OtpVerificationPage(phone: phone),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => BlocProvider.value(
+          value: getIt<AuthBloc>(),
+          child: const RegisterPage(),
+        ),
+      ),
+
+      // Profile routes
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<UserProfileBloc>(),
+          child: const ProfilePage(),
+        ),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<UserProfileBloc>(),
+          child: const EditProfilePage(),
+        ),
+      ),
+      GoRoute(
+        path: '/profile/notifications',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<UserProfileBloc>(),
+          child: const NotificationPrefsPage(),
+        ),
+      ),
+
+      // Enhanced favorites routes
+      GoRoute(
+        path: '/folders',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<EnhancedFavoritesBloc>(),
+          child: const FoldersPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/folders/:id',
+        builder: (context, state) {
+          final folder = state.extra as BookmarkFolder;
+          return MultiRepositoryProvider(
+            providers: [
+              RepositoryProvider<EnhancedFavoritesRepository>(
+                create: (_) => getIt<EnhancedFavoritesRepository>(),
+              ),
+            ],
+            child: BlocProvider(
+              create: (_) => getIt<EnhancedFavoritesBloc>(),
+              child: FolderDetailPage(folder: folder),
+            ),
+          );
+        },
+      ),
+
       GoRoute(
         path: '/tag/:slug',
         builder: (context, state) {
@@ -239,6 +379,99 @@ class AppRouter {
             child: AuthorArticlesPage(authorId: authorId),
           );
         },
+      ),
+
+      // Primaries routes
+      GoRoute(
+        path: '/primaries',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<CandidatesBloc>(),
+          child: const CandidatesPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/candidate/:slug',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<CandidatesBloc>(),
+          child: CandidateDetailPage(slug: state.pathParameters['slug']!),
+        ),
+      ),
+      GoRoute(
+        path: '/primaries/quiz',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<QuizListBloc>(),
+          child: const QuizListPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/primaries/quiz/:electionId',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<QuizBloc>(),
+          child: QuizIntroPage(electionId: state.pathParameters['electionId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/primaries/quiz/:electionId/questions',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<QuizBloc>(),
+          child: QuizPage(electionId: state.pathParameters['electionId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/primaries/quiz/:electionId/results',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<QuizBloc>(),
+          child: QuizResultsPage(
+            electionId: state.pathParameters['electionId']!,
+          ),
+        ),
+      ),
+
+      // Sprint 6 routes
+      GoRoute(
+        path: '/election-day/:electionId',
+        builder: (context, state) {
+          final electionId = state.pathParameters['electionId']!;
+          return BlocProvider(
+            create: (_) => getIt<ElectionDayBloc>(),
+            child: ElectionDayPage(electionId: electionId),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/polls',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<PollsBloc>(),
+          child: const PollsPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/events',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<EventsBloc>(),
+          child: const EventsPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/events/:id',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<EventsBloc>(),
+          child: EventDetailPage(eventId: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/membership',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<MembershipBloc>(),
+          child: const MembershipPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/gamification',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<GamificationBloc>(),
+          child: const GamificationPage(),
+        ),
       ),
     ],
   );

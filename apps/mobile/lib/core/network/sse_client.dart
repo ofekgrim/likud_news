@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import '../constants/api_constants.dart';
+import '../services/app_logger.dart';
 
 /// Server-Sent Events client with auto-reconnect.
 ///
@@ -32,6 +33,15 @@ class SseClient {
   /// Subscribe to breaking news SSE stream.
   Stream<SseEvent> breakingStream() => _connect(ApiConstants.sseBreaking);
 
+  /// Subscribe to primaries live results SSE stream.
+  Stream<SseEvent> primariesStream() => _connect(ApiConstants.ssePrimaries);
+
+  /// Subscribe to new article notifications SSE stream.
+  Stream<SseEvent> articlesStream() => _connect(ApiConstants.sseArticles);
+
+  /// Subscribe to mixed-content feed updates SSE stream.
+  Stream<SseEvent> feedStream() => _connect(ApiConstants.sseFeed);
+
   Stream<SseEvent> _connect(String path) {
     if (_controllers.containsKey(path) && !_controllers[path]!.isClosed) {
       return _controllers[path]!.stream;
@@ -42,6 +52,8 @@ class SseClient {
     );
     _controllers[path] = controller;
     _active[path] = true;
+
+    AppLogger.info('SSE connecting to $path');
     _startListening(path, controller);
     return controller.stream;
   }
@@ -67,6 +79,7 @@ class SseClient {
 
         // Reset delay on successful connection.
         delay = _reconnectDelay;
+        AppLogger.info('SSE connected to $path');
 
         String buffer = '';
         await for (final chunk in stream) {
@@ -87,6 +100,7 @@ class SseClient {
               data += line.substring(5).trim();
             } else if (line.isEmpty && data.isNotEmpty) {
               // Empty line = event boundary.
+              AppLogger.debug('SSE event on $path: ${eventType ?? "message"}');
               controller.add(SseEvent(
                 event: eventType ?? 'message',
                 data: data,
@@ -96,8 +110,15 @@ class SseClient {
             }
           }
         }
-      } catch (e) {
+      } catch (e, stack) {
         if (!(_active[path] ?? false)) break;
+
+        AppLogger.warning(
+          'SSE disconnected from $path, reconnecting in ${delay.inSeconds}s',
+          e,
+          stack,
+        );
+
         // Exponential backoff.
         await Future<void>.delayed(delay);
         delay = Duration(
@@ -110,6 +131,7 @@ class SseClient {
   }
 
   void _disconnect(String path) {
+    AppLogger.info('SSE disconnecting from $path');
     _active[path] = false;
     _controllers[path]?.close();
     _controllers.remove(path);
@@ -118,6 +140,7 @@ class SseClient {
 
   /// Close all SSE connections.
   void dispose() {
+    AppLogger.info('SSE disposing all connections');
     for (final path in List<String>.from(_controllers.keys)) {
       _disconnect(path);
     }

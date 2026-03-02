@@ -10,8 +10,10 @@ abstract class SearchRepository {
   /// Searches articles by [query] with pagination support.
   ///
   /// [page] starts at 1. Each page returns a fixed number of articles.
+  /// Optionally filters by [categoryId].
   Future<Either<Failure, SearchResult>> search({
     required String query,
     required int page,
+    String? categoryId,
   });
 }

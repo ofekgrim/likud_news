@@ -10,7 +10,25 @@
       "Bash(lsof:*)",
       "Bash(npm run migration:run:*)",
       "Bash(PORT=6000 npx nest start:*)",
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Bash(wc:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(PGPASSWORD=likud_dev psql:*)",
+      "Bash(cat:*)",
+      "Bash(npx next lint:*)",
+      "Bash(python3:*)",
+      "Bash(grep:*)",
+      "Bash(head:*)",
+      "Bash(xargs kill:*)",
+      "Bash(npm run start:dev:*)",
+      "Bash(npm run seed:*)",
+      "Bash(chmod:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run test:feed:*)",
+      "Bash(npm run seed:feed:*)"
     ]
   }
 }

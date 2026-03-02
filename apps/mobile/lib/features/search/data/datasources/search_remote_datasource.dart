@@ -8,10 +8,12 @@ import '../models/search_result_model.dart';
 abstract class SearchRemoteDataSource {
   /// Searches articles by [query] with pagination.
   ///
+  /// Optionally filters by [categoryId].
   /// Throws a [DioException] on failure.
   Future<SearchResultModel> search({
     required String query,
     required int page,
+    String? categoryId,
   });
 }
 
@@ -26,6 +28,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
   Future<SearchResultModel> search({
     required String query,
     required int page,
+    String? categoryId,
   }) async {
     final response = await _apiClient.get(
       ApiConstants.search,
@@ -33,6 +36,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
         'q': query,
         'page': page,
         'limit': 20,
+        if (categoryId != null) 'categoryId': categoryId,
       },
     );
     return SearchResultModel.fromJson(response.data);

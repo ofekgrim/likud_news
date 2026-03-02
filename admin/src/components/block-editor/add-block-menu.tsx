@@ -11,6 +11,8 @@ import {
   List,
   Youtube,
   Twitter,
+  Instagram,
+  Facebook,
   Link2,
   Video,
 } from 'lucide-react';
@@ -24,6 +26,8 @@ import {
   createEmptyBulletList,
   createEmptyYouTube,
   createEmptyTweet,
+  createEmptyInstagram,
+  createEmptyFacebook,
   createEmptyArticleLink,
   createEmptyVideo,
 } from './types';
@@ -48,6 +52,8 @@ const blockOptions: BlockOption[] = [
   { label: 'YouTube', icon: <Youtube className="h-4 w-4" />, factory: createEmptyYouTube },
   { label: 'וידאו', icon: <Video className="h-4 w-4" />, factory: createEmptyVideo },
   { label: 'X / Tweet', icon: <Twitter className="h-4 w-4" />, factory: createEmptyTweet },
+  { label: 'Instagram', icon: <Instagram className="h-4 w-4" />, factory: createEmptyInstagram },
+  { label: 'Facebook', icon: <Facebook className="h-4 w-4" />, factory: createEmptyFacebook },
   { label: 'קישור לכתבה', icon: <Link2 className="h-4 w-4" />, factory: createEmptyArticleLink },
 ];
 
@@ -85,9 +91,9 @@ export function AddBlockMenu({ onAdd }: AddBlockMenuProps) {
 
       {open && (
         <div className="absolute bottom-full mb-2 z-50 w-56 rounded-lg border border-gray-200 bg-white shadow-lg py-1">
-          {blockOptions.map((option) => (
+          {blockOptions.map((option, index) => (
             <button
-              key={option.label}
+              key={index}
               type="button"
               onClick={() => handleSelect(option.factory)}
               className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-right"

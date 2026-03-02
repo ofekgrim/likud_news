@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ConflictException } from '@nestjs/common';
 import { FavoritesService } from './favorites.service';
 import { UserFavorite } from './entities/user-favorite.entity';
 
@@ -17,6 +16,7 @@ const mockRepository = () => ({
   create: jest.fn(),
   save: jest.fn(),
   findOne: jest.fn(),
+  remove: jest.fn(),
   delete: jest.fn(),
   createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder),
 });
@@ -48,38 +48,36 @@ describe('FavoritesService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('addFavorite', () => {
+  describe('toggleFavorite', () => {
     const dto = { deviceId: 'device-123', articleId: 'article-uuid-1' };
 
-    it('should create and save a new favorite', async () => {
+    it('should create a new favorite when none exists', async () => {
       const created = { id: 'fav-uuid', ...dto, createdAt: new Date() };
       repository.findOne.mockResolvedValue(null);
       repository.create.mockReturnValue(created);
       repository.save.mockResolvedValue(created);
 
-      const result = await service.addFavorite(dto);
+      const result = await service.toggleFavorite(dto);
 
-      expect(repository.findOne).toHaveBeenCalledWith({
-        where: { deviceId: dto.deviceId, articleId: dto.articleId },
-      });
+      expect(repository.findOne).toHaveBeenCalled();
       expect(repository.create).toHaveBeenCalledWith(dto);
       expect(repository.save).toHaveBeenCalledWith(created);
-      expect(result).toEqual(created);
+      expect(result).toEqual({ isFavorite: true });
     });
 
-    it('should throw ConflictException if duplicate exists', async () => {
+    it('should remove favorite if already exists', async () => {
       const existing = {
         id: 'fav-uuid',
         ...dto,
         createdAt: new Date(),
       };
       repository.findOne.mockResolvedValue(existing);
+      repository.remove.mockResolvedValue(existing);
 
-      await expect(service.addFavorite(dto)).rejects.toThrow(
-        ConflictException,
-      );
-      expect(repository.create).not.toHaveBeenCalled();
-      expect(repository.save).not.toHaveBeenCalled();
+      const result = await service.toggleFavorite(dto);
+
+      expect(repository.remove).toHaveBeenCalledWith(existing);
+      expect(result).toEqual({ isFavorite: false });
     });
   });
 

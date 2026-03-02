@@ -182,4 +182,12 @@ export class CreateArticleDto {
   @IsOptional()
   @IsBoolean()
   allowComments?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Send push notification on publish',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  sendPushNotification?: boolean;
 }

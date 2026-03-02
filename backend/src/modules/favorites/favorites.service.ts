@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserFavorite } from './entities/user-favorite.entity';
@@ -11,26 +11,38 @@ export class FavoritesService {
     private readonly favoriteRepository: Repository<UserFavorite>,
   ) {}
 
-  async addFavorite(
+  async toggleFavorite(
     createFavoriteDto: CreateFavoriteDto,
-  ): Promise<UserFavorite> {
+  ): Promise<{ isFavorite: boolean }> {
+    // Check for existing: use userId if available, otherwise deviceId
+    const whereClause = createFavoriteDto.userId
+      ? { userId: createFavoriteDto.userId, articleId: createFavoriteDto.articleId }
+      : { deviceId: createFavoriteDto.deviceId, articleId: createFavoriteDto.articleId };
+
     const existing = await this.favoriteRepository.findOne({
-      where: {
-        deviceId: createFavoriteDto.deviceId,
-        articleId: createFavoriteDto.articleId,
-      },
+      where: whereClause,
     });
 
     if (existing) {
-      throw new ConflictException('Article is already in favorites');
+      await this.favoriteRepository.remove(existing);
+      return { isFavorite: false };
     }
 
     const favorite = this.favoriteRepository.create(createFavoriteDto);
-    return this.favoriteRepository.save(favorite);
+    await this.favoriteRepository.save(favorite);
+    return { isFavorite: true };
   }
 
-  async removeFavorite(deviceId: string, articleId: string): Promise<void> {
-    await this.favoriteRepository.delete({ deviceId, articleId });
+  async removeFavorite(
+    deviceId: string,
+    articleId: string,
+    userId?: string,
+  ): Promise<void> {
+    if (userId) {
+      await this.favoriteRepository.delete({ userId, articleId });
+    } else {
+      await this.favoriteRepository.delete({ deviceId, articleId });
+    }
   }
 
   async findByDevice(
@@ -48,5 +60,60 @@ export class FavoritesService {
       .getManyAndCount();
 
     return { data, total };
+  }
+
+  async findByUser(
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+    folderId?: string,
+  ): Promise<{ data: UserFavorite[]; total: number }> {
+    const qb = this.favoriteRepository
+      .createQueryBuilder('favorite')
+      .leftJoinAndSelect('favorite.article', 'article')
+      .leftJoinAndSelect('favorite.folder', 'folder')
+      .where('favorite.userId = :userId', { userId });
+
+    if (folderId) {
+      qb.andWhere('favorite.folderId = :folderId', { folderId });
+    }
+
+    const [data, total] = await qb
+      .orderBy('favorite.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { data, total };
+  }
+
+  async updateNote(
+    userId: string,
+    articleId: string,
+    note: string,
+  ): Promise<UserFavorite> {
+    const fav = await this.favoriteRepository.findOne({
+      where: { userId, articleId },
+    });
+    if (!fav) {
+      throw new ConflictException('Favorite not found');
+    }
+    fav.note = note;
+    return this.favoriteRepository.save(fav);
+  }
+
+  async moveToFolder(
+    userId: string,
+    articleId: string,
+    folderId?: string,
+  ): Promise<UserFavorite> {
+    const fav = await this.favoriteRepository.findOne({
+      where: { userId, articleId },
+    });
+    if (!fav) {
+      throw new ConflictException('Favorite not found');
+    }
+    fav.folderId = folderId;
+    return this.favoriteRepository.save(fav);
   }
 }

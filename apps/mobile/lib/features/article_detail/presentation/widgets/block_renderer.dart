@@ -11,6 +11,8 @@ import 'drop_cap_paragraph.dart';
 import 'inline_image_widget.dart';
 import 'internal_link_card.dart';
 import 'quote_widget.dart';
+import 'facebook_embed_widget.dart';
+import 'instagram_embed_widget.dart';
 import 'tweet_embed_widget.dart';
 import 'video_player_widget.dart';
 import 'youtube_embed_widget.dart';
@@ -111,6 +113,8 @@ class BlockRenderer extends StatelessWidget {
       ImageBlock b => InlineImageWidget(block: b, fontScale: fontScale),
       YouTubeEmbedBlock b => YouTubeEmbedWidget(block: b),
       TweetEmbedBlock b => TweetEmbedWidget(block: b),
+      InstagramEmbedBlock b => InstagramEmbedWidget(block: b),
+      FacebookEmbedBlock b => FacebookEmbedWidget(block: b),
       QuoteBlock b => QuoteWidget(block: b, fontScale: fontScale),
       DividerBlock _ => const Divider(color: AppColors.border),
       BulletListBlock b => _buildBulletList(b),

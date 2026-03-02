@@ -81,11 +81,9 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
         return const NetworkFailure();
       case DioExceptionType.badResponse:
         final statusCode = e.response?.statusCode;
-        final message =
-            e.response?.data is Map<String, dynamic>
-                ? (e.response!.data as Map<String, dynamic>)['message']
-                    as String?
-                : null;
+        final message = e.response?.data is Map<String, dynamic>
+            ? (e.response!.data as Map<String, dynamic>)['message'] as String?
+            : null;
         return ServerFailure(
           message: message ?? 'Server error',
           statusCode: statusCode,

@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
+import 'package:talker_dio_logger/talker_dio_logger.dart';
+
 import '../constants/api_constants.dart';
+import '../services/app_logger.dart';
 
 /// HTTP client wrapper using Dio.
 ///
@@ -26,10 +29,15 @@ class ApiClient {
     );
 
     _dio.interceptors.addAll([
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        logPrint: (obj) => print(obj), // Replace with logger in production
+      TalkerDioLogger(
+        talker: AppLogger.instance,
+        settings: const TalkerDioLoggerSettings(
+          printRequestHeaders: false,
+          printResponseHeaders: false,
+          printRequestData: true,
+          printResponseData: true,
+          printResponseMessage: true,
+        ),
       ),
     ]);
   }

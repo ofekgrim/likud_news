@@ -63,3 +63,11 @@ export function createEmptyVideo(): ContentBlock {
     credit: '',
   } as ContentBlock;
 }
+
+export function createEmptyInstagram(): ContentBlock {
+  return { id: generateBlockId(), type: 'instagram', postUrl: '', caption: '' } as ContentBlock;
+}
+
+export function createEmptyFacebook(): ContentBlock {
+  return { id: generateBlockId(), type: 'facebook', postUrl: '', caption: '' } as ContentBlock;
+}

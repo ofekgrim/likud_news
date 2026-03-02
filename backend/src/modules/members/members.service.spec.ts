@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { MembersService } from './members.service';
 import { Member } from './entities/member.entity';
+import { Tag } from '../tags/entities/tag.entity';
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -35,6 +36,10 @@ describe('MembersService', () => {
         MembersService,
         {
           provide: getRepositoryToken(Member),
+          useFactory: mockRepository,
+        },
+        {
+          provide: getRepositoryToken(Tag),
           useFactory: mockRepository,
         },
       ],
@@ -124,7 +129,7 @@ describe('MembersService', () => {
 
       expect(repository.findOne).toHaveBeenCalledWith({
         where: { id: 'uuid-1' },
-        relations: ['articles'],
+        relations: ['articles', 'articles.category'],
       });
       expect(result).toEqual(memberWithArticles);
     });

@@ -4,24 +4,35 @@ import { Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { QueryCommentsDto } from './dto/query-comments.dto';
+import { AppUser } from '../app-users/entities/app-user.entity';
 
 @Injectable()
 export class CommentsService {
   constructor(
     @InjectRepository(Comment)
     private readonly commentRepository: Repository<Comment>,
+    @InjectRepository(AppUser)
+    private readonly appUserRepository: Repository<AppUser>,
   ) {}
 
   /**
-   * Submit a new comment on an article. Comments are auto-approved.
+   * Submit a new comment on an article. Author info is pulled from the authenticated user.
    */
   async submit(
     articleId: string,
     dto: CreateCommentDto,
+    userId: string,
   ): Promise<Comment> {
+    const user = await this.appUserRepository.findOne({ where: { id: userId } });
     const comment = this.commentRepository.create({
-      ...dto,
+      body: dto.body,
+      parentId: dto.parentId,
       articleId,
+      userId,
+      authorName: user?.displayName || 'Member',
+      authorEmail: user?.email ?? undefined,
+      authorAvatarUrl: user?.avatarUrl ?? undefined,
+      authorRole: user?.role ?? 'guest',
       isApproved: true,
     });
     return this.commentRepository.save(comment);
@@ -182,12 +193,23 @@ export class CommentsService {
   }
 
   /**
-   * Submit a new comment on a story. Comments are auto-approved.
+   * Submit a new comment on a story. Author info is pulled from the authenticated user.
    */
-  async submitForStory(storyId: string, dto: CreateCommentDto): Promise<Comment> {
+  async submitForStory(
+    storyId: string,
+    dto: CreateCommentDto,
+    userId: string,
+  ): Promise<Comment> {
+    const user = await this.appUserRepository.findOne({ where: { id: userId } });
     const comment = this.commentRepository.create({
-      ...dto,
+      body: dto.body,
+      parentId: dto.parentId,
       storyId,
+      userId,
+      authorName: user?.displayName || 'Member',
+      authorEmail: user?.email ?? undefined,
+      authorAvatarUrl: user?.avatarUrl ?? undefined,
+      authorRole: user?.role ?? 'guest',
       isApproved: true,
     });
     return this.commentRepository.save(comment);

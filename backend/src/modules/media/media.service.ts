@@ -107,7 +107,7 @@ export class MediaService {
     fs.writeFileSync(filePath, file.buffer);
 
     const s3Key = `uploads/${year}/${month}/${filename}`;
-    const port = this.configService.get<number>('port', 6000);
+    const port = this.configService.get<number>('port', 9090);
     const url = `http://localhost:${port}/${s3Key}`;
 
     const extLower = ext.replace('.', '').toLowerCase();

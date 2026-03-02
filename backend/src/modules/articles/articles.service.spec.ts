@@ -4,6 +4,7 @@ import { NotFoundException, ConflictException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ArticlesService } from './articles.service';
 import { Article, ArticleStatus } from './entities/article.entity';
+import { Tag } from '../tags/entities/tag.entity';
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -16,6 +17,7 @@ const mockRepository = () => ({
 
 const mockQueryBuilder = () => ({
   leftJoinAndSelect: jest.fn().mockReturnThis(),
+  innerJoin: jest.fn().mockReturnThis(),
   where: jest.fn().mockReturnThis(),
   andWhere: jest.fn().mockReturnThis(),
   orderBy: jest.fn().mockReturnThis(),
@@ -38,6 +40,7 @@ describe('ArticlesService', () => {
       providers: [
         ArticlesService,
         { provide: getRepositoryToken(Article), useFactory: mockRepository },
+        { provide: getRepositoryToken(Tag), useFactory: mockRepository },
       ],
     }).compile();
 
@@ -126,22 +129,30 @@ describe('ArticlesService', () => {
   });
 
   describe('findBySlug', () => {
-    it('should return article and increment view count', async () => {
-      const article = { id: 'uuid-1', slug: 'test', viewCount: 5 } as Article;
+    it('should return article with related data and increment view count', async () => {
+      const article = {
+        id: 'uuid-1',
+        slug: 'test',
+        viewCount: 5,
+        category: { name: 'Politics', color: '#0099DB' },
+      } as unknown as Article;
 
       const mockQbFind = mockQueryBuilder();
       mockQbFind.getOne.mockResolvedValue(article);
 
-      const mockQbIncrement = mockQueryBuilder();
-      mockQbIncrement.execute.mockResolvedValue(undefined);
+      // Spy on internal methods to avoid deeply mocking their QB chains
+      jest
+        .spyOn(service as any, 'incrementViewCount')
+        .mockResolvedValue(undefined);
+      jest.spyOn(service as any, 'findRelated').mockResolvedValue([]);
+      jest.spyOn(service as any, 'findSameCategory').mockResolvedValue([]);
+      jest.spyOn(service as any, 'findRecommendations').mockResolvedValue([]);
+      jest.spyOn(service as any, 'findLatest').mockResolvedValue([]);
 
-      repository.createQueryBuilder
-        .mockReturnValueOnce(mockQbFind as any)
-        .mockReturnValueOnce(mockQbIncrement as any);
+      repository.createQueryBuilder.mockReturnValueOnce(mockQbFind as any);
 
       const result = await service.findBySlug('test');
 
-      expect(result).toEqual(article);
       expect(mockQbFind.leftJoinAndSelect).toHaveBeenCalledWith(
         'article.category',
         'category',
@@ -154,9 +165,31 @@ describe('ArticlesService', () => {
         'article.media',
         'media',
       );
+      expect(mockQbFind.leftJoinAndSelect).toHaveBeenCalledWith(
+        'article.authorEntity',
+        'authorEntity',
+      );
+      expect(mockQbFind.leftJoinAndSelect).toHaveBeenCalledWith(
+        'article.tags',
+        'tags',
+      );
       expect(mockQbFind.where).toHaveBeenCalledWith('article.slug = :slug', {
         slug: 'test',
       });
+
+      // Result should include related arrays and category metadata
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 'uuid-1',
+          slug: 'test',
+          relatedArticles: [],
+          sameCategoryArticles: [],
+          recommendedArticles: [],
+          latestArticles: [],
+          categoryName: 'Politics',
+          categoryColor: '#0099DB',
+        }),
+      );
     });
 
     it('should throw NotFoundException when article not found by slug', async () => {
@@ -209,7 +242,7 @@ describe('ArticlesService', () => {
       expect(result).toEqual(article);
       expect(repository.findOne).toHaveBeenCalledWith({
         where: { id: 'uuid-1' },
-        relations: ['category', 'members', 'media'],
+        relations: ['category', 'members', 'media', 'authorEntity', 'tags'],
       });
     });
 
@@ -232,7 +265,7 @@ describe('ArticlesService', () => {
 
       expect(repository.findOne).toHaveBeenCalledWith({
         where: { id: 'uuid-1' },
-        relations: ['category', 'members', 'media'],
+        relations: ['category', 'members', 'media', 'authorEntity', 'tags'],
       });
       expect(repository.softRemove).toHaveBeenCalledWith(article);
     });

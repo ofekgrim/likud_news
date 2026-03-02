@@ -1043,8 +1043,9 @@ async function seed() {
         alertBannerEnabled: false,
         readingTimeMinutes: 1,
         heroImageUrl: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&h=450&fit=crop',
+        videoUrl: 'https://x.com/LikudParty/status/1234567890',
         bodyBlocks: JSON.stringify([
-          { type: 'video', url: 'https://x.com/LikudParty/status/1234567890/video/1', source: 'x' },
+          { type: 'tweet', tweetId: '1234567890', authorHandle: 'LikudParty', previewText: 'ח"כ ליכוד בראיון ויראלי על חוק הלאום' },
           { type: 'paragraph', text: 'הראיון המלא שהפך ויראלי ברשתות החברתיות' },
         ]),
       },
@@ -1062,8 +1063,9 @@ async function seed() {
         alertBannerEnabled: false,
         readingTimeMinutes: 1,
         heroImageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=450&fit=crop',
+        videoUrl: 'https://www.facebook.com/Likud/videos/9876543210',
         bodyBlocks: JSON.stringify([
-          { type: 'video', url: 'https://www.facebook.com/Likud/videos/9876543210', source: 'facebook' },
+          { type: 'facebook', postUrl: 'https://www.facebook.com/Likud/videos/9876543210', caption: 'שידור חי מעצרת הליכוד בכיכר רבין' },
           { type: 'paragraph', text: 'צפו בשידור החי המלא מעצרת הליכוד בכיכר רבין' },
         ]),
       },
@@ -1081,8 +1083,9 @@ async function seed() {
         alertBannerEnabled: false,
         readingTimeMinutes: 1,
         heroImageUrl: 'https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=800&h=450&fit=crop',
+        videoUrl: 'https://www.instagram.com/reel/CxYz1234567',
         bodyBlocks: JSON.stringify([
-          { type: 'video', url: 'https://www.instagram.com/reel/CxYz1234567', source: 'instagram' },
+          { type: 'instagram', postUrl: 'https://www.instagram.com/reel/CxYz1234567', caption: 'יום בחייו של ח"כ מהליכוד' },
           { type: 'paragraph', text: 'ריל ויראלי שמציג את הצד האנושי של הפוליטיקה' },
         ]),
       },
@@ -1100,8 +1103,9 @@ async function seed() {
         alertBannerEnabled: false,
         readingTimeMinutes: 1,
         heroImageUrl: 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?w=800&h=450&fit=crop',
+        videoUrl: 'https://cdn.likud-news.co.il/videos/peace-documentary.mp4',
         bodyBlocks: JSON.stringify([
-          { type: 'video', url: 'https://cdn.likud-news.co.il/videos/peace-documentary.mp4', source: 'upload' },
+          { type: 'video', source: 'upload', url: 'https://cdn.likud-news.co.il/videos/peace-documentary.mp4', caption: 'דוקומנטרי מקורי — 40 שנה להסכם השלום' },
           { type: 'paragraph', text: 'דוקומנטרי מקורי מאת צוות מצודת הליכוד' },
         ]),
       },
@@ -1664,15 +1668,37 @@ async function seed() {
       console.log(`  -> Created story comment by ${comment.authorName}`);
     }
 
-    // ─── Commit ───────────────────────────────────────────────────────
+    // ─── Commit initial transaction ───────────────────────────────────
     await queryRunner.commitTransaction();
-    console.log('\nSeed completed successfully!');
+    await queryRunner.release();
+
+    // ─── Additional Seeds (outside transaction) ───────────────────────
+    console.log('\n📦 Running additional seed scripts...\n');
+
+    // Import seed functions
+    const { seedStories } = require('./seed-stories');
+    const { seedArticleAnalytics } = require('./seed-article-analytics');
+    const { seedTurnout } = require('./seed-turnout');
+
+    await seedStories(AppDataSource);
+    await seedArticleAnalytics(AppDataSource);
+    await seedTurnout(AppDataSource);
+
+    console.log('\n✅ All seed scripts completed successfully!');
   } catch (error) {
-    console.error('Seed failed, rolling back...', error);
-    await queryRunner.rollbackTransaction();
+    console.error('❌ Seed failed, rolling back...', error);
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction();
+    }
+    if (!queryRunner.isReleased) {
+      await queryRunner.release();
+    }
+    await AppDataSource.destroy();
     process.exit(1);
   } finally {
-    await queryRunner.release();
+    if (!queryRunner.isReleased) {
+      await queryRunner.release();
+    }
     await AppDataSource.destroy();
   }
 }

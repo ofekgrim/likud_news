@@ -10,7 +10,8 @@ import '../entities/comment.dart';
 /// toggle favorites, and record read events.
 abstract class ArticleDetailRepository {
   /// Fetches the full article detail by its URL slug.
-  Future<Either<Failure, ArticleDetail>> getArticleBySlug(String slug);
+  /// Pass [deviceId] to get favorite status for the current device.
+  Future<Either<Failure, ArticleDetail>> getArticleBySlug(String slug, {String? deviceId});
 
   /// Toggles the favorite/bookmark status for an article.
   ///
@@ -39,7 +40,6 @@ abstract class ArticleDetailRepository {
   /// Submits a new comment on a target (article or story).
   Future<Either<Failure, void>> submitComment({
     required String articleId,
-    required String authorName,
     required String body,
     String? parentId,
     String targetType = 'article',

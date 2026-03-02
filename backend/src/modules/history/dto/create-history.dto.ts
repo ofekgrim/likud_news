@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID, IsNotEmpty } from 'class-validator';
+import { IsString, IsUUID, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateHistoryDto {
   @ApiProperty({ description: 'Device identifier', maxLength: 200 })
@@ -10,4 +10,9 @@ export class CreateHistoryDto {
   @ApiProperty({ description: 'Article UUID that was read' })
   @IsUUID()
   articleId: string;
+
+  @ApiProperty({ description: 'Authenticated user ID', required: false })
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
 }

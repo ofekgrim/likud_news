@@ -18,10 +18,7 @@ import '../../domain/entities/content_block.dart';
 class TweetEmbedWidget extends StatefulWidget {
   final TweetEmbedBlock block;
 
-  const TweetEmbedWidget({
-    super.key,
-    required this.block,
-  });
+  const TweetEmbedWidget({super.key, required this.block});
 
   @override
   State<TweetEmbedWidget> createState() => _TweetEmbedWidgetState();
@@ -70,10 +67,7 @@ class _TweetEmbedWidgetState extends State<TweetEmbedWidget> {
               return NavigationDecision.navigate;
             }
             // Open all other URLs externally (links inside the tweet)
-            launchUrl(
-              Uri.parse(url),
-              mode: LaunchMode.externalApplication,
-            );
+            launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
             return NavigationDecision.prevent;
           },
           onPageFinished: (_) {
@@ -206,8 +200,7 @@ class _TweetEmbedWidgetState extends State<TweetEmbedWidget> {
             child: _hasError ? _buildFallbackCard() : _buildWebView(),
           ),
           // Caption below
-          if (widget.block.caption != null &&
-              widget.block.caption!.isNotEmpty)
+          if (widget.block.caption != null && widget.block.caption!.isNotEmpty)
             Padding(
               padding: const EdgeInsetsDirectional.only(top: 8),
               child: Text(

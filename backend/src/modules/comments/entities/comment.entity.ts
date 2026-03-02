@@ -6,11 +6,14 @@ import {
   OneToMany,
   CreateDateColumn,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Article } from '../../articles/entities/article.entity';
 import { Story } from '../../stories/entities/story.entity';
+import { AppUser } from '../../app-users/entities/app-user.entity';
 
 @Entity('comments')
+@Index('idx_comments_user', ['userId'])
 export class Comment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -42,11 +45,24 @@ export class Comment {
   @OneToMany(() => Comment, (comment) => comment.parent)
   replies: Comment[];
 
+  @Column({ type: 'uuid', nullable: true })
+  userId: string;
+
+  @ManyToOne(() => AppUser, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'userId' })
+  user: AppUser;
+
   @Column({ type: 'varchar', length: 200 })
   authorName: string;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
   authorEmail: string;
+
+  @Column({ type: 'varchar', length: 2000, nullable: true })
+  authorAvatarUrl: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  authorRole: string;
 
   @Column({ type: 'text' })
   body: string;

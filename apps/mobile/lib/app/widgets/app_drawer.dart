@@ -16,9 +16,11 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.transparent,
+      width: MediaQuery.of(context).size.width * 0.9,
       child: LiquidGlassContainer(
         borderRadius: 0,
-        blurSigma: 20,
+        blurSigma: 10,
         backgroundColor: Colors.white,
         backgroundOpacity: 0.92,
         child: SafeArea(
@@ -167,15 +169,15 @@ class AppDrawer extends StatelessWidget {
                 Text(
                   'greeting'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 Text(
                   'welcome'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -192,23 +194,29 @@ class AppDrawer extends StatelessWidget {
     required String title,
     required String route,
   }) {
+    // Bottom nav routes that should use go() instead of push()
+    final bottomNavRoutes = ['/', '/breaking', '/video', '/stories', '/more'];
+    final isBottomNavRoute = bottomNavRoutes.contains(route);
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
       leading: Icon(icon, color: AppColors.likudBlue),
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
+          fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
+        ),
       ),
-      trailing: const Icon(
-        Icons.chevron_left,
-        color: AppColors.textTertiary,
-      ),
+      trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
       onTap: () {
         Navigator.pop(context);
-        context.push(route);
+        // Use go() for bottom nav routes to update tab, push() for others
+        if (isBottomNavRoute) {
+          context.go(route);
+        } else {
+          context.push(route);
+        }
       },
     );
   }
@@ -222,9 +230,9 @@ class AppDrawer extends StatelessWidget {
           Text(
             'follow_us'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -274,16 +282,16 @@ class AppDrawer extends StatelessWidget {
           Text(
             'app_name'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             'version'.tr(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textTertiary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
           ),
         ],
       ),
@@ -317,11 +325,7 @@ class _SocialButton extends StatelessWidget {
             color: AppColors.likudLightBlue,
             borderRadius: BorderRadius.circular(22),
           ),
-          child: Icon(
-            icon,
-            color: AppColors.likudBlue,
-            size: 22,
-          ),
+          child: Icon(icon, color: AppColors.likudBlue, size: 22),
         ),
       ),
     );

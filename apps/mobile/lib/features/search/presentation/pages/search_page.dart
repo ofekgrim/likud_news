@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
+import '../../../home/domain/entities/category.dart';
 import '../../../home/presentation/widgets/feed_article_card.dart';
 import '../bloc/search_bloc.dart';
 import '../widgets/search_suggestion_chips.dart';
@@ -14,6 +15,7 @@ import '../widgets/search_suggestion_chips.dart';
 ///
 /// Layout:
 /// - Search text field with search icon and clear button
+/// - Category filter chips (when categories are loaded)
 /// - Recent searches list (when idle)
 /// - Popular hashtag suggestion chips
 /// - Search results list with FeedArticleCard
@@ -85,6 +87,38 @@ class _SearchPageState extends State<SearchPage> {
     context.read<SearchBloc>().add(SearchQueryChanged(query));
   }
 
+  void _onCategoryFilterTap(String? categoryId) {
+    context.read<SearchBloc>().add(CategoryFilterChanged(categoryId));
+  }
+
+  /// Extracts categories and selectedCategoryId from the current state.
+  ({List<Category> categories, String? selectedCategoryId}) _extractCategoryInfo(
+    SearchState state,
+  ) {
+    return switch (state) {
+      SearchInitial(:final categories) => (
+          categories: categories,
+          selectedCategoryId: null,
+        ),
+      SearchLoading(:final categories, :final selectedCategoryId) => (
+          categories: categories,
+          selectedCategoryId: selectedCategoryId,
+        ),
+      SearchLoaded(:final categories, :final selectedCategoryId) => (
+          categories: categories,
+          selectedCategoryId: selectedCategoryId,
+        ),
+      SearchEmpty(:final categories, :final selectedCategoryId) => (
+          categories: categories,
+          selectedCategoryId: selectedCategoryId,
+        ),
+      SearchError(:final categories, :final selectedCategoryId) => (
+          categories: categories,
+          selectedCategoryId: selectedCategoryId,
+        ),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,6 +127,24 @@ class _SearchPageState extends State<SearchPage> {
         child: Column(
           children: [
             _buildSearchField(),
+            BlocBuilder<SearchBloc, SearchState>(
+              buildWhen: (previous, current) {
+                final prevInfo = _extractCategoryInfo(previous);
+                final currInfo = _extractCategoryInfo(current);
+                return prevInfo.categories != currInfo.categories ||
+                    prevInfo.selectedCategoryId != currInfo.selectedCategoryId;
+              },
+              builder: (context, state) {
+                final info = _extractCategoryInfo(state);
+                if (info.categories.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return _buildCategoryFilterChips(
+                  info.categories,
+                  info.selectedCategoryId,
+                );
+              },
+            ),
             Expanded(
               child: BlocBuilder<SearchBloc, SearchState>(
                 builder: (context, state) {
@@ -118,6 +170,81 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Horizontal scrollable row of category filter chips.
+  Widget _buildCategoryFilterChips(
+    List<Category> categories,
+    String? selectedCategoryId,
+  ) {
+    final isAllSelected = selectedCategoryId == null;
+
+    return SizedBox(
+      height: 44,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
+        itemCount: categories.length + 1, // +1 for the "All" chip
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            // "All" chip
+            return FilterChip(
+              label: Text('all_categories_filter'.tr()),
+              selected: isAllSelected,
+              onSelected: (_) => _onCategoryFilterTap(null),
+              labelStyle: TextStyle(
+                fontFamily: 'Heebo',
+                fontSize: 13,
+                fontWeight:
+                    isAllSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isAllSelected
+                    ? AppColors.white
+                    : AppColors.textSecondary,
+              ),
+              selectedColor: AppColors.likudBlue,
+              backgroundColor: AppColors.white,
+              side: BorderSide(
+                color:
+                    isAllSelected ? AppColors.likudBlue : AppColors.border,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              showCheckmark: false,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+            );
+          }
+
+          final category = categories[index - 1];
+          final isSelected = selectedCategoryId == category.id;
+
+          return FilterChip(
+            label: Text(category.name),
+            selected: isSelected,
+            onSelected: (_) => _onCategoryFilterTap(category.id),
+            labelStyle: TextStyle(
+              fontFamily: 'Heebo',
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              color: isSelected
+                  ? AppColors.white
+                  : AppColors.textSecondary,
+            ),
+            selectedColor: AppColors.likudBlue,
+            backgroundColor: AppColors.white,
+            side: BorderSide(
+              color: isSelected ? AppColors.likudBlue : AppColors.border,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            showCheckmark: false,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+          );
+        },
       ),
     );
   }

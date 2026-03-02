@@ -94,11 +94,18 @@ export class ArticlesController {
     type: Number,
     description: 'Results per page (default: 20)',
   })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    type: String,
+    description: 'Filter results by category UUID',
+  })
   @ApiResponse({ status: 200, description: 'Paginated search results' })
   search(
     @Query('q') query: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('categoryId') categoryId?: string,
   ) {
     if (!query || query.trim().length < 2) {
       return { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
@@ -107,6 +114,7 @@ export class ArticlesController {
       query.trim(),
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 20,
+      categoryId,
     );
   }
 
@@ -185,10 +193,26 @@ export class ArticlesController {
     summary: 'Get a single article by slug (increments view count)',
   })
   @ApiParam({ name: 'slug', description: 'Article URL slug' })
+  @ApiQuery({
+    name: 'deviceId',
+    required: false,
+    type: String,
+    description: 'Device ID for favorite status',
+  })
+  @ApiQuery({
+    name: 'userId',
+    required: false,
+    type: String,
+    description: 'User ID for favorite status',
+  })
   @ApiResponse({ status: 200, description: 'The article' })
   @ApiResponse({ status: 404, description: 'Article not found' })
-  findBySlug(@Param('slug') slug: string) {
-    return this.articlesService.findBySlug(slug);
+  findBySlug(
+    @Param('slug') slug: string,
+    @Query('deviceId') deviceId?: string,
+    @Query('userId') userId?: string,
+  ) {
+    return this.articlesService.findBySlug(slug, deviceId, userId);
   }
 
   @Put(':id')

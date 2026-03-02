@@ -19,4 +19,28 @@ export class SseController {
   breaking(): Observable<MessageEvent> {
     return this.sseService.getBreakingStream();
   }
+
+  @Sse('primaries')
+  @ApiOperation({ summary: 'Subscribe to primaries updates via SSE (results, turnout)' })
+  primaries(): Observable<MessageEvent> {
+    return this.sseService.getPrimariesStream();
+  }
+
+  @Sse('articles')
+  @ApiOperation({ summary: 'Subscribe to new article notifications via SSE' })
+  articles(): Observable<MessageEvent> {
+    return this.sseService.getArticlesStream();
+  }
+
+  @Sse('feed')
+  @ApiOperation({
+    summary: 'Subscribe to unified feed updates via SSE',
+    description:
+      'Receives real-time notifications when new content is published ' +
+      '(articles, polls, events, election updates, quizzes). ' +
+      'Event types: new_article, new_poll, new_event, election_update, quiz_update',
+  })
+  feed(): Observable<MessageEvent> {
+    return this.sseService.getFeedStream();
+  }
 }

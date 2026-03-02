@@ -117,6 +117,7 @@ describe('MediaService', () => {
         total: 2,
         page: 1,
         limit: 20,
+        totalPages: 1,
       });
       expect(repository.findAndCount).toHaveBeenCalledWith({
         order: { createdAt: 'DESC' },

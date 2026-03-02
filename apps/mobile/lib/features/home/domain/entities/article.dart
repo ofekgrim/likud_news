@@ -14,6 +14,10 @@ class Article extends Equatable {
   final bool isHero;
   final bool isBreaking;
   final int viewCount;
+  final int shareCount;
+  final int commentCount;
+  final int readingTimeMinutes;
+  final String? authorEntityName;
   final String? slug;
   final DateTime? publishedAt;
   final String? categoryId;
@@ -33,6 +37,10 @@ class Article extends Equatable {
     this.isHero = false,
     this.isBreaking = false,
     this.viewCount = 0,
+    this.shareCount = 0,
+    this.commentCount = 0,
+    this.readingTimeMinutes = 0,
+    this.authorEntityName,
     this.slug,
     this.publishedAt,
     this.categoryId,
@@ -54,6 +62,10 @@ class Article extends Equatable {
         isHero,
         isBreaking,
         viewCount,
+        shareCount,
+        commentCount,
+        readingTimeMinutes,
+        authorEntityName,
         slug,
         publishedAt,
         categoryId,

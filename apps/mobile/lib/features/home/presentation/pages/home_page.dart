@@ -38,6 +38,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     context.read<HomeBloc>().add(const LoadHome());
+    context.read<HomeBloc>().add(const SubscribeToArticleSse());
   }
 
   @override
@@ -208,6 +209,45 @@ class _HomePageState extends State<HomePage> {
           SliverToBoxAdapter(
             child: _buildDateHeader(),
           ),
+
+          // New articles available banner.
+          if (state.hasNewContent)
+            SliverToBoxAdapter(
+              child: GestureDetector(
+                onTap: () {
+                  context.read<HomeBloc>().add(const RefreshFeed());
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.likudBlue,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.arrow_upward_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'new_articles_available'.tr(),
+                        style: const TextStyle(
+                          fontFamily: 'Heebo',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
           // Section header.
           SliverToBoxAdapter(

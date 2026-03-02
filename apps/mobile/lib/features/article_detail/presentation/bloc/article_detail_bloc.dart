@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/device_id_service.dart';
 import '../../domain/entities/article_detail.dart';
 import '../../domain/repositories/article_detail_repository.dart';
@@ -57,6 +58,16 @@ class ChangeFontSize extends ArticleDetailEvent {
 
   @override
   List<Object?> get props => [scale];
+}
+
+/// Updates the comment count to reflect new comments.
+class UpdateCommentCount extends ArticleDetailEvent {
+  final int newCount;
+
+  const UpdateCommentCount(this.newCount);
+
+  @override
+  List<Object?> get props => [newCount];
 }
 
 /// Supported share targets.
@@ -116,9 +127,19 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
   final RecordRead _recordRead;
   final DeviceIdService _deviceIdService;
   final ArticleDetailRepository _repository;
+  final AnalyticsService _analyticsService;
 
   /// Device identifier obtained from [DeviceIdService].
   String get _deviceId => _deviceIdService.deviceId;
+
+  /// Prevents duplicate recordRead API calls.
+  bool _hasRecordedRead = false;
+
+  /// Tracks the currently loaded article ID for analytics on dispose.
+  String? _currentArticleId;
+
+  /// Measures how long the user spends reading the article.
+  final Stopwatch _readTimer = Stopwatch();
 
   ArticleDetailBloc(
     this._getArticleDetail,
@@ -126,11 +147,13 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
     this._recordRead,
     this._deviceIdService,
     this._repository,
+    this._analyticsService,
   ) : super(const ArticleDetailInitial()) {
     on<LoadArticleDetail>(_onLoadArticleDetail);
     on<ToggleFavoriteEvent>(_onToggleFavorite);
     on<ShareArticle>(_onShareArticle);
     on<ChangeFontSize>(_onChangeFontSize);
+    on<UpdateCommentCount>(_onUpdateCommentCount);
   }
 
   Future<void> _onLoadArticleDetail(
@@ -140,7 +163,10 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
     emit(const ArticleDetailLoading());
 
     final result = await _getArticleDetail(
-      GetArticleDetailParams(slug: event.slug),
+      GetArticleDetailParams(
+        slug: event.slug,
+        deviceId: _deviceId.isNotEmpty ? _deviceId : null,
+      ),
     );
 
     result.fold(
@@ -153,13 +179,24 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
           isFavorite: article.isFavorite,
         ));
 
-        // Fire-and-forget: record the read event.
-        if (_deviceId.isNotEmpty) {
+        // Fire-and-forget: record the read event (once only).
+        if (_deviceId.isNotEmpty && !_hasRecordedRead) {
+          _hasRecordedRead = true;
           _recordRead(RecordReadParams(
             deviceId: _deviceId,
             articleId: article.id,
           ));
         }
+
+        // Track article view and start read timer.
+        _currentArticleId = article.id;
+        _readTimer
+          ..reset()
+          ..start();
+        _analyticsService.trackEvent(
+          articleId: article.id,
+          eventType: 'view',
+        );
       },
     );
   }
@@ -253,5 +290,36 @@ class ArticleDetailBloc extends Bloc<ArticleDetailEvent, ArticleDetailState> {
       isFavorite: currentState.isFavorite,
       fontScale: event.scale.clamp(0.8, 1.6),
     ));
+  }
+
+  void _onUpdateCommentCount(
+    UpdateCommentCount event,
+    Emitter<ArticleDetailState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! ArticleDetailLoaded) return;
+
+    final updatedArticle = currentState.article.copyWith(
+      commentCount: event.newCount,
+    );
+
+    emit(ArticleDetailLoaded(
+      article: updatedArticle,
+      isFavorite: currentState.isFavorite,
+      fontScale: currentState.fontScale,
+    ));
+  }
+
+  @override
+  Future<void> close() {
+    _readTimer.stop();
+    if (_currentArticleId != null) {
+      _analyticsService.trackEvent(
+        articleId: _currentArticleId!,
+        eventType: 'read_complete',
+        readTimeSeconds: _readTimer.elapsed.inSeconds,
+      );
+    }
+    return super.close();
   }
 }

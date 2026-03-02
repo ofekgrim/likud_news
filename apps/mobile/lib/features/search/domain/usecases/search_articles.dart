@@ -16,7 +16,11 @@ class SearchArticles implements UseCase<SearchResult, SearchParams> {
 
   @override
   Future<Either<Failure, SearchResult>> call(SearchParams params) {
-    return repository.search(query: params.query, page: params.page);
+    return repository.search(
+      query: params.query,
+      page: params.page,
+      categoryId: params.categoryId,
+    );
   }
 }
 
@@ -24,12 +28,14 @@ class SearchArticles implements UseCase<SearchResult, SearchParams> {
 class SearchParams extends Equatable {
   final String query;
   final int page;
+  final String? categoryId;
 
   const SearchParams({
     required this.query,
     this.page = 1,
+    this.categoryId,
   });
 
   @override
-  List<Object?> get props => [query, page];
+  List<Object?> get props => [query, page, categoryId];
 }

@@ -209,6 +209,8 @@ export type ContentBlockType =
   | 'image'
   | 'youtube'
   | 'tweet'
+  | 'instagram'
+  | 'facebook'
   | 'quote'
   | 'divider'
   | 'bullet_list'
@@ -289,14 +291,255 @@ export interface VideoBlock extends BaseBlock {
   mimeType?: string;
 }
 
+export interface InstagramBlock extends BaseBlock {
+  type: 'instagram';
+  postUrl: string;
+  caption?: string;
+}
+
+export interface FacebookBlock extends BaseBlock {
+  type: 'facebook';
+  postUrl: string;
+  caption?: string;
+}
+
 export type ContentBlock =
   | ParagraphBlock
   | HeadingBlock
   | ImageBlock
   | YouTubeBlock
   | TweetBlock
+  | InstagramBlock
+  | FacebookBlock
   | QuoteBlock
   | DividerBlock
   | BulletListBlock
   | ArticleLinkBlock
   | VideoBlock;
+
+// ── App Users (Mobile App) ──────────────────────────────────────────────
+
+export interface AppUser {
+  id: string;
+  phone?: string;
+  email?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  role: 'guest' | 'member' | 'verified_member';
+  membershipId?: string;
+  membershipStatus: 'unverified' | 'pending' | 'verified' | 'expired';
+  membershipVerifiedAt?: string;
+  preferredCategories: string[];
+  notificationPrefs: Record<string, unknown>;
+  isActive: boolean;
+  createdAt: string;
+  votingEligibility?: VotingEligibility[];
+}
+
+export interface VotingEligibility {
+  id: string;
+  userId: string;
+  electionId: string;
+  approvedBy?: string;
+  approvedAt: string;
+  election?: PrimaryElection;
+}
+
+export interface AppUsersResponse {
+  data: AppUser[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// ── Primaries: Elections ─────────────────────────────────────────────────
+
+export interface PrimaryElection {
+  id: string;
+  title: string;
+  titleEn?: string;
+  description?: string;
+  electionDate: string;
+  registrationDeadline?: string;
+  status: 'draft' | 'upcoming' | 'active' | 'voting' | 'completed' | 'cancelled';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── Primaries: Candidates ────────────────────────────────────────────────
+
+export interface PrimaryCandidate {
+  id: string;
+  fullName: string;
+  slug: string;
+  district?: string;
+  position?: string;
+  photoUrl?: string;
+  coverImageUrl?: string;
+  bio?: string;
+  bioBlocks?: ContentBlock[];
+  socialLinks?: Record<string, string>;
+  phone?: string;
+  email?: string;
+  website?: string;
+  quizPositions?: Record<string, number>;
+  endorsementCount: number;
+  isActive: boolean;
+  electionId: string;
+  election?: PrimaryElection;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── Primaries: Endorsements ──────────────────────────────────────────────
+
+export interface CandidateEndorsement {
+  id: string;
+  userId: string;
+  candidateId: string;
+  electionId: string;
+  candidate?: PrimaryCandidate;
+  user?: { displayName?: string; phone?: string };
+  createdAt: string;
+}
+
+// ── Primaries: Quiz ──────────────────────────────────────────────────────
+
+export interface QuizQuestion {
+  id: string;
+  electionId: string;
+  questionText: string;
+  questionTextEn?: string;
+  options: { value: number; label: string; labelEn?: string }[];
+  importanceLevel: 'low' | 'medium' | 'high';
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface QuizResponse {
+  id: string;
+  userId: string;
+  electionId: string;
+  answers: { questionId: string; selectedValue: number; importance: number }[];
+  matchResults: { candidateId: string; candidateName: string; matchPercentage: number }[];
+  completedAt: string;
+  user?: { id: string; displayName?: string; phone?: string; email?: string; avatarUrl?: string };
+}
+
+// ── Primaries: Polling Stations ──────────────────────────────────────────
+
+export interface PollingStation {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  district?: string;
+  latitude: number;
+  longitude: number;
+  capacity?: number;
+  isAccessible: boolean;
+  openTime?: string;
+  closeTime?: string;
+  electionId: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+// ── Primaries: Election Results ──────────────────────────────────────────
+
+export interface ElectionResult {
+  id: string;
+  candidateId: string;
+  stationId?: string;
+  electionId: string;
+  voteCount: number;
+  isOfficial: boolean;
+  candidate?: PrimaryCandidate;
+  station?: PollingStation;
+  createdAt: string;
+}
+
+export interface TurnoutSnapshot {
+  id: string;
+  electionId: string;
+  district?: string;
+  eligibleVoters: number;
+  actualVoters: number;
+  percentage: number;
+  snapshotAt: string;
+}
+
+// ── Primaries: Community Polls ───────────────────────────────────────────
+
+export interface CommunityPoll {
+  id: string;
+  question: string;
+  questionEn?: string;
+  options: { id: string; text: string; textEn?: string; voteCount: number }[];
+  totalVotes: number;
+  isPinned: boolean;
+  isActive: boolean;
+  closesAt?: string;
+  createdAt: string;
+}
+
+// ── Primaries: Campaign Events ───────────────────────────────────────────
+
+export interface CampaignEvent {
+  id: string;
+  title: string;
+  titleEn?: string;
+  description?: string;
+  imageUrl?: string;
+  startDate: string;
+  endDate?: string;
+  location: string;
+  city?: string;
+  district?: string;
+  latitude?: number;
+  longitude?: number;
+  candidateId?: string;
+  candidate?: PrimaryCandidate;
+  rsvpCount: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface EventRsvp {
+  id: string;
+  eventId: string;
+  userId: string;
+  status: 'interested' | 'going' | 'not_going';
+  createdAt: string;
+}
+
+// ── Primaries: Gamification ──────────────────────────────────────────────
+
+export interface UserPointEntry {
+  id: string;
+  userId: string;
+  action: string;
+  points: number;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface UserBadge {
+  id: string;
+  userId: string;
+  badgeType: string;
+  earnedAt: string;
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  displayName?: string;
+  avatarUrl?: string;
+  totalPoints: number;
+  rank: number;
+}

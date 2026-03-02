@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../bloc/article_detail_bloc.dart';
+import '../../../../core/utils/auth_guard.dart';
 
 /// Bottom action bar with social share buttons and bookmark toggle.
 ///
@@ -110,9 +111,12 @@ class ArticleActionsBar extends StatelessWidget {
                       : AppColors.textSecondary,
                 ),
                 tooltip: isFavorite ? 'remove_favorite'.tr() : 'save_article'.tr(),
-                onPressed: () => context
-                    .read<ArticleDetailBloc>()
-                    .add(const ToggleFavoriteEvent()),
+                onPressed: () {
+                  if (!requireAuth(context)) return;
+                  context
+                      .read<ArticleDetailBloc>()
+                      .add(const ToggleFavoriteEvent());
+                },
               ),
             ],
           ),
