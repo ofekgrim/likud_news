@@ -408,7 +408,13 @@ class _BackButton extends StatelessWidget {
             color: AppColors.white,
             size: 20,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
           tooltip: '\u05D7\u05D6\u05D5\u05E8', // חזור
         ),
       ),

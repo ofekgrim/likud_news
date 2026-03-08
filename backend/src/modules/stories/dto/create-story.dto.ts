@@ -69,4 +69,12 @@ export class CreateStoryDto {
   @IsOptional()
   @IsDateString()
   expiresAt?: string;
+
+  @ApiPropertyOptional({
+    description: 'Send push notification when story is created',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  sendPushNotification?: boolean;
 }

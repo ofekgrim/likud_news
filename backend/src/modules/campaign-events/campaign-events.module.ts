@@ -8,12 +8,14 @@ import { CampaignEventsService } from './campaign-events.service';
 import { CampaignEventsController } from './campaign-events.controller';
 import { AppAuthModule } from '../app-auth/app-auth.module';
 import { AuthModule } from '../auth/auth.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([CampaignEvent, EventRsvp, Candidate, PrimaryElection]),
     AppAuthModule,
     AuthModule,
+    NotificationsModule,
   ],
   controllers: [CampaignEventsController],
   providers: [CampaignEventsService],

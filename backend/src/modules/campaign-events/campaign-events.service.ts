@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { CampaignEvent } from './entities/campaign-event.entity';
@@ -7,14 +7,18 @@ import { CreateCampaignEventDto } from './dto/create-campaign-event.dto';
 import { UpdateCampaignEventDto } from './dto/update-campaign-event.dto';
 import { QueryEventsDto } from './dto/query-events.dto';
 import { RsvpEventDto } from './dto/rsvp-event.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CampaignEventsService {
+  private readonly logger = new Logger(CampaignEventsService.name);
+
   constructor(
     @InjectRepository(CampaignEvent)
     private readonly eventRepository: Repository<CampaignEvent>,
     @InjectRepository(EventRsvp)
     private readonly rsvpRepository: Repository<EventRsvp>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -91,7 +95,20 @@ export class CampaignEventsService {
    */
   async create(dto: CreateCampaignEventDto): Promise<CampaignEvent> {
     const event = this.eventRepository.create(dto);
-    return this.eventRepository.save(event);
+    const savedEvent = await this.eventRepository.save(event);
+
+    // Fire notification (after saving the event)
+    this.notificationsService.triggerContentNotification(
+      'event.created',
+      'event',
+      savedEvent.id,
+      {
+        event_title: savedEvent.title,
+        event_location: savedEvent.location,
+      },
+    ).catch((err) => this.logger.error(`Event notification failed: ${err.message}`));
+
+    return savedEvent;
   }
 
   /**

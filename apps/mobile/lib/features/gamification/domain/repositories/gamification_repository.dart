@@ -4,6 +4,7 @@ import '../../../../core/errors/failures.dart';
 import '../entities/leaderboard_entry.dart';
 import '../entities/user_badge.dart';
 import '../entities/user_points_entry.dart';
+import '../entities/user_streak.dart';
 
 /// Abstract contract for the gamification feature data operations.
 ///
@@ -41,5 +42,17 @@ abstract class GamificationRepository {
     required int page,
     int limit = 20,
     String? district,
+  });
+
+  /// Fetches the authenticated user's streak data.
+  Future<Either<Failure, UserStreak>> getStreak();
+
+  /// Tracks a user action for gamification purposes.
+  ///
+  /// [action] is the action type (e.g., 'article_read', 'daily_login').
+  /// [metadata] is optional additional data for the action.
+  Future<Either<Failure, void>> trackAction(
+    String action, {
+    Map<String, dynamic>? metadata,
   });
 }

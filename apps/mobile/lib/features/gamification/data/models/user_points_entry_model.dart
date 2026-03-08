@@ -53,6 +53,14 @@ class UserPointsEntryModel {
         return PointAction.loginStreak;
       case 'profile_complete':
         return PointAction.profileComplete;
+      case 'daily_quiz_complete':
+        return PointAction.dailyQuizComplete;
+      case 'article_read':
+        return PointAction.articleRead;
+      case 'daily_login':
+        return PointAction.dailyLogin;
+      case 'streak_bonus':
+        return PointAction.streakBonus;
       default:
         return PointAction.comment;
     }

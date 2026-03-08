@@ -281,14 +281,15 @@ class PollsBloc extends Bloc<PollsEvent, PollsState> {
 
     result.fold(
       (failure) {
-        // Revert on failure
-        emit(currentState.copyWith(
-          successMessage: failure.message ?? 'polls_error_loading'.tr(),
-          clearVotingPollId: true,
+        // Revert optimistic update on failure — emit pre-vote state
+        emit(PollsLoaded(
+          polls: currentState.polls,
+          myVotes: currentState.myVotes,
+          successMessage: failure.message ?? 'polls_error_voting'.tr(),
         ));
       },
       (_) {
-        // Success
+        // Success — keep optimistic update, clear loading indicator
         final successState = state;
         if (successState is PollsLoaded) {
           emit(successState.copyWith(

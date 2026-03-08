@@ -41,6 +41,9 @@ import { CampaignEvent } from './modules/campaign-events/entities/campaign-event
 import { EventRsvp } from './modules/campaign-events/entities/event-rsvp.entity';
 import { UserPoints } from './modules/gamification/entities/user-points.entity';
 import { UserBadge } from './modules/gamification/entities/user-badge.entity';
+import { UserStreak } from './modules/gamification/entities/user-streak.entity';
+import { DailyQuiz } from './modules/gamification/entities/daily-quiz.entity';
+import { DailyQuizAttempt } from './modules/gamification/entities/daily-quiz-attempt.entity';
 import { PollingStation } from './modules/polling-stations/entities/polling-station.entity';
 import { StationReport } from './modules/polling-stations/entities/station-report.entity';
 import { ElectionResult } from './modules/election-results/entities/election-result.entity';
@@ -48,6 +51,12 @@ import { TurnoutSnapshot } from './modules/election-results/entities/turnout-sna
 import { CommunityPoll } from './modules/community-polls/entities/community-poll.entity';
 import { PollVote } from './modules/community-polls/entities/poll-vote.entity';
 import { ArticleAnalytics } from './modules/article-analytics/entities/article-analytics.entity';
+
+// Notification entities
+import { NotificationTemplate } from './modules/notifications/entities/notification-template.entity';
+import { NotificationLog } from './modules/notifications/entities/notification-log.entity';
+import { NotificationSchedule } from './modules/notifications/entities/notification-schedule.entity';
+import { NotificationReceipt } from './modules/notifications/entities/notification-receipt.entity';
 
 // Feature modules
 import { ArticlesModule } from './modules/articles/articles.module';
@@ -86,6 +95,7 @@ import { ElectionResultsModule } from './modules/election-results/election-resul
 import { CommunityPollsModule } from './modules/community-polls/community-polls.module';
 import { ArticleAnalyticsModule } from './modules/article-analytics/article-analytics.module';
 import { FeedModule } from './modules/feed/feed.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -179,6 +189,9 @@ import { FeedModule } from './modules/feed/feed.module';
           EventRsvp,
           UserPoints,
           UserBadge,
+          UserStreak,
+          DailyQuiz,
+          DailyQuizAttempt,
           // Polling & Results entities
           PollingStation,
           StationReport,
@@ -187,6 +200,11 @@ import { FeedModule } from './modules/feed/feed.module';
           CommunityPoll,
           PollVote,
           ArticleAnalytics,
+          // Notification entities
+          NotificationTemplate,
+          NotificationLog,
+          NotificationSchedule,
+          NotificationReceipt,
         ],
         migrations: ['dist/database/migrations/*{.ts,.js}'],
       }),
@@ -229,6 +247,9 @@ import { FeedModule } from './modules/feed/feed.module';
     ElectionResultsModule,
     CommunityPollsModule,
     ArticleAnalyticsModule,
+
+    // Notifications
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],

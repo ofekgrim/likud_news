@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   ConflictException,
@@ -11,14 +12,21 @@ import { PollVote } from './entities/poll-vote.entity';
 import { CreatePollDto } from './dto/create-poll.dto';
 import { UpdatePollDto } from './dto/update-poll.dto';
 import { VotePollDto } from './dto/vote-poll.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { GamificationService } from '../gamification/gamification.service';
+import { PointAction } from '../gamification/entities/user-points.entity';
 
 @Injectable()
 export class CommunityPollsService {
+  private readonly logger = new Logger(CommunityPollsService.name);
+
   constructor(
     @InjectRepository(CommunityPoll)
     private readonly pollRepository: Repository<CommunityPoll>,
     @InjectRepository(PollVote)
     private readonly voteRepository: Repository<PollVote>,
+    private readonly notificationsService: NotificationsService,
+    private readonly gamificationService: GamificationService,
   ) {}
 
   /**
@@ -66,7 +74,17 @@ export class CommunityPollsService {
       isPinned: dto.isPinned || false,
     });
 
-    return this.pollRepository.save(poll);
+    const savedPoll = await this.pollRepository.save(poll);
+
+    // Fire notification (after saving the poll)
+    this.notificationsService.triggerContentNotification(
+      'poll.created',
+      'poll',
+      savedPoll.id,
+      { poll_question: savedPoll.question },
+    ).catch((err) => this.logger.error(`Poll notification failed: ${err.message}`));
+
+    return savedPoll;
   }
 
   /**
@@ -103,8 +121,8 @@ export class CommunityPollsService {
   ): Promise<CommunityPoll> {
     const poll = await this.findOne(pollId);
 
-    // Check if poll is active
-    if (!poll.isActive || poll.closedAt) {
+    // Check if poll is active and not past its closing date
+    if (!poll.isActive || (poll.closedAt && new Date(poll.closedAt) < new Date())) {
       throw new BadRequestException('This poll is no longer active');
     }
 
@@ -136,7 +154,15 @@ export class CommunityPollsService {
     poll.totalVotes += 1;
     poll.options[dto.optionIndex].voteCount += 1;
 
-    return this.pollRepository.save(poll);
+    const savedPoll = await this.pollRepository.save(poll);
+
+    // Award gamification points for voting
+    this.gamificationService.trackAction(userId, PointAction.POLL_VOTE, {
+      pollId,
+      optionIndex: dto.optionIndex,
+    }).catch((err) => this.logger.error(`Gamification award failed: ${err.message}`));
+
+    return savedPoll;
   }
 
   /**
@@ -177,5 +203,14 @@ export class CommunityPollsService {
     }));
 
     return { poll, results };
+  }
+
+  /**
+   * Soft-delete a poll by setting isActive = false.
+   */
+  async remove(id: string): Promise<void> {
+    const poll = await this.findOne(id);
+    poll.isActive = false;
+    await this.pollRepository.save(poll);
   }
 }

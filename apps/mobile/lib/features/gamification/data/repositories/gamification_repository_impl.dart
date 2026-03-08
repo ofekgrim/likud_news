@@ -6,6 +6,7 @@ import '../../../../core/errors/failures.dart';
 import '../../domain/entities/leaderboard_entry.dart';
 import '../../domain/entities/user_badge.dart';
 import '../../domain/entities/user_points_entry.dart';
+import '../../domain/entities/user_streak.dart';
 import '../../domain/repositories/gamification_repository.dart';
 import '../datasources/gamification_remote_datasource.dart';
 
@@ -101,6 +102,40 @@ class GamificationRepositoryImpl implements GamificationRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, UserStreak>> getStreak() async {
+    try {
+      final data = await _remoteDataSource.getStreak();
+      final streak = UserStreak(
+        currentStreak: data['currentStreak'] as int? ?? 0,
+        longestStreak: data['longestStreak'] as int? ?? 0,
+        lastActivityDate: data['lastActivityDate'] != null
+            ? DateTime.parse(data['lastActivityDate'] as String)
+            : null,
+      );
+      return Right(streak);
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> trackAction(
+    String action, {
+    Map<String, dynamic>? metadata,
+  }) async {
+    try {
+      await _remoteDataSource.trackAction(action, metadata: metadata);
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
   /// Converts a raw badge type string from the API to a [BadgeType] enum value.
   static BadgeType _parseBadgeType(String type) {
     switch (type) {
@@ -120,6 +155,18 @@ class GamificationRepositoryImpl implements GamificationRepository {
         return BadgeType.earlyBird;
       case 'social_sharer':
         return BadgeType.socialSharer;
+      case 'streak_7':
+        return BadgeType.streak7;
+      case 'streak_30':
+        return BadgeType.streak30;
+      case 'streak_100':
+        return BadgeType.streak100;
+      case 'quiz_master':
+        return BadgeType.quizMaster;
+      case 'news_junkie':
+        return BadgeType.newsJunkie;
+      case 'community_voice':
+        return BadgeType.communityVoice;
       default:
         return BadgeType.quizTaker;
     }

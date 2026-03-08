@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -9,13 +9,17 @@ import { CreateElectionDto } from './dto/create-election.dto';
 import { UpdateElectionDto } from './dto/update-election.dto';
 import { QueryElectionsDto } from './dto/query-elections.dto';
 import { SseService } from '../sse/sse.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ElectionsService {
+  private readonly logger = new Logger(ElectionsService.name);
+
   constructor(
     @InjectRepository(PrimaryElection)
     private readonly electionRepository: Repository<PrimaryElection>,
     private readonly sseService: SseService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -114,6 +118,14 @@ export class ElectionsService {
         electionId: saved.id,
         title: saved.title,
       });
+
+      // Fire notification when voting starts
+      this.notificationsService.triggerContentNotification(
+        'election.voting_started',
+        'election',
+        election.id,
+        { election_title: election.title },
+      ).catch((err) => this.logger.error(`Election notification failed: ${err.message}`));
     }
 
     return saved;

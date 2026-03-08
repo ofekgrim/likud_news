@@ -6,12 +6,14 @@ import { ElectionsController } from './elections.controller';
 import { AuthModule } from '../auth/auth.module';
 import { SseModule } from '../sse/sse.module';
 import { ElectionResultsModule } from '../election-results/election-results.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PrimaryElection]),
     AuthModule,
     SseModule,
+    NotificationsModule,
     forwardRef(() => ElectionResultsModule),
   ],
   controllers: [ElectionsController],

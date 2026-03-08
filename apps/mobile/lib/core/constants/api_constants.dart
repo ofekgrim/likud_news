@@ -1,9 +1,33 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+
 /// API endpoint constants.
 class ApiConstants {
   ApiConstants._();
 
-  // Base URL — change per environment
-  static const String baseUrl = 'http://localhost:9090/api/v1';
+  static const String _localUrl = 'http://localhost:9090/api/v1';
+  static const String _ngrokUrl =
+      'https://misfashioned-fastidiously-deacon.ngrok-free.dev/api/v1';
+
+  /// Auto-detect: simulator → localhost, physical device / release → ngrok.
+  static final String baseUrl = _resolveBaseUrl();
+
+  static String _resolveBaseUrl() {
+    // Release builds always use ngrok
+    if (kReleaseMode) return _ngrokUrl;
+
+    // Debug: detect iOS simulator via executable path (contains CoreSimulator)
+    if (Platform.isIOS || Platform.isAndroid) {
+      final isSimulator =
+          Platform.resolvedExecutable.contains('CoreSimulator') ||
+              Platform.resolvedExecutable.contains('emulator');
+      return isSimulator ? _localUrl : _ngrokUrl;
+    }
+
+    // Desktop / other → localhost
+    return _localUrl;
+  }
 
   // Articles
   static const String articles = '/articles';
@@ -80,7 +104,7 @@ class ApiConstants {
       '/app-auth/email-change/request';
   static const String appAuthEmailChangeVerify =
       '/app-auth/email-change/verify';
-  static const deleteAccount = '$baseUrl/app-auth/delete-account';
+  static final String deleteAccount = '$baseUrl/app-auth/delete-account';
 
   // App Users (mobile user profile)
   static const String appUsersMe = '/app-users/me';
@@ -117,16 +141,29 @@ class ApiConstants {
   static const String campaignEvents = '/campaign-events';
 
   // Gamification
-  static const String gamificationPoints = '/gamification/points';
-  static const String gamificationBadges = '/gamification/badges';
+  static const String gamificationMe = '/gamification/me';
+  static const String gamificationPoints = '/gamification/me/points';
+  static const String gamificationPointsHistory = '/gamification/me/points/history';
+  static const String gamificationBadges = '/gamification/me/badges';
+  static const String gamificationStreak = '/gamification/me/streak';
+  static const String gamificationRank = '/gamification/me/rank';
+  static const String gamificationTrack = '/gamification/track';
   static const String gamificationLeaderboard = '/gamification/leaderboard';
+  static const String gamificationDailyQuizToday = '/gamification/daily-quiz/today';
+  static const String gamificationDailyQuizSubmit = '/gamification/daily-quiz/submit';
 
   // SSE - Primaries
   static const String ssePrimaries = '/sse/primaries';
 
   // SSE - Articles
-  static const String sseArticles = '$baseUrl/sse/articles';
+  static final String sseArticles = '$baseUrl/sse/articles';
 
   // Article Analytics
   static const String articleAnalyticsTrack = '/article-analytics/track';
+
+  // Notifications
+  static const String notificationInbox = '/notifications/inbox';
+  static const String notificationUnreadCount =
+      '/notifications/inbox/unread-count';
+  static const String notificationTrackOpen = '/notifications/track-open';
 }

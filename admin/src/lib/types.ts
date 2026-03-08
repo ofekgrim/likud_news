@@ -12,7 +12,9 @@ export interface Article {
   status: 'draft' | 'published' | 'archived';
   isHero: boolean;
   isBreaking: boolean;
+  isMain?: boolean;
   viewCount: number;
+  commentCount?: number;
   slug: string;
   publishedAt?: string;
   categoryId?: string;
@@ -542,4 +544,28 @@ export interface LeaderboardEntry {
   avatarUrl?: string;
   totalPoints: number;
   rank: number;
+}
+
+// ── Daily Quiz ─────────────────────────────────────────────────────────
+
+export interface DailyQuizQuestion {
+  questionText: string;
+  options: { label: string; isCorrect: boolean }[];
+  linkedArticleId?: string;
+  linkedArticleSlug?: string;
+}
+
+export interface DailyQuiz {
+  id: string;
+  date: string;
+  questions: DailyQuizQuestion[];
+  isActive: boolean;
+  pointsReward: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DailyQuizWithStats extends DailyQuiz {
+  completionCount?: number;
+  averageScore?: number;
 }

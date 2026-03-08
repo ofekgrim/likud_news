@@ -34,7 +34,10 @@ class MorePage extends StatelessWidget {
       ),
       showNotificationBell: false,
       body: ListView(
-        padding: EdgeInsets.only(top: 8, bottom: AppRouter.bottomNavClearance(context)),
+        padding: EdgeInsets.only(
+          top: 8,
+          bottom: AppRouter.bottomNavClearance(context),
+        ),
         children: [
           // User greeting
           _buildGreeting(context),
@@ -75,9 +78,9 @@ class MorePage extends StatelessWidget {
             child: Text(
               'primaries_title'.tr(),
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.likudBlue,
-                  ),
+                fontWeight: FontWeight.w700,
+                color: AppColors.likudBlue,
+              ),
             ),
           ),
           _buildNavTile(
@@ -215,15 +218,15 @@ class MorePage extends StatelessWidget {
                 Text(
                   'greeting'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 Text(
                   'welcome'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -286,9 +289,9 @@ class MorePage extends StatelessWidget {
                   Text(
                     displayName,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   if (user.role != AppUserRole.guest)
                     Container(
@@ -331,7 +334,7 @@ class MorePage extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             const Icon(
-              Icons.chevron_left,
+              Icons.chevron_right,
               color: AppColors.likudBlue,
               size: 20,
             ),
@@ -354,14 +357,11 @@ class MorePage extends StatelessWidget {
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
+          fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
+        ),
       ),
-      trailing: const Icon(
-        Icons.chevron_left,
-        color: AppColors.textTertiary,
-      ),
+      trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
       onTap: () => context.push(route),
     );
   }
@@ -375,9 +375,9 @@ class MorePage extends StatelessWidget {
           Text(
             'follow_us'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -424,34 +424,32 @@ class MorePage extends StatelessWidget {
   /// In debug mode, long-press opens the in-app log viewer.
   Widget _buildVersionInfo(BuildContext context) {
     return GestureDetector(
-      onLongPress: kDebugMode
-          ? () => MetzudatApp.showLogViewer(context)
-          : null,
+      onLongPress: kDebugMode ? () => MetzudatApp.showLogViewer(context) : null,
       child: Center(
         child: Column(
           children: [
             Text(
               'app_name'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               'version'.tr(),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textTertiary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
             ),
             if (kDebugMode) ...[
               const SizedBox(height: 4),
               Text(
                 '(Long-press for logs)',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textTertiary,
-                      fontSize: 10,
-                    ),
+                  color: AppColors.textTertiary,
+                  fontSize: 10,
+                ),
               ),
             ],
           ],
@@ -487,11 +485,7 @@ class _SocialButton extends StatelessWidget {
             color: AppColors.likudLightBlue,
             borderRadius: BorderRadius.circular(22),
           ),
-          child: Icon(
-            icon,
-            color: AppColors.likudBlue,
-            size: 22,
-          ),
+          child: Icon(icon, color: AppColors.likudBlue, size: 22),
         ),
       ),
     );

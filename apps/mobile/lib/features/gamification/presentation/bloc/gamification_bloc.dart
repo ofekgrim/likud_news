@@ -6,6 +6,8 @@ import 'package:injectable/injectable.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/leaderboard_entry.dart';
 import '../../domain/entities/user_badge.dart';
+import '../../domain/entities/user_streak.dart';
+import '../../domain/repositories/gamification_repository.dart';
 import '../../domain/usecases/get_leaderboard.dart';
 import '../../domain/usecases/get_user_badges.dart';
 import '../../domain/usecases/get_user_points.dart';
@@ -107,6 +109,7 @@ final class GamificationLoaded extends GamificationState {
   final int rank;
   final List<LeaderboardEntry> leaderboard;
   final GamificationPeriod selectedPeriod;
+  final UserStreak streak;
 
   const GamificationLoaded({
     this.totalPoints = 0,
@@ -114,6 +117,7 @@ final class GamificationLoaded extends GamificationState {
     this.rank = 0,
     this.leaderboard = const [],
     this.selectedPeriod = GamificationPeriod.weekly,
+    this.streak = const UserStreak(),
   });
 
   /// Creates a copy with optional overrides.
@@ -123,6 +127,7 @@ final class GamificationLoaded extends GamificationState {
     int? rank,
     List<LeaderboardEntry>? leaderboard,
     GamificationPeriod? selectedPeriod,
+    UserStreak? streak,
   }) {
     return GamificationLoaded(
       totalPoints: totalPoints ?? this.totalPoints,
@@ -130,6 +135,7 @@ final class GamificationLoaded extends GamificationState {
       rank: rank ?? this.rank,
       leaderboard: leaderboard ?? this.leaderboard,
       selectedPeriod: selectedPeriod ?? this.selectedPeriod,
+      streak: streak ?? this.streak,
     );
   }
 
@@ -140,6 +146,7 @@ final class GamificationLoaded extends GamificationState {
         rank,
         leaderboard,
         selectedPeriod,
+        streak,
       ];
 }
 
@@ -166,11 +173,13 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
   final GetUserPoints _getUserPoints;
   final GetUserBadges _getUserBadges;
   final GetLeaderboard _getLeaderboard;
+  final GamificationRepository _repository;
 
   GamificationBloc(
     this._getUserPoints,
     this._getUserBadges,
     this._getLeaderboard,
+    this._repository,
   ) : super(const GamificationInitial()) {
     on<LoadGamification>(_onLoadGamification);
     on<LoadMyPoints>(_onLoadMyPoints);
@@ -214,12 +223,21 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
       (entries) => leaderboard = entries,
     );
 
+    // Fetch streak
+    UserStreak streak = const UserStreak();
+    final streakResult = await _repository.getStreak();
+    streakResult.fold(
+      (_) {},
+      (s) => streak = s,
+    );
+
     emit(GamificationLoaded(
       totalPoints: totalPoints,
       badges: badges,
       rank: 0,
       leaderboard: leaderboard,
       selectedPeriod: period,
+      streak: streak,
     ));
   }
 

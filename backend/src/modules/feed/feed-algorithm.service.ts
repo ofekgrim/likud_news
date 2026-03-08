@@ -21,6 +21,7 @@ export class FeedAlgorithmService {
    */
   private readonly TYPE_WEIGHTS: Record<FeedItemType, number> = {
     [FeedItemType.ELECTION_UPDATE]: 1000, // Highest priority
+    [FeedItemType.DAILY_QUIZ]: 900, // High priority — daily engagement
     [FeedItemType.ARTICLE]: 500,
     [FeedItemType.POLL]: 400,
     [FeedItemType.EVENT]: 300,
@@ -143,22 +144,24 @@ export class FeedAlgorithmService {
       (i) => i.type === FeedItemType.ELECTION_UPDATE,
     );
     const quizzes = items.filter((i) => i.type === FeedItemType.QUIZ_PROMPT);
+    const dailyQuizzes = items.filter(
+      (i) => i.type === FeedItemType.DAILY_QUIZ,
+    );
 
     const result: FeedItemDto[] = [];
+
+    // Daily quiz goes at the very top (high-priority engagement item)
+    result.push(...dailyQuizzes);
     let articleIdx = 0;
     let pollIdx = 0;
     let eventIdx = 0;
     let electionIdx = 0;
     let quizIdx = 0;
 
-    // Interleaving pattern
-    while (
-      articleIdx < articles.length ||
-      pollIdx < polls.length ||
-      eventIdx < events.length ||
-      electionIdx < elections.length ||
-      quizIdx < quizzes.length
-    ) {
+    // Articles are the backbone — interleave others between them.
+    // Pattern per cycle: [election?] 5 articles, 1 poll, 2 articles, 1 event
+    // When articles run out, append remaining non-article items at the end.
+    while (articleIdx < articles.length) {
       // Elections go first (if any available)
       if (electionIdx < elections.length) {
         result.push(elections[electionIdx++]);
@@ -169,35 +172,32 @@ export class FeedAlgorithmService {
         result.push(articles[articleIdx++]);
       }
 
-      // 1 poll
+      // 1 poll between articles
       if (pollIdx < polls.length) {
         result.push(polls[pollIdx++]);
       }
 
-      // 2 articles
+      // 2 more articles
       for (let i = 0; i < 2 && articleIdx < articles.length; i++) {
         result.push(articles[articleIdx++]);
       }
 
-      // 1 event
+      // 1 event between articles
       if (eventIdx < events.length) {
         result.push(events[eventIdx++]);
       }
 
-      // 1 quiz (every 20 items, or if all other content is exhausted)
-      const allOtherContentExhausted =
-        articleIdx >= articles.length &&
-        pollIdx >= polls.length &&
-        eventIdx >= events.length &&
-        electionIdx >= elections.length;
-
-      if (
-        quizIdx < quizzes.length &&
-        (result.length % 20 === 0 || allOtherContentExhausted)
-      ) {
+      // 1 quiz prompt every ~20 items
+      if (quizIdx < quizzes.length && result.length % 20 < 10) {
         result.push(quizzes[quizIdx++]);
       }
     }
+
+    // Append any remaining non-article items at the end
+    while (electionIdx < elections.length) result.push(elections[electionIdx++]);
+    while (pollIdx < polls.length) result.push(polls[pollIdx++]);
+    while (eventIdx < events.length) result.push(events[eventIdx++]);
+    while (quizIdx < quizzes.length) result.push(quizzes[quizIdx++]);
 
     return result;
   }
@@ -223,14 +223,16 @@ export class FeedAlgorithmService {
       [FeedItemType.EVENT]: 0,
       [FeedItemType.ELECTION_UPDATE]: 0,
       [FeedItemType.QUIZ_PROMPT]: 0,
+      [FeedItemType.DAILY_QUIZ]: 0,
     };
 
     const limits: Record<FeedItemType, number> = {
       [FeedItemType.ARTICLE]: Infinity,
       [FeedItemType.POLL]: 2,
-      [FeedItemType.EVENT]: 3,
+      [FeedItemType.EVENT]: 2,
       [FeedItemType.ELECTION_UPDATE]: 1,
       [FeedItemType.QUIZ_PROMPT]: 1,
+      [FeedItemType.DAILY_QUIZ]: 1,
     };
 
     for (const item of items) {

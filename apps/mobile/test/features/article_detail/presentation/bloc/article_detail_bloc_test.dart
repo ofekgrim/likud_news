@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:metzudat_halikud/core/services/analytics_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:metzudat_halikud/core/errors/failures.dart';
 import 'package:metzudat_halikud/core/services/device_id_service.dart';
@@ -26,6 +27,8 @@ class MockDeviceIdService extends Mock implements DeviceIdService {}
 class MockArticleDetailRepository extends Mock
     implements ArticleDetailRepository {}
 
+class MockAnalyticsService extends Mock implements AnalyticsService {}
+
 void main() {
   late ArticleDetailBloc bloc;
   late MockGetArticleDetail mockGetArticleDetail;
@@ -33,6 +36,7 @@ void main() {
   late MockToggleFavorite mockToggleFavorite;
   late MockDeviceIdService mockDeviceIdService;
   late MockArticleDetailRepository mockRepository;
+  late MockAnalyticsService mockAnalyticsService;
 
   // -------------------------------------------------------------------------
   // Test data
@@ -78,7 +82,7 @@ void main() {
     mockToggleFavorite = MockToggleFavorite();
     mockDeviceIdService = MockDeviceIdService();
     mockRepository = MockArticleDetailRepository();
-
+    mockAnalyticsService = MockAnalyticsService();
     when(() => mockDeviceIdService.deviceId).thenReturn('test-device-id');
 
     bloc = ArticleDetailBloc(
@@ -87,6 +91,7 @@ void main() {
       mockRecordRead,
       mockDeviceIdService,
       mockRepository,
+      mockAnalyticsService,
     );
   });
 

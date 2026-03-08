@@ -1,0 +1,13 @@
+{
+  "Simulator Target Bundle": "com.likud.news.metzudatHalikud",
+  "aps": {
+    "alert": {
+      "title": "בדיקת התראות - מצודת הליכוד",
+      "body": "אם אתה רואה את ההודעה הזו, ההתראות עובדות!"
+    },
+    "sound": "default",
+    "badge": 1
+  },
+  "contentType": "inbox",
+  "test": "true"
+}

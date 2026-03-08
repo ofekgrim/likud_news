@@ -19,10 +19,7 @@ class FeedRepositoryImpl implements FeedRepository {
   StreamController<FeedItem>? _feedUpdatesController;
   StreamSubscription? _sseSubscription;
 
-  FeedRepositoryImpl({
-    required this.remoteDataSource,
-    required this.sseClient,
-  });
+  FeedRepositoryImpl({required this.remoteDataSource, required this.sseClient});
 
   @override
   Future<Either<Failure, FeedResponse>> getFeed({
@@ -135,6 +132,8 @@ class FeedRepositoryImpl implements FeedRepository {
         return 'election_update';
       case FeedItemType.quizPrompt:
         return 'quiz_prompt';
+      case FeedItemType.dailyQuiz:
+        return 'daily_quiz';
     }
   }
 }

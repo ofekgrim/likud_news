@@ -17,7 +17,27 @@ export enum PointAction {
   SHARE = 'share',
   LOGIN_STREAK = 'login_streak',
   PROFILE_COMPLETE = 'profile_complete',
+  DAILY_QUIZ_COMPLETE = 'daily_quiz_complete',
+  ARTICLE_READ = 'article_read',
+  DAILY_LOGIN = 'daily_login',
+  STREAK_BONUS = 'streak_bonus',
 }
+
+/** Default point values per action */
+export const POINT_VALUES: Record<PointAction, number> = {
+  [PointAction.ARTICLE_READ]: 5,
+  [PointAction.DAILY_LOGIN]: 5,
+  [PointAction.POLL_VOTE]: 10,
+  [PointAction.ENDORSEMENT]: 10,
+  [PointAction.COMMENT]: 10,
+  [PointAction.SHARE]: 15,
+  [PointAction.DAILY_QUIZ_COMPLETE]: 20,
+  [PointAction.QUIZ_COMPLETE]: 20,
+  [PointAction.EVENT_RSVP]: 25,
+  [PointAction.LOGIN_STREAK]: 5,
+  [PointAction.PROFILE_COMPLETE]: 50,
+  [PointAction.STREAK_BONUS]: 0, // varies by milestone
+};
 
 @Entity('user_points')
 export class UserPoints {

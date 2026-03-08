@@ -60,7 +60,8 @@ class ArticleModel {
       heroImageUrl: json['heroImageUrl'] as String?,
       heroImageCaption: json['heroImageCaption'] as String?,
       author: json['author'] as String?,
-      hashtags: (json['hashtags'] as List<dynamic>?)
+      hashtags:
+          (json['hashtags'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],

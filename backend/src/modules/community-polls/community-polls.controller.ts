@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -24,6 +25,7 @@ import { CreatePollDto } from './dto/create-poll.dto';
 import { UpdatePollDto } from './dto/update-poll.dto';
 import { VotePollDto } from './dto/vote-poll.dto';
 import { AppAuthGuard } from '../app-auth/guards/app-auth.guard';
+import { OptionalAppAuthGuard } from '../app-auth/guards/optional-app-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '../users/entities/user.entity';
@@ -82,6 +84,18 @@ export class CommunityPollsController {
     return this.communityPollsService.update(id, dto);
   }
 
+  @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a community poll (admin only)' })
+  @ApiParam({ name: 'id', description: 'Poll UUID' })
+  @ApiResponse({ status: 200, description: 'Poll deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Poll not found' })
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.communityPollsService.remove(id);
+  }
+
   @Post(':id/close')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
@@ -111,7 +125,7 @@ export class CommunityPollsController {
   }
 
   @Get(':id/my-vote')
-  @UseGuards(AppAuthGuard)
+  @UseGuards(OptionalAppAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Check if current user has voted on a poll (app user)' })
   @ApiParam({ name: 'id', description: 'Poll UUID' })
@@ -120,6 +134,9 @@ export class CommunityPollsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: any,
   ) {
+    if (!req.user) {
+      return { data: null };
+    }
     return this.communityPollsService.getUserVote(req.user.id, id);
   }
 

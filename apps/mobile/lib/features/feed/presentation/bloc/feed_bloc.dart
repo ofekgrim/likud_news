@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/feed_item.dart';
 import '../../domain/usecases/get_feed.dart';
 import '../../domain/usecases/subscribe_to_feed_updates.dart';
@@ -12,14 +13,18 @@ import 'feed_state.dart';
 class FeedBloc extends Bloc<FeedEvent, FeedState> {
   final GetFeed _getFeed;
   final SubscribeToFeedUpdates _subscribeToFeedUpdates;
+  final AuthBloc _authBloc;
 
   StreamSubscription<FeedItem>? _feedUpdatesSubscription;
+  StreamSubscription? _authSubscription;
 
   FeedBloc({
     required GetFeed getFeed,
     required SubscribeToFeedUpdates subscribeToFeedUpdates,
+    required AuthBloc authBloc,
   })  : _getFeed = getFeed,
         _subscribeToFeedUpdates = subscribeToFeedUpdates,
+        _authBloc = authBloc,
         super(const FeedInitial()) {
     on<LoadFeed>(_onLoadFeed);
     on<RefreshFeed>(_onRefreshFeed);
@@ -29,6 +34,23 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<SubscribeToUpdates>(_onSubscribeToUpdates);
     on<UnsubscribeFromUpdates>(_onUnsubscribeFromUpdates);
     on<FeedUpdateReceived>(_onFeedUpdateReceived);
+    on<AuthStateChangedFeed>(_onAuthStateChanged);
+
+    // Listen for auth state changes — reload feed with userId when user logs in
+    _authSubscription = _authBloc.stream.listen((authState) {
+      if (authState is AuthAuthenticated || authState is AuthUnauthenticated) {
+        add(const AuthStateChangedFeed());
+      }
+    });
+  }
+
+  /// Returns the current authenticated user's ID, or null for guests.
+  String? get _currentUserId {
+    final authState = _authBloc.state;
+    if (authState is AuthAuthenticated) {
+      return authState.user.id;
+    }
+    return null;
   }
 
   /// Handle initial feed load
@@ -43,6 +65,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       limit: 20,
       types: event.types,
       categoryId: event.categoryId,
+      userId: _currentUserId,
     ));
 
     result.fold(
@@ -63,34 +86,41 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     Emitter<FeedState> emit,
   ) async {
     final currentState = state;
-    if (currentState is! FeedLoaded) return;
 
-    // Show refreshing indicator
-    emit(currentState.copyWith(isRefreshing: true));
+    // Handle refresh from any state (not just FeedLoaded)
+    if (currentState is FeedLoaded) {
+      // Show refreshing indicator
+      emit(currentState.copyWith(isRefreshing: true));
 
-    final result = await _getFeed(GetFeedParams(
-      page: 1,
-      limit: 20,
-      types: currentState.activeFilters,
-      categoryId: currentState.activeCategoryId,
-    ));
+      final result = await _getFeed(GetFeedParams(
+        page: 1,
+        limit: 20,
+        types: currentState.activeFilters,
+        categoryId: currentState.activeCategoryId,
+        userId: _currentUserId,
+      ));
 
-    result.fold(
-      (failure) {
-        // Revert to previous state on error
-        emit(currentState.copyWith(isRefreshing: false));
-      },
-      (response) {
-        emit(FeedLoaded(
-          items: response.items,
-          meta: response.meta,
-          hasReachedMax: !response.meta.hasMore,
-          isRefreshing: false,
-          activeFilters: currentState.activeFilters,
-          activeCategoryId: currentState.activeCategoryId,
-        ));
-      },
-    );
+      result.fold(
+        (failure) {
+          // Revert to previous state on error
+          emit(currentState.copyWith(isRefreshing: false));
+        },
+        (response) {
+          emit(FeedLoaded(
+            items: response.items,
+            meta: response.meta,
+            hasReachedMax: !response.meta.hasMore,
+            isRefreshing: false,
+            activeFilters: currentState.activeFilters,
+            activeCategoryId: currentState.activeCategoryId,
+          ));
+        },
+      );
+    } else {
+      // If not in FeedLoaded state, trigger initial load
+      // This ensures refresh always completes even if called too early
+      add(const LoadFeed());
+    }
   }
 
   /// Handle pagination (load more)
@@ -113,6 +143,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       limit: 20,
       types: currentState.activeFilters,
       categoryId: currentState.activeCategoryId,
+      userId: _currentUserId,
     ));
 
     result.fold(
@@ -241,8 +272,41 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     }
   }
 
+  /// Handle auth state change — reload feed with/without userId
+  Future<void> _onAuthStateChanged(
+    AuthStateChangedFeed event,
+    Emitter<FeedState> emit,
+  ) async {
+    // Re-load feed from page 1 with the now-available userId
+    final currentState = state;
+    final types = currentState is FeedLoaded ? currentState.activeFilters : null;
+    final categoryId = currentState is FeedLoaded ? currentState.activeCategoryId : null;
+
+    final result = await _getFeed(GetFeedParams(
+      page: 1,
+      limit: 20,
+      types: types,
+      categoryId: categoryId,
+      userId: _currentUserId,
+    ));
+
+    result.fold(
+      (failure) {
+        // Don't overwrite existing feed on auth-triggered reload failure
+      },
+      (response) => emit(FeedLoaded(
+        items: response.items,
+        meta: response.meta,
+        hasReachedMax: !response.meta.hasMore,
+        activeFilters: types,
+        activeCategoryId: categoryId,
+      )),
+    );
+  }
+
   @override
   Future<void> close() {
+    _authSubscription?.cancel();
     _feedUpdatesSubscription?.cancel();
     return super.close();
   }

@@ -33,8 +33,8 @@ class _QuizPageState extends State<QuizPage> {
     _pageController = PageController();
     // Load questions — each route creates a fresh BLoC
     context.read<QuizBloc>().add(
-          LoadQuizQuestions(electionId: widget.electionId),
-        );
+      LoadQuizQuestions(electionId: widget.electionId),
+    );
   }
 
   @override
@@ -99,9 +99,7 @@ class _QuizPageState extends State<QuizPage> {
           builder: (context, state) {
             if (state is QuizLoading || state is QuizSubmitting) {
               return const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.likudBlue,
-                ),
+                child: CircularProgressIndicator(color: AppColors.likudBlue),
               );
             }
 
@@ -135,9 +133,8 @@ class _QuizPageState extends State<QuizPage> {
                       ElevatedButton(
                         onPressed: () {
                           context.read<QuizBloc>().add(
-                                LoadQuizQuestions(
-                                    electionId: widget.electionId),
-                              );
+                            LoadQuizQuestions(electionId: widget.electionId),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.likudBlue,
@@ -257,12 +254,12 @@ class _QuizPageState extends State<QuizPage> {
                 isSelected: selectedValue == option.value,
                 onSelected: (selected) {
                   context.read<QuizBloc>().add(
-                        AnswerQuestion(
-                          questionId: question.id,
-                          selectedValue: selected.value,
-                          importance: importance,
-                        ),
-                      );
+                    AnswerQuestion(
+                      questionId: question.id,
+                      selectedValue: selected.value,
+                      importance: importance,
+                    ),
+                  );
                 },
               ),
             ),
@@ -274,11 +271,11 @@ class _QuizPageState extends State<QuizPage> {
               selectedImportance: importance,
               onChanged: (newImportance) {
                 context.read<QuizBloc>().add(
-                      UpdateImportance(
-                        questionId: question.id,
-                        importance: newImportance,
-                      ),
-                    );
+                  UpdateImportance(
+                    questionId: question.id,
+                    importance: newImportance,
+                  ),
+                );
               },
             ),
           ],
@@ -345,10 +342,8 @@ class _QuizPageState extends State<QuizPage> {
                       onPressed: state.currentAnswered
                           ? () {
                               context.read<QuizBloc>().add(
-                                    SubmitQuizEvent(
-                                      electionId: widget.electionId,
-                                    ),
-                                  );
+                                SubmitQuizEvent(electionId: widget.electionId),
+                              );
                             }
                           : null,
                       icon: const Icon(Icons.check, size: 18),
@@ -356,10 +351,12 @@ class _QuizPageState extends State<QuizPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.success,
                         foregroundColor: AppColors.white,
-                        disabledBackgroundColor:
-                            AppColors.success.withValues(alpha: 0.4),
-                        disabledForegroundColor:
-                            AppColors.white.withValues(alpha: 0.7),
+                        disabledBackgroundColor: AppColors.success.withValues(
+                          alpha: 0.4,
+                        ),
+                        disabledForegroundColor: AppColors.white.withValues(
+                          alpha: 0.7,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -374,20 +371,22 @@ class _QuizPageState extends State<QuizPage> {
                   : ElevatedButton.icon(
                       onPressed: state.currentAnswered
                           ? () {
-                              context
-                                  .read<QuizBloc>()
-                                  .add(const NextQuestion());
+                              context.read<QuizBloc>().add(
+                                const NextQuestion(),
+                              );
                             }
                           : null,
-                      icon: const Icon(Icons.arrow_back, size: 18),
+                      icon: const Icon(Icons.arrow_forward, size: 18),
                       label: Text('quiz_next'.tr()),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.likudBlue,
                         foregroundColor: AppColors.white,
-                        disabledBackgroundColor:
-                            AppColors.likudBlue.withValues(alpha: 0.4),
-                        disabledForegroundColor:
-                            AppColors.white.withValues(alpha: 0.7),
+                        disabledBackgroundColor: AppColors.likudBlue.withValues(
+                          alpha: 0.4,
+                        ),
+                        disabledForegroundColor: AppColors.white.withValues(
+                          alpha: 0.7,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

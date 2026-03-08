@@ -4,15 +4,23 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 import { Repository } from 'typeorm';
 import { Article, ArticleStatus } from '../articles/entities/article.entity';
+import { ElectionStatus } from '../elections/entities/primary-election.entity';
 import { CommunityPoll } from '../community-polls/entities/community-poll.entity';
 import { CampaignEvent } from '../campaign-events/entities/campaign-event.entity';
 import { PrimaryElection } from '../elections/entities/primary-election.entity';
 import { QuizQuestion } from '../quiz/entities/quiz-question.entity';
 import { Comment } from '../comments/entities/comment.entity';
+import { PollVote } from '../community-polls/entities/poll-vote.entity';
+import { EventRsvp } from '../campaign-events/entities/event-rsvp.entity';
+import { QuizResponse } from '../quiz/entities/quiz-response.entity';
+import { DailyQuiz } from '../gamification/entities/daily-quiz.entity';
+import { DailyQuizAttempt } from '../gamification/entities/daily-quiz-attempt.entity';
 import { FeedItemDto, FeedItemType } from './dto/feed-item.dto';
 import { QueryFeedDto } from './dto/query-feed.dto';
 import { FeedAlgorithmService } from './feed-algorithm.service';
 import { SseService } from '../sse/sse.service';
+import { ElectionResultsService } from '../election-results/election-results.service';
+import { CandidatesService } from '../candidates/candidates.service';
 
 /**
  * Feed service that provides a unified mixed-content feed.
@@ -24,6 +32,13 @@ import { SseService } from '../sse/sse.service';
 @Injectable()
 export class FeedService {
   private readonly logger = new Logger(FeedService.name);
+
+  /**
+   * Cache versioning map for feed invalidation.
+   * Maps content type to version number (timestamp).
+   * Incrementing version invalidates all caches for that type.
+   */
+  private feedCacheVersion: { [key: string]: number } = {};
 
   constructor(
     @InjectRepository(Article)
@@ -38,8 +53,20 @@ export class FeedService {
     private readonly quizRepository: Repository<QuizQuestion>,
     @InjectRepository(Comment)
     private readonly commentRepository: Repository<Comment>,
+    @InjectRepository(PollVote)
+    private readonly pollVoteRepository: Repository<PollVote>,
+    @InjectRepository(EventRsvp)
+    private readonly eventRsvpRepository: Repository<EventRsvp>,
+    @InjectRepository(QuizResponse)
+    private readonly quizResponseRepository: Repository<QuizResponse>,
+    @InjectRepository(DailyQuiz)
+    private readonly dailyQuizRepository: Repository<DailyQuiz>,
+    @InjectRepository(DailyQuizAttempt)
+    private readonly dailyQuizAttemptRepository: Repository<DailyQuizAttempt>,
     private readonly algorithmService: FeedAlgorithmService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly electionResultsService: ElectionResultsService,
+    private readonly candidatesService: CandidatesService,
     @Optional() @Inject(SseService) private readonly sseService?: SseService,
   ) {}
 
@@ -89,6 +116,7 @@ export class FeedService {
       events,
       elections,
       quizzes,
+      dailyQuizItem,
     ] = await Promise.all([
       activeTypes.includes(FeedItemType.ARTICLE)
         ? this.fetchArticles(categoryId, deviceId, userId)
@@ -99,16 +127,15 @@ export class FeedService {
       activeTypes.includes(FeedItemType.EVENT)
         ? this.fetchEvents(deviceId, userId)
         : [],
-      activeTypes.includes(FeedItemType.ELECTION_UPDATE)
-        ? this.fetchElections()
-        : [],
+      [], // Elections removed from feed — shown via dedicated election day page
       activeTypes.includes(FeedItemType.QUIZ_PROMPT)
         ? this.fetchQuizzes(deviceId, userId)
         : [],
+      this.fetchDailyQuiz(userId),
     ]);
 
     this.logger.log(
-      `Fetched: ${articles.length} articles, ${polls.length} polls, ${events.length} events, ${elections.length} elections, ${quizzes.length} quizzes`,
+      `Fetched: ${articles.length} articles, ${polls.length} polls, ${events.length} events, ${elections.length} elections, ${quizzes.length} quizzes, dailyQuiz: ${dailyQuizItem ? 'yes' : 'no'}`,
     );
 
     this.logger.debug('Starting transformation...');
@@ -117,8 +144,8 @@ export class FeedService {
       ...articles.map((a) => this.transformArticle(a)),
       ...polls.map((p) => this.transformPoll(p, deviceId, userId)),
       ...events.map((e) => this.transformEvent(e, deviceId, userId)),
-      ...elections.map((el) => this.transformElection(el)),
       ...quizzes.map((q) => this.transformQuiz(q, deviceId, userId)),
+      ...(dailyQuizItem ? [dailyQuizItem] : []),
     ];
 
     this.logger.debug(`Transformed ${feedItems.length} items, computing priorities...`);
@@ -137,19 +164,21 @@ export class FeedService {
     feedItems = this.algorithmService.interleave(feedItems);
 
     this.logger.debug('Applying cardinality limits...');
-    // Apply cardinality limits (max X polls/events per page)
-    const totalItems = feedItems.length;
+    // Apply cardinality limits to the full list (not per-page)
     feedItems = this.algorithmService.applyCardinalityLimits(
       feedItems,
-      page * limit,
+      feedItems.length, // Apply limits globally, not per page
     );
+
+    // Use post-cardinality count for accurate pagination
+    const totalItems = feedItems.length;
 
     this.logger.debug('Paginating...');
     // Paginate
     const start = (page - 1) * limit;
     const paginatedItems = feedItems.slice(start, start + limit);
 
-    this.logger.debug(`Returning ${paginatedItems.length} items`);
+    this.logger.debug(`Returning ${paginatedItems.length} items (total: ${totalItems})`);
     const result = {
       data: paginatedItems,
       meta: {
@@ -165,10 +194,10 @@ export class FeedService {
       },
     };
 
-    // Store in cache
-    const ttl = deviceId || userId ? 5 * 60 * 1000 : 2 * 60 * 1000; // 5min for personalized, 2min for public
+    // Store in cache — short TTL for personalized feeds so interactions are reflected quickly
+    const ttl = userId ? 30 * 1000 : deviceId ? 60 * 1000 : 2 * 60 * 1000;
     await this.cacheManager.set(cacheKey, result, ttl);
-    this.logger.debug(`Cached result with key: ${cacheKey} (TTL: ${ttl}ms)`);
+    this.logger.debug(`Cached result with key: ${cacheKey} (TTL: ${ttl / 1000}s)`);
 
     return result;
   }
@@ -187,7 +216,7 @@ export class FeedService {
       .leftJoinAndSelect('article.authorEntity', 'authorEntity')
       .where('article.status = :status', { status: ArticleStatus.PUBLISHED })
       .orderBy('article.publishedAt', 'DESC')
-      .take(50); // Fetch more than we need for algorithm
+      .take(500); // Fetch all published articles for full pagination
 
     if (categoryId) {
       qb.andWhere('article.categoryId = :categoryId', { categoryId });
@@ -195,37 +224,89 @@ export class FeedService {
 
     const articles = await qb.getMany();
 
+    // Deduplicate articles by title (keep the most recent one)
+    const seen = new Set<string>();
+    const uniqueArticles = articles.filter((a) => {
+      const key = a.title.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
     // Batch-enrich with comment counts
-    return this.enrichWithCommentCounts(articles);
+    return this.enrichWithCommentCounts(uniqueArticles);
   }
 
   /**
    * Fetch active polls.
+   * Only includes polls that are active AND not past their closing date.
    */
   private async fetchPolls(
     deviceId?: string,
     userId?: string,
   ): Promise<CommunityPoll[]> {
-    return this.pollRepository
+    const now = new Date();
+    const qb = this.pollRepository
       .createQueryBuilder('poll')
       .where('poll.isActive = :isActive', { isActive: true })
+      .andWhere(
+        '(poll.closedAt IS NULL OR poll.closedAt > :now)',
+        { now },
+      );
+
+    // Exclude polls the user has already voted on
+    if (userId) {
+      const votedPollIds = await this.pollVoteRepository
+        .createQueryBuilder('vote')
+        .select('vote.pollId')
+        .where('vote.userId = :userId', { userId })
+        .getRawMany();
+      const ids = votedPollIds.map((v) => v.vote_pollId || v.pollId);
+      if (ids.length > 0) {
+        qb.andWhere('poll.id NOT IN (:...votedPollIds)', { votedPollIds: ids });
+      }
+    }
+
+    return qb
       .orderBy('poll.createdAt', 'DESC')
       .take(10)
       .getMany();
   }
 
   /**
-   * Fetch upcoming events.
+   * Fetch upcoming and ongoing events.
+   * Includes events that haven't started yet, and events that have started
+   * but whose endTime hasn't passed (ongoing events).
+   * Excludes events that are fully in the past.
    */
   private async fetchEvents(
     deviceId?: string,
     userId?: string,
   ): Promise<CampaignEvent[]> {
     const now = new Date();
-    return this.eventRepository
+    const qb = this.eventRepository
       .createQueryBuilder('event')
       .where('event.isActive = :isActive', { isActive: true })
-      .andWhere('event.startTime >= :now', { now })
+      .andWhere(
+        '(event.startTime >= :now OR (event.endTime IS NOT NULL AND event.endTime >= :now))',
+        { now },
+      );
+
+    // Exclude events the user has RSVP'd to (going)
+    if (userId) {
+      const rsvpEventIds = await this.eventRsvpRepository
+        .createQueryBuilder('rsvp')
+        .select('rsvp.eventId')
+        .where('rsvp.userId = :userId', { userId })
+        .andWhere("rsvp.status = 'going'")
+        .getRawMany();
+      const ids = rsvpEventIds.map((r) => r.rsvp_eventId || r.eventId);
+      if (ids.length > 0) {
+        qb.andWhere('event.id NOT IN (:...rsvpEventIds)', { rsvpEventIds: ids });
+      }
+    }
+
+    return qb
       .orderBy('event.startTime', 'ASC')
       .take(10)
       .getMany();
@@ -233,12 +314,20 @@ export class FeedService {
 
   /**
    * Fetch active elections (with live results if available).
+   * Excludes completed, cancelled, and draft elections.
    */
   private async fetchElections(): Promise<PrimaryElection[]> {
     const now = new Date();
+    const allowedStatuses = [
+      ElectionStatus.UPCOMING,
+      ElectionStatus.ACTIVE,
+      ElectionStatus.VOTING,
+      ElectionStatus.COUNTING,
+    ];
     return this.electionRepository
       .createQueryBuilder('election')
       .where('election.isActive = :isActive', { isActive: true })
+      .andWhere('election.status IN (:...allowedStatuses)', { allowedStatuses })
       .andWhere('election.electionDate >= :oneMonthAgo', {
         oneMonthAgo: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
       })
@@ -255,29 +344,80 @@ export class FeedService {
     deviceId?: string,
     userId?: string,
   ): Promise<PrimaryElection[]> {
-    // Get elections that have active quiz questions
-    const electionsWithQuiz = await this.electionRepository
+    // Get elections that have active quiz questions, with question count in a single query
+    const qb = this.electionRepository
       .createQueryBuilder('election')
-      .innerJoin('quiz_questions', 'q', 'q.electionId = election.id')
-      .where('q.isActive = :isActive', { isActive: true })
-      .andWhere('election.isActive = :electionActive', { electionActive: true })
+      .addSelect('COUNT(q.id)', 'questionsCount')
+      .innerJoin('quiz_questions', 'q', 'q.electionId = election.id AND q.isActive = true')
+      .where('election.isActive = :electionActive', { electionActive: true });
+
+    // Exclude quizzes the user has already completed
+    if (userId) {
+      const completedElectionIds = await this.quizResponseRepository
+        .createQueryBuilder('response')
+        .select('response.electionId')
+        .where('response.userId = :userId', { userId })
+        .getRawMany();
+      const ids = completedElectionIds.map((r) => r.response_electionId || r.electionId);
+      if (ids.length > 0) {
+        qb.andWhere('election.id NOT IN (:...completedElectionIds)', { completedElectionIds: ids });
+      }
+    }
+
+    const electionsWithQuiz = await qb
       .groupBy('election.id')
       .orderBy('election.createdAt', 'DESC')
       .take(3)
-      .getMany();
+      .getRawAndEntities();
 
-    // Fetch question counts for each election
-    for (const election of electionsWithQuiz) {
-      const questionsCount = await this.quizRepository.count({
-        where: {
-          electionId: election.id,
-          isActive: true,
-        },
-      });
-      (election as any).questionsCount = questionsCount;
+    // Merge question counts into election entities
+    const countMap = new Map(
+      electionsWithQuiz.raw.map((r: any) => [r.election_id, parseInt(r.questionsCount, 10)]),
+    );
+    for (const election of electionsWithQuiz.entities) {
+      (election as any).questionsCount = countMap.get(election.id) || 0;
     }
 
-    return electionsWithQuiz;
+    return electionsWithQuiz.entities;
+  }
+
+  /**
+   * Fetch today's daily quiz as a feed item (if one exists and user hasn't completed it).
+   */
+  private async fetchDailyQuiz(userId?: string): Promise<FeedItemDto | null> {
+    const today = new Date().toISOString().split('T')[0];
+
+    const quiz = await this.dailyQuizRepository.findOne({
+      where: { date: today, isActive: true },
+    });
+
+    if (!quiz) return null;
+
+    // If user is logged in, check if they already completed today's quiz
+    if (userId) {
+      const attempt = await this.dailyQuizAttemptRepository.findOne({
+        where: { userId, quizId: quiz.id },
+      });
+      if (attempt) {
+        // User already completed — remove from feed
+        return null;
+      }
+    }
+
+    return {
+      id: `daily-quiz-${quiz.id}`,
+      type: FeedItemType.DAILY_QUIZ,
+      publishedAt: quiz.createdAt,
+      isPinned: true,
+      sortPriority: 1200,
+      dailyQuiz: {
+        id: quiz.id,
+        date: quiz.date,
+        questionsCount: quiz.questions.length,
+        pointsReward: quiz.pointsReward,
+        userHasCompleted: false,
+      },
+    };
   }
 
   /**
@@ -391,7 +531,8 @@ export class FeedService {
         endsAt: poll.closedAt, // Using closedAt as endsAt
         isActive: poll.isActive,
         allowMultipleVotes: false, // Not in schema
-        userHasVoted: false, // TODO: Check vote status
+        userHasVoted: false, // Always false in feed (not tracked at feed level)
+        votedOptionIndex: null, // User's voted option index (if voted), null otherwise
       },
     };
   }
@@ -429,10 +570,50 @@ export class FeedService {
   }
 
   /**
-   * Transform Election to FeedItemDto.
+   * Transform Election to FeedItemDto with real turnout + candidate data.
    */
-  private transformElection(election: PrimaryElection): FeedItemDto {
-    // TODO: Fetch turnout and top candidates
+  private async transformElection(election: PrimaryElection): Promise<FeedItemDto> {
+    const isLive = this.isElectionLive(election.electionDate);
+
+    // Query real turnout data
+    let turnoutPercentage = 0;
+    let eligibleVoters = 0;
+    let actualVoters = 0;
+
+    try {
+      const snapshots = await this.electionResultsService.getTurnout(election.id);
+      const overall = snapshots.find((s) => !s.district);
+      if (overall) {
+        turnoutPercentage = overall.percentage;
+        eligibleVoters = overall.eligibleVoters;
+        actualVoters = overall.actualVoters;
+      } else if (snapshots.length > 0) {
+        eligibleVoters = snapshots.reduce((sum, s) => sum + s.eligibleVoters, 0);
+        actualVoters = snapshots.reduce((sum, s) => sum + s.actualVoters, 0);
+        turnoutPercentage = eligibleVoters > 0
+          ? parseFloat(((actualVoters / eligibleVoters) * 100).toFixed(1))
+          : 0;
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to fetch turnout for election ${election.id}: ${err.message}`);
+    }
+
+    // Query real vote results (top 3 candidates)
+    let topCandidates: { id: string; name: string; votesCount: number; percentage: number; imageUrl?: string }[] = [];
+
+    try {
+      const results = await this.electionResultsService.getResults(election.id);
+      topCandidates = results.slice(0, 3).map((r) => ({
+        id: r.candidate?.id ?? r.candidateId,
+        name: r.candidate?.fullName ?? 'Unknown',
+        votesCount: r.voteCount,
+        percentage: r.percentage ?? 0,
+        imageUrl: r.candidate?.photoUrl ?? undefined,
+      }));
+    } catch (err) {
+      this.logger.warn(`Failed to fetch results for election ${election.id}: ${err.message}`);
+    }
+
     return {
       id: election.id,
       type: FeedItemType.ELECTION_UPDATE,
@@ -443,12 +624,12 @@ export class FeedService {
         id: election.id,
         electionId: election.id,
         electionName: election.title,
-        electionNameEn: election.subtitle, // Using subtitle as English fallback
-        turnoutPercentage: 0, // TODO: Calculate from turnout snapshots
-        eligibleVoters: 0, // TODO: Calculate from voting eligibility
-        actualVoters: 0, // TODO: Sum from turnout snapshots
-        isLive: this.isElectionLive(election.electionDate),
-        topCandidates: [], // TODO: Fetch from candidates + votes
+        electionNameEn: election.subtitle || election.title,
+        turnoutPercentage,
+        eligibleVoters,
+        actualVoters,
+        isLive,
+        topCandidates,
         lastUpdated: new Date(),
       },
     };
@@ -567,7 +748,7 @@ export class FeedService {
     if (!this.sseService) return;
 
     try {
-      const feedItem = this.transformElection(election);
+      const feedItem = await this.transformElection(election);
       feedItem.sortPriority = this.algorithmService.computePriority(feedItem);
 
       this.sseService.emitFeedUpdate(feedItem, 'election_update');
@@ -610,7 +791,7 @@ export class FeedService {
   /**
    * Generate cache key for feed query.
    *
-   * Key format: feed:{types}:{category}:{device}:{user}:page{X}:limit{Y}
+   * Key format: feed:{types}:{category}:{device}:{user}:page{X}:limit{Y}:v{version}
    */
   private generateCacheKey(query: QueryFeedDto): string {
     const {
@@ -627,38 +808,40 @@ export class FeedService {
     const deviceStr = deviceId || 'public';
     const userStr = userId || 'anon';
 
-    return `feed:${typesStr}:cat${categoryStr}:dev${deviceStr}:usr${userStr}:p${page}:l${limit}`;
+    // Get current version for this content type (0 if not set)
+    const version = this.feedCacheVersion[typesStr] || 0;
+
+    return `feed:${typesStr}:cat${categoryStr}:dev${deviceStr}:usr${userStr}:p${page}:l${limit}:v${version}`;
   }
 
   /**
    * Invalidate feed cache.
    *
    * Call this when new content is published to ensure users see fresh data.
-   * Uses pattern matching to clear all related cache keys.
+   * Uses cache versioning strategy: increments version number to invalidate.
    *
    * @param contentType - Optional: invalidate only specific content type caches
-   * @param categoryId - Optional: invalidate only specific category caches
+   * @param categoryId - Optional: invalidate only specific category caches (not used in current implementation)
    */
   async invalidateFeedCache(
     contentType?: FeedItemType,
     categoryId?: string,
   ): Promise<void> {
     try {
-      // Clear all feed caches (we can't pattern match with cache-manager easily,
-      // so we use a versioning strategy or clear all)
-      // For now, we'll just log and rely on TTL expiration
-      // In production, consider using Redis DEL with pattern matching
+      // Determine which type key to invalidate
+      const typeKey = contentType || 'all';
+
+      // Increment version to invalidate all caches with this type
+      // Using timestamp ensures unique version even if called multiple times quickly
+      const newVersion = Date.now();
+      this.feedCacheVersion[typeKey] = newVersion;
 
       this.logger.log(
-        `Feed cache invalidation requested (type: ${contentType || 'all'}, category: ${categoryId || 'all'})`,
+        `Feed cache invalidated for type "${typeKey}" (new version: ${newVersion})`,
       );
 
-      // Note: cache-manager-redis-yet doesn't support pattern deletion out of the box
-      // For production, you'd need to either:
-      // 1. Track cache keys in a Set and delete individually
-      // 2. Use Redis client directly with DEL pattern
-      // 3. Use cache versioning (add version to cache key, increment on invalidation)
-      // For now, we rely on short TTL (2-5 minutes) for cache freshness
+      // Old cache entries will auto-expire with TTL (2-5 minutes)
+      // New requests will use new version in cache key, effectively bypassing old cache
     } catch (error) {
       this.logger.error('Failed to invalidate feed cache', error);
     }

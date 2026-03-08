@@ -47,8 +47,7 @@ class FeedArticleCard extends StatelessWidget {
                       child: Image.network(
                         article.heroImageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Container(
+                        errorBuilder: (context, error, stackTrace) => Container(
                           color: Colors.grey[300],
                           child: const Icon(Icons.image, size: 48),
                         ),
@@ -142,7 +141,10 @@ class FeedArticleCard extends StatelessWidget {
                         color: article.categoryColor != null
                             ? Color(
                                 int.parse(
-                                  article.categoryColor!.replaceFirst('#', 'FF'),
+                                  article.categoryColor!.replaceFirst(
+                                    '#',
+                                    'FF',
+                                  ),
                                   radix: 16,
                                 ),
                               ).withValues(alpha: 0.1)
@@ -155,7 +157,10 @@ class FeedArticleCard extends StatelessWidget {
                           color: article.categoryColor != null
                               ? Color(
                                   int.parse(
-                                    article.categoryColor!.replaceFirst('#', 'FF'),
+                                    article.categoryColor!.replaceFirst(
+                                      '#',
+                                      'FF',
+                                    ),
                                     radix: 16,
                                   ),
                                 )
@@ -201,7 +206,11 @@ class FeedArticleCard extends StatelessWidget {
                     children: [
                       // Author
                       if (article.author != null) ...[
-                        Icon(Icons.person_outline, size: 14, color: Colors.grey[600]),
+                        Icon(
+                          Icons.person_outline,
+                          size: 14,
+                          color: Colors.grey[600],
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           article.author!,
@@ -214,14 +223,15 @@ class FeedArticleCard extends StatelessWidget {
                       ],
 
                       // Reading time
-                      Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.grey[600],
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${'reading_time'.tr()}: ${article.readingTimeMinutes} ${'minutes'.tr()}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
 
                       const Spacer(),
@@ -255,10 +265,7 @@ class _StatBadge extends StatelessWidget {
   final IconData icon;
   final int count;
 
-  const _StatBadge({
-    required this.icon,
-    required this.count,
-  });
+  const _StatBadge({required this.icon, required this.count});
 
   @override
   Widget build(BuildContext context) {

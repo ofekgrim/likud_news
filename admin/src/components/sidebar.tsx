@@ -26,6 +26,10 @@ import {
   Calendar,
   HelpCircle,
   Target,
+  Send,
+  FileText,
+  Clock,
+  History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -51,8 +55,17 @@ const navGroups = [
       { href: '/tags', label: 'תגיות', icon: TagIcon },
       { href: '/ticker', label: 'טיקר', icon: Radio },
       { href: '/contact', label: 'הודעות', icon: Mail },
-      { href: '/push', label: 'התראות', icon: Bell },
       { href: '/users', label: 'משתמשים', icon: UserCog },
+    ],
+  },
+  {
+    label: 'התראות',
+    items: [
+      { href: '/notifications', label: 'לוח בקרה', icon: Bell },
+      { href: '/notifications/send', label: 'שלח התראה', icon: Send },
+      { href: '/notifications/templates', label: 'תבניות', icon: FileText },
+      { href: '/notifications/schedules', label: 'תזמון', icon: Clock },
+      { href: '/notifications/history', label: 'היסטוריה', icon: History },
     ],
   },
   {
@@ -74,6 +87,7 @@ const navGroups = [
       { href: '/primaries/polls', label: 'סקרים', icon: BarChart3 },
       { href: '/primaries/events', label: 'אירועים', icon: Calendar },
       { href: '/primaries/gamification', label: 'גיימיפיקציה', icon: Trophy },
+      { href: '/daily-quiz', label: 'חידון יומי', icon: HelpCircle },
       { href: '/primaries/turnout', label: 'אחוזי הצבעה', icon: BarChart3 },
     ],
   },

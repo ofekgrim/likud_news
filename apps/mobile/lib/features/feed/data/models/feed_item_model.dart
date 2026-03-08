@@ -20,6 +20,8 @@ abstract class FeedItemModel {
         return ElectionUpdateFeedItemModel.fromJson(json);
       case 'quiz_prompt': // Backend uses snake_case
         return QuizPromptFeedItemModel.fromJson(json);
+      case 'daily_quiz':
+        return DailyQuizFeedItemModel.fromJson(json);
       default:
         throw ArgumentError('Unknown feed item type: $type');
     }
@@ -48,7 +50,9 @@ class ArticleFeedItemModel implements FeedItemModel {
   factory ArticleFeedItemModel.fromJson(Map<String, dynamic> json) {
     return ArticleFeedItemModel(
       id: json['id'] as String,
-      publishedAt: DateTime.parse(json['publishedAt'] as String),
+      publishedAt: json['publishedAt'] != null
+          ? DateTime.parse(json['publishedAt'] as String)
+          : DateTime.now(),
       isPinned: json['isPinned'] as bool? ?? false,
       sortPriority: json['sortPriority'] as int? ?? 0,
       article: FeedArticleContentModel.fromJson(
@@ -100,7 +104,9 @@ class PollFeedItemModel implements FeedItemModel {
   factory PollFeedItemModel.fromJson(Map<String, dynamic> json) {
     return PollFeedItemModel(
       id: json['id'] as String,
-      publishedAt: DateTime.parse(json['publishedAt'] as String),
+      publishedAt: json['publishedAt'] != null
+          ? DateTime.parse(json['publishedAt'] as String)
+          : DateTime.now(),
       isPinned: json['isPinned'] as bool? ?? false,
       sortPriority: json['sortPriority'] as int? ?? 0,
       poll: FeedPollContentModel.fromJson(
@@ -152,7 +158,9 @@ class EventFeedItemModel implements FeedItemModel {
   factory EventFeedItemModel.fromJson(Map<String, dynamic> json) {
     return EventFeedItemModel(
       id: json['id'] as String,
-      publishedAt: DateTime.parse(json['publishedAt'] as String),
+      publishedAt: json['publishedAt'] != null
+          ? DateTime.parse(json['publishedAt'] as String)
+          : DateTime.now(),
       isPinned: json['isPinned'] as bool? ?? false,
       sortPriority: json['sortPriority'] as int? ?? 0,
       event: FeedEventContentModel.fromJson(
@@ -204,7 +212,9 @@ class ElectionUpdateFeedItemModel implements FeedItemModel {
   factory ElectionUpdateFeedItemModel.fromJson(Map<String, dynamic> json) {
     return ElectionUpdateFeedItemModel(
       id: json['id'] as String,
-      publishedAt: DateTime.parse(json['publishedAt'] as String),
+      publishedAt: json['publishedAt'] != null
+          ? DateTime.parse(json['publishedAt'] as String)
+          : DateTime.now(),
       isPinned: json['isPinned'] as bool? ?? false,
       sortPriority: json['sortPriority'] as int? ?? 0,
       electionUpdate: FeedElectionContentModel.fromJson(
@@ -256,7 +266,9 @@ class QuizPromptFeedItemModel implements FeedItemModel {
   factory QuizPromptFeedItemModel.fromJson(Map<String, dynamic> json) {
     return QuizPromptFeedItemModel(
       id: json['id'] as String,
-      publishedAt: DateTime.parse(json['publishedAt'] as String),
+      publishedAt: json['publishedAt'] != null
+          ? DateTime.parse(json['publishedAt'] as String)
+          : DateTime.now(),
       isPinned: json['isPinned'] as bool? ?? false,
       sortPriority: json['sortPriority'] as int? ?? 0,
       quizPrompt: FeedQuizContentModel.fromJson(
@@ -408,6 +420,7 @@ class FeedPollContentModel {
   final bool isActive;
   final bool allowMultipleVotes;
   final bool userHasVoted;
+  final int? votedOptionIndex;
 
   const FeedPollContentModel({
     required this.id,
@@ -419,6 +432,7 @@ class FeedPollContentModel {
     required this.isActive,
     required this.allowMultipleVotes,
     required this.userHasVoted,
+    this.votedOptionIndex,
   });
 
   factory FeedPollContentModel.fromJson(Map<String, dynamic> json) {
@@ -437,6 +451,7 @@ class FeedPollContentModel {
       isActive: json['isActive'] as bool? ?? true,
       allowMultipleVotes: json['allowMultipleVotes'] as bool? ?? false,
       userHasVoted: json['userHasVoted'] as bool? ?? false,
+      votedOptionIndex: json['votedOptionIndex'] as int?,
     );
   }
 
@@ -451,6 +466,7 @@ class FeedPollContentModel {
       'isActive': isActive,
       'allowMultipleVotes': allowMultipleVotes,
       'userHasVoted': userHasVoted,
+      'votedOptionIndex': votedOptionIndex,
     };
   }
 
@@ -465,6 +481,7 @@ class FeedPollContentModel {
       isActive: isActive,
       allowMultipleVotes: allowMultipleVotes,
       userHasVoted: userHasVoted,
+      votedOptionIndex: votedOptionIndex,
     );
   }
 }
@@ -794,6 +811,112 @@ class FeedQuizContentModel {
       completionRate: completionRate,
       userHasCompleted: userHasCompleted,
       userMatchPercentage: userMatchPercentage,
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Daily Quiz Feed Item Model
+// ═══════════════════════════════════════════════════════════════════
+
+class DailyQuizFeedItemModel implements FeedItemModel {
+  final String id;
+  final DateTime publishedAt;
+  final bool isPinned;
+  final int sortPriority;
+  final FeedDailyQuizContentModel dailyQuiz;
+
+  const DailyQuizFeedItemModel({
+    required this.id,
+    required this.publishedAt,
+    required this.isPinned,
+    required this.sortPriority,
+    required this.dailyQuiz,
+  });
+
+  factory DailyQuizFeedItemModel.fromJson(Map<String, dynamic> json) {
+    return DailyQuizFeedItemModel(
+      id: json['id'] as String,
+      publishedAt: DateTime.parse(json['publishedAt'] as String),
+      isPinned: json['isPinned'] as bool? ?? false,
+      sortPriority: json['sortPriority'] as int? ?? 0,
+      dailyQuiz: FeedDailyQuizContentModel.fromJson(
+        json['dailyQuiz'] as Map<String, dynamic>,
+      ),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': 'daily_quiz',
+      'publishedAt': publishedAt.toIso8601String(),
+      'isPinned': isPinned,
+      'sortPriority': sortPriority,
+      'dailyQuiz': dailyQuiz.toJson(),
+    };
+  }
+
+  @override
+  FeedItem toEntity() {
+    return DailyQuizFeedItem(
+      id: id,
+      publishedAt: publishedAt,
+      isPinned: isPinned,
+      sortPriority: sortPriority,
+      dailyQuiz: dailyQuiz.toEntity(),
+    );
+  }
+}
+
+class FeedDailyQuizContentModel {
+  final String id;
+  final String date;
+  final int questionsCount;
+  final int pointsReward;
+  final bool userHasCompleted;
+  final int? userScore;
+
+  const FeedDailyQuizContentModel({
+    required this.id,
+    required this.date,
+    required this.questionsCount,
+    required this.pointsReward,
+    required this.userHasCompleted,
+    this.userScore,
+  });
+
+  factory FeedDailyQuizContentModel.fromJson(Map<String, dynamic> json) {
+    return FeedDailyQuizContentModel(
+      id: json['id'] as String,
+      date: json['date'] as String,
+      questionsCount: json['questionsCount'] as int? ?? 0,
+      pointsReward: json['pointsReward'] as int? ?? 20,
+      userHasCompleted: json['userHasCompleted'] as bool? ?? false,
+      userScore: json['userScore'] as int?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'date': date,
+      'questionsCount': questionsCount,
+      'pointsReward': pointsReward,
+      'userHasCompleted': userHasCompleted,
+      'userScore': userScore,
+    };
+  }
+
+  FeedDailyQuizContent toEntity() {
+    return FeedDailyQuizContent(
+      id: id,
+      date: date,
+      questionsCount: questionsCount,
+      pointsReward: pointsReward,
+      userHasCompleted: userHasCompleted,
+      userScore: userScore,
     );
   }
 }

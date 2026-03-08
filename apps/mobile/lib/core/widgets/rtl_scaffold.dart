@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 import '../../app/router.dart';
 import '../../app/theme/app_colors.dart';
+import '../services/notification_count_service.dart';
 import 'floating_logo.dart';
 
 /// RTL-aware scaffold with optional floating Likud logo.
@@ -14,6 +17,7 @@ class RtlScaffold extends StatelessWidget {
   final bool showDrawerIcon;
   final VoidCallback? onNotificationTap;
   final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
   final PreferredSizeWidget? appBar;
 
   const RtlScaffold({
@@ -24,6 +28,7 @@ class RtlScaffold extends StatelessWidget {
     this.showDrawerIcon = false,
     this.onNotificationTap,
     this.floatingActionButton,
+    this.floatingActionButtonLocation,
     this.appBar,
   });
 
@@ -44,15 +49,27 @@ class RtlScaffold extends StatelessWidget {
             title: showLogo ? const FloatingLogo() : null,
             actions: [
               if (showNotificationBell)
-                IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
-                  onPressed: onNotificationTap,
-                  color: AppColors.textPrimary,
+                ValueListenableBuilder<int>(
+                  valueListenable: GetIt.I<NotificationCountService>().unreadCount,
+                  builder: (context, count, child) => Badge(
+                    isLabelVisible: count > 0,
+                    label: Text(
+                      count > 99 ? '99+' : '$count',
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                    child: child!,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    onPressed: onNotificationTap ?? () => context.push('/notifications'),
+                    color: AppColors.textPrimary,
+                  ),
                 ),
             ],
           ),
       body: body,
       floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
     );
   }
 }

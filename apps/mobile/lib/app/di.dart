@@ -7,6 +7,7 @@ import '../core/network/api_client.dart';
 import '../core/network/auth_interceptor.dart';
 import '../core/services/app_logger.dart';
 import '../core/services/device_id_service.dart';
+import '../core/services/notification_count_service.dart';
 import '../core/services/push_notification_service.dart';
 import '../core/services/secure_storage_service.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
@@ -39,11 +40,21 @@ void configureDependencies() {
     ),
   );
 
-  // Register PushNotificationService (depends on ApiClient + DeviceIdService)
-  getIt.registerLazySingleton<PushNotificationService>(
-    () => PushNotificationService(
+  // Register NotificationCountService for bell icon badge
+  getIt.registerLazySingleton<NotificationCountService>(
+    () => NotificationCountService(
       getIt<ApiClient>(),
       getIt<DeviceIdService>(),
     ),
   );
+
+  // Register PushNotificationService (depends on ApiClient + DeviceIdService + NotificationCountService)
+  getIt.registerLazySingleton<PushNotificationService>(
+    () => PushNotificationService(
+      getIt<ApiClient>(),
+      getIt<DeviceIdService>(),
+      getIt<NotificationCountService>(),
+    ),
+  );
+
 }

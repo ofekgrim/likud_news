@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Plus, Pencil, Trash2, BarChart3, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, BarChart3, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Article, PaginatedResponse } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -66,6 +66,17 @@ export default function ArticlesPage() {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
       toast.success('הכתבה נמחקה');
       setDeleteTarget(null);
+    },
+  });
+
+  const setAsMainMutation = useMutation({
+    mutationFn: (id: string) => api.put(`/articles/${id}`, { isMain: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      toast.success('הכתבה הוגדרה ככתבה מרכזית');
+    },
+    onError: () => {
+      toast.error('שגיאה בהגדרת כתבה מרכזית');
     },
   });
 
@@ -186,6 +197,10 @@ export default function ArticlesPage() {
                       </Badge>
                       {article.isHero && <Badge variant="secondary">ראשי</Badge>}
                       {article.isBreaking && <Badge variant="destructive">מבזק</Badge>}
+                      {article.isMain && <Badge variant="default" className="bg-[#0099DB] hover:bg-[#0099DB]/90">
+                        <Star className="h-3 w-3 ml-1" />
+                        מרכזית
+                      </Badge>}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
@@ -217,6 +232,18 @@ export default function ArticlesPage() {
                           <BarChart3 className="h-3.5 w-3.5" />
                         </Button>
                       </Link>
+                      {!article.isMain && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-[#0099DB] hover:text-[#0099DB] hover:bg-blue-50"
+                          onClick={() => setAsMainMutation.mutate(article.id)}
+                          disabled={setAsMainMutation.isPending}
+                          title="סמן ככתבה מרכזית"
+                        >
+                          <Star className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"

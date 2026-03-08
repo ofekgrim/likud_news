@@ -1,13 +1,13 @@
 {
   "app_name": "Metzudat HaLikud",
-
   "home": "Home",
   "breaking_news": "Breaking",
   "video": "Video",
   "magazine": "Magazine",
   "more": "More",
-
   "latest_news": "Latest News",
+  "end_of_feed": "You've reached the end",
+  "no_content": "No content to display",
   "no_articles": "No articles to display",
   "day_sunday": "Sunday",
   "day_monday": "Monday",
@@ -16,21 +16,18 @@
   "day_thursday": "Thursday",
   "day_friday": "Friday",
   "day_saturday": "Saturday",
-
   "news_desk": "News Desk",
   "refresh": "Refresh",
   "tab_breaking": "Breaking",
   "tab_all_articles": "All Articles",
   "no_breaking": "No breaking news right now",
   "error_loading_breaking": "Error loading breaking news",
-
   "categories": "Categories",
   "no_categories": "No categories to display",
   "no_articles_in_category": "No articles in this category",
   "error_loading_categories": "Error loading categories",
   "error_loading_category_articles": "Error loading category articles",
   "error_refreshing_category_articles": "Error refreshing category articles",
-
   "search": "Search",
   "search_hint": "Search articles...",
   "recent_searches": "Recent Searches",
@@ -39,7 +36,6 @@
   "try_different_search": "Try searching with different words: \"{}\"",
   "error_searching": "Error searching",
   "all_categories_filter": "All",
-
   "members": "Likud Members",
   "search_members_hint": "Search members...",
   "no_members": "No members to display",
@@ -50,10 +46,8 @@
   "member_phone": "Phone",
   "member_email": "Email",
   "member_website": "Website",
-
   "error_loading_magazine": "Error loading magazine articles",
   "error_refreshing_magazine": "Error refreshing magazine",
-
   "favorites": "Favorites",
   "tab_favorites": "Favorites",
   "tab_recently_read": "Recently Read",
@@ -61,7 +55,6 @@
   "no_history": "No reading history",
   "error_loading_favorites": "Error loading favorites",
   "error_loading_history": "Error loading reading history",
-
   "settings": "Settings",
   "cache_cleared": "Cache cleared successfully",
   "language": "Language",
@@ -78,7 +71,6 @@
   "clear_cache_confirm": "Are you sure you want to clear the cache?",
   "cancel": "Cancel",
   "version": "Version 1.0.0",
-
   "contact_us": "Contact Us",
   "message_sent": "Message sent successfully!",
   "full_name": "Full Name",
@@ -94,20 +86,17 @@
   "message_required": "Please enter a message",
   "send": "Send",
   "error_sending_message": "Error sending message",
-
   "more_title": "More",
   "likud_members": "Likud Members",
   "greeting": "Hello!",
   "welcome": "Welcome to Metzudat HaLikud",
   "follow_us": "Follow Us",
-
   "about": "About",
   "about_subtitle": "Official News Application",
   "about_description": "Metzudat HaLikud is the official news application of the Likud movement. The app brings you all the news, updates, and opinion articles directly from the party.",
   "build": "Build 1",
   "developed_by": "Developed by Likud",
   "copyright": "© {} All rights reserved",
-
   "accessibility_title": "Accessibility Statement",
   "accessibility_intro_title": "Commitment to Accessibility",
   "accessibility_intro_text": "Metzudat HaLikud is committed to making the application accessible to all users, including people with disabilities. We operate in accordance with the Equal Rights for Persons with Disabilities Regulations.",
@@ -123,7 +112,6 @@
   "accessibility_contact_text": "Encountered an accessibility issue? Please contact us:\nEmail: accessibility@likud.org.il\nPhone: 02-1234567",
   "accessibility_updated_title": "Last Updated",
   "accessibility_updated_text": "This accessibility statement was last updated in February 2026.",
-
   "privacy_title": "Privacy Policy",
   "privacy_intro_title": "Introduction",
   "privacy_intro_text": "Metzudat HaLikud (\"the Application\") respects user privacy. This privacy policy explains how we collect, use, and protect your information.",
@@ -141,13 +129,11 @@
   "privacy_contact_text": "For questions about the privacy policy, please contact us:\nEmail: privacy@likud.org.il",
   "privacy_updated_title": "Last Updated",
   "privacy_updated_text": "This privacy policy was last updated in February 2026.",
-
   "share_label": "Share:",
   "copy_link": "Copy Link",
   "link_copied": "Link copied",
   "remove_favorite": "Remove from saved",
   "save_article": "Save article",
-
   "try_again": "Try Again",
   "loading": "Loading...",
   "error_generic": "Something went wrong, try again",
@@ -167,18 +153,24 @@
   "app_version": "App Version",
   "accessibility": "Accessibility",
   "dark_mode": "Dark Mode",
-
   "notifications_permission_title": "Notifications",
   "notifications_permission_body": "Enable notifications to receive breaking news in real-time",
   "notifications_enabled": "Notifications enabled",
   "notifications_disabled": "Notifications disabled",
-
   "reading_time_minutes": "{} min read",
   "reading_time_one_minute": "1 min read",
+  "reading_time": "Reading time",
+  "minutes": "minutes",
+  "breaking": "Breaking",
+  "final": "Final",
+  "turnout": "Turnout",
+  "voters": "Voters",
+  "updated": "Updated",
+  "just_now": "Just now",
+  "view_results": "View results",
   "sponsored": "Sponsored",
   "sponsored_content": "Sponsored Content",
   "no_content_available": "No content available",
-
   "more_on_topic": "More on Topic",
   "more_from_category": "More from {}",
   "comments_title": "Comments",
@@ -208,28 +200,23 @@
   "you_might_be_interested": "You Might Be Interested",
   "video_caption": "Caption",
   "video_credit": "Credit",
-
   "tag_articles": "Articles by Tag",
   "no_tag_articles": "No articles for this tag",
   "error_loading_tag_articles": "Error loading tag articles",
-
   "author_articles": "Author Articles",
   "no_author_articles": "No articles by this author",
   "error_loading_author_articles": "Error loading author articles",
   "articles_by": "Articles by {}",
-
   "stories": "Stories",
   "no_stories": "No stories",
   "read_article": "Read Article",
   "story_expired": "This story has expired",
-
   "new_articles_available": "New articles available",
   "browse_categories": "Browse by Category",
   "show_more": "Show More",
   "no_all_articles": "No articles to display",
   "search_breaking_hint": "Search breaking news...",
   "search_all_articles_hint": "Search all articles...",
-
   "login_title": "Welcome",
   "login_subtitle": "Sign in to enjoy additional features",
   "phone_login": "Phone",
@@ -255,14 +242,12 @@
   "password_too_short": "Password must be at least 8 characters",
   "phone_optional": "Phone (optional)",
   "already_have_account": "Already have an account? Sign in",
-
   "auth_required_title": "Sign in to continue",
   "auth_required_subtitle": "You need to sign in to perform this action",
   "auth_sign_in": "Sign In",
   "auth_continue_guest": "Continue as Guest",
   "auth_login_register": "Login / Register",
   "my_profile": "My Profile",
-
   "profile_title": "My Profile",
   "profile_anonymous": "Anonymous User",
   "profile_edit": "Edit Profile",
@@ -312,7 +297,6 @@
   "notif_membership_updates_desc": "Get notifications about membership status changes",
   "notif_campaign_events": "Campaign Events",
   "notif_campaign_events_desc": "Get notifications about upcoming events",
-
   "bookmark_folders": "Bookmark Folders",
   "all_favorites": "All Favorites",
   "no_folders_yet": "No folders yet",
@@ -339,7 +323,6 @@
   "delete": "Delete",
   "create": "Create",
   "retry": "Try Again",
-
   "primaries": "Primaries",
   "primaries_title": "Likud Primaries",
   "candidates": "Candidates",
@@ -381,7 +364,6 @@
   "election_status_counting": "Counting",
   "election_status_completed": "Completed",
   "election_status_cancelled": "Cancelled",
-
   "quiz_title": "Candidate Matching Quiz",
   "quiz_subtitle": "Discover which candidate suits you best",
   "quiz_description": "Answer the questions and rate their importance. We'll calculate your match percentage with each candidate.",
@@ -443,7 +425,6 @@
   "quiz_list_status_upcoming": "Coming Soon",
   "quiz_list_empty": "No quizzes available right now",
   "quiz_list_error": "Error loading quizzes",
-
   "polls_title": "Community Polls",
   "polls_no_polls": "No polls to display",
   "polls_vote": "Vote",
@@ -457,7 +438,6 @@
   "polls_vote_success": "Vote submitted successfully",
   "polls_already_voted": "You already voted in this poll",
   "polls_select_option": "Select an option",
-
   "election_day_title": "Election Day",
   "election_day_stations": "Polling Stations",
   "election_day_results": "Results",
@@ -485,7 +465,21 @@
   "election_day_live": "Live",
   "election_day_last_updated": "Last updated: {}",
   "election_day_i_voted": "I Voted!",
-
+  "community_poll": "Community Poll",
+  "vote_now": "Vote Now",
+  "votes": "Votes",
+  "ends": "Ends",
+  "days": "Days",
+  "cabdidate_quiz": "Candidate Quiz",
+  "questions": "Questions",
+  "completed": "Completed",
+  "start_quiz": "Start Quiz",
+  "minutes_ago": "{} minutes ago",
+  "campaign_event": "Campaign Event",
+  "meet": "Meet",
+  "attending": "Attending",
+  "rsvp": "הצטרף",
+  "candidate_quiz": "Candidate Quiz",
   "events_title": "Campaign Events",
   "events_no_events": "No upcoming events",
   "events_upcoming": "Upcoming",
@@ -505,7 +499,6 @@
   "events_login_to_rsvp": "Sign in to RSVP",
   "events_all_districts": "All Districts",
   "events_filter": "Filter",
-
   "membership_title": "Likud Membership",
   "membership_status": "Membership Status",
   "membership_id": "Member ID",
@@ -526,7 +519,6 @@
   "membership_registration_deadline": "Registration deadline: {}",
   "membership_error_loading": "Error loading membership details",
   "membership_login_required": "Please sign in to view membership details",
-
   "gamification_title": "Achievements",
   "gamification_points": "Points",
   "gamification_badges": "Badges",
@@ -541,7 +533,6 @@
   "gamification_total_points": "Total Points",
   "gamification_error_loading": "Error loading data",
   "gamification_locked": "Locked",
-
   "badge_quiz_taker": "Quiz Taker",
   "badge_first_vote": "First Vote",
   "badge_endorser": "Endorser",
@@ -550,7 +541,6 @@
   "badge_top_contributor": "Top Contributor",
   "badge_early_bird": "Early Bird",
   "badge_social_sharer": "Social Sharer",
-
   "action_quiz_complete": "Quiz completed",
   "action_endorsement": "Candidate endorsed",
   "action_poll_vote": "Poll vote",
@@ -559,7 +549,6 @@
   "action_share": "Share",
   "action_login_streak": "Login streak",
   "action_profile_complete": "Profile completed",
-
   "change_password": "Change Password",
   "current_password": "Current Password",
   "new_password": "New Password",
@@ -568,10 +557,8 @@
   "new_passwords_dont_match": "New passwords don't match",
   "new_password_too_short": "New password must be at least 8 characters",
   "current_password_required": "Please enter your current password",
-
   "user_not_found_register": "No account found. Please register first.",
   "login_info_phone_otp": "If you provide a phone number, you can also login via OTP",
-
   "change_phone": "Change Phone",
   "change_email": "Change Email",
   "verify_phone": "Verify Phone",
@@ -589,7 +576,6 @@
   "resend_email_change_note": "To resend the code, please restart the email change process",
   "verify_phone_signup": "Verify your phone number",
   "skip_verification": "Skip",
-
   "member_required": "Membership Required",
   "verified_member_required": "Verified Member Required",
   "login_required_action": "Login Required",
@@ -600,14 +586,43 @@
   "membership_benefits": "Membership Benefits",
   "login_to_continue": "Sign in to continue",
   "action_not_allowed": "This action is not allowed",
-
   "delete_account": "Delete Account",
   "delete_account_confirm": "Delete Account Permanently",
   "delete_account_warning": "This action cannot be undone. All your data will be permanently deleted.",
   "enter_password_to_delete": "Enter password to confirm deletion",
-
   "quiz_compare_to_community": "How You Compare to Community",
   "quiz_total_responses": "{} participants",
   "quiz_your_match": "Your Match",
-  "quiz_community_average": "Community Average"
+  "quiz_community_average": "Community Average",
+  "daily_quiz_title": "Daily Quiz",
+  "daily_quiz_description": "Test your knowledge of today's news",
+  "daily_quiz_completed": "You already completed today's quiz!",
+  "daily_quiz_start": "Start Quiz",
+  "daily_quiz_no_quiz": "No quiz available today",
+  "daily_quiz_come_back": "Come back tomorrow for a new quiz!",
+  "daily_quiz_submit": "Submit",
+  "daily_quiz_your_score": "Your score: {}/{}",
+  "daily_quiz_back_to_feed": "Back to Feed",
+  "daily_quiz_results": "Results",
+  "daily_quiz_points_earned": "+{} points",
+  "daily_quiz_close": "Close",
+  "daily_quiz_error_loading": "Error loading quiz",
+  "daily_quiz_read_article": "Read the related article",
+  "points": "pts",
+  "score": "Score",
+  "badge_streak_7": "7-Day Streak",
+  "badge_streak_30": "30-Day Streak",
+  "badge_streak_100": "100-Day Streak",
+  "badge_quiz_master": "Quiz Master",
+  "badge_news_junkie": "News Junkie",
+  "badge_community_voice": "Community Voice",
+  "gamification_streak": "Streak",
+  "gamification_streak_days": "{} days",
+  "gamification_streak_best": "Best: {}",
+  "gamification_streak_subtitle": "Log in daily to keep your streak",
+  "gamification_my_stats": "My Stats",
+  "action_daily_quiz_complete": "Daily Quiz",
+  "action_article_read": "Article Read",
+  "action_daily_login": "Daily Login",
+  "action_streak_bonus": "Streak Bonus"
 }

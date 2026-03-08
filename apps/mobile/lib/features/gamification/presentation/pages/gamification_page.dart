@@ -8,6 +8,7 @@ import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../domain/entities/leaderboard_entry.dart';
 import '../../domain/entities/user_badge.dart';
+import '../../domain/entities/user_streak.dart';
 import '../bloc/gamification_bloc.dart';
 
 /// Gamification page displaying user points, badges, and the leaderboard.
@@ -192,6 +193,8 @@ class _GamificationPageState extends State<GamificationPage>
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         children: [
           _buildPointsCard(state),
+          const SizedBox(height: 16),
+          _buildStreakCard(state.streak),
           const SizedBox(height: 24),
           _buildBadgesSection(state),
           const SizedBox(height: 24),
@@ -271,6 +274,72 @@ class _GamificationPageState extends State<GamificationPage>
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Streak Card
+  // ---------------------------------------------------------------------------
+
+  Widget _buildStreakCard(UserStreak streak) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 0.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.local_fire_department_rounded,
+              color: Colors.deepOrange,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${'gamification_streak'.tr()} — ${'gamification_streak_days'.tr(args: ['${streak.currentStreak}'])}',
+                  style: const TextStyle(
+                    fontFamily: 'Heebo',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'gamification_streak_best'.tr(args: ['${streak.longestStreak}']),
+                  style: const TextStyle(
+                    fontFamily: 'Heebo',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

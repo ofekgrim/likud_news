@@ -21,7 +21,8 @@ async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> 
     const error = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error(error.message || 'API Error');
   }
-  return res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export const api = {
@@ -31,6 +32,26 @@ export const api = {
   patch: <T>(path: string, data?: unknown) => fetchApi<T>(path, { method: 'PATCH', body: data ? JSON.stringify(data) : undefined }),
   delete: <T>(path: string) => fetchApi<T>(path, { method: 'DELETE' }),
 };
+
+// ── Daily Quiz ─────────────────────────────────────────────────────────
+
+export async function fetchDailyQuizzes(page = 1, limit = 20) {
+  return api.get<import('@/lib/types').PaginatedResponse<import('@/lib/types').DailyQuizWithStats>>(
+    `/gamification/admin/daily-quiz?page=${page}&limit=${limit}`
+  );
+}
+
+export async function createDailyQuiz(data: { date: string; questions: import('@/lib/types').DailyQuizQuestion[]; pointsReward?: number }) {
+  return api.post<import('@/lib/types').DailyQuiz>('/gamification/admin/daily-quiz', data);
+}
+
+export async function updateDailyQuiz(id: string, data: { date: string; questions: import('@/lib/types').DailyQuizQuestion[]; pointsReward?: number }) {
+  return api.put<import('@/lib/types').DailyQuiz>(`/gamification/admin/daily-quiz/${id}`, data);
+}
+
+export async function deleteDailyQuiz(id: string) {
+  return api.delete(`/gamification/admin/daily-quiz/${id}`);
+}
 
 export async function uploadFile(file: File): Promise<import('@/lib/types').MediaItem> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;

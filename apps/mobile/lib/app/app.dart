@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import '../core/services/app_logger.dart';
+import '../core/services/push_notification_service.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import 'di.dart';
 import 'router.dart';
@@ -38,6 +39,7 @@ class _MetzudatAppState extends State<MetzudatApp> {
     super.initState();
     _authBloc = getIt<AuthBloc>()..add(const CheckAuthStatus());
     _router = AppRouter.createRouter(_authBloc);
+    getIt<PushNotificationService>().setRouter(_router);
   }
 
   @override

@@ -10,6 +10,10 @@ enum PointAction {
   share,
   loginStreak,
   profileComplete,
+  dailyQuizComplete,
+  articleRead,
+  dailyLogin,
+  streakBonus,
 }
 
 /// Immutable entity representing a single points-earning event.

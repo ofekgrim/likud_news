@@ -37,6 +37,23 @@ abstract class GamificationRemoteDataSource {
     int limit = 20,
     String? district,
   });
+
+  /// Fetches the authenticated user's full gamification profile.
+  ///
+  /// Throws a [DioException] on failure.
+  Future<Map<String, dynamic>> getMyProfile();
+
+  /// Fetches the authenticated user's streak data.
+  ///
+  /// Throws a [DioException] on failure.
+  Future<Map<String, dynamic>> getStreak();
+
+  /// Tracks a user action for gamification purposes.
+  ///
+  /// [action] is the action type (e.g., 'article_read', 'daily_login').
+  /// [metadata] is optional additional data for the action.
+  /// Throws a [DioException] on failure.
+  Future<void> trackAction(String action, {Map<String, dynamic>? metadata});
 }
 
 /// Implementation of [GamificationRemoteDataSource] using [ApiClient].
@@ -130,5 +147,36 @@ class GamificationRemoteDataSourceImpl implements GamificationRemoteDataSource {
         .map((json) =>
             LeaderboardEntryModel.fromJson(json as Map<String, dynamic>))
         .toList();
+  }
+
+  @override
+  Future<Map<String, dynamic>> getMyProfile() async {
+    final response = await _apiClient.get('/gamification/me');
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    return {};
+  }
+
+  @override
+  Future<Map<String, dynamic>> getStreak() async {
+    final response = await _apiClient.get('/gamification/me/streak');
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    return {};
+  }
+
+  @override
+  Future<void> trackAction(String action, {Map<String, dynamic>? metadata}) async {
+    await _apiClient.post(
+      '/gamification/track',
+      data: {
+        'action': action,
+        if (metadata != null) 'metadata': metadata,
+      },
+    );
   }
 }

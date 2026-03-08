@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,9 +12,12 @@ import { PrimaryElection } from '../elections/entities/primary-election.entity';
 import { CreateQuizQuestionDto } from './dto/create-quiz-question.dto';
 import { UpdateQuizQuestionDto } from './dto/update-quiz-question.dto';
 import { SubmitQuizDto } from './dto/submit-quiz.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class QuizService {
+  private readonly logger = new Logger(QuizService.name);
+
   constructor(
     @InjectRepository(QuizQuestion)
     private readonly questionRepository: Repository<QuizQuestion>,
@@ -23,6 +27,7 @@ export class QuizService {
     private readonly candidateRepository: Repository<Candidate>,
     @InjectRepository(PrimaryElection)
     private readonly electionRepository: Repository<PrimaryElection>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -69,7 +74,27 @@ export class QuizService {
    */
   async createQuestion(dto: CreateQuizQuestionDto): Promise<QuizQuestion> {
     const question = this.questionRepository.create(dto);
-    return this.questionRepository.save(question);
+    const saved = await this.questionRepository.save(question);
+
+    // Notify when first quiz question is activated for an election
+    if (dto.electionId) {
+      const questionCount = await this.questionRepository.count({
+        where: { electionId: dto.electionId, isActive: true },
+      });
+      if (questionCount === 1) {
+        this.notificationsService.triggerContentNotification(
+          'quiz.activated',
+          'quiz',
+          dto.electionId,
+        {
+          quiz_title: 'שאלון התאמה',
+          questions_count: '1',
+        },
+      ).catch((err) => this.logger.error(`Quiz notification failed: ${err.message}`));
+      }
+    }
+
+    return saved;
   }
 
   /**
@@ -117,9 +142,25 @@ export class QuizService {
     });
 
     if (!candidates.length) {
-      throw new NotFoundException(
-        `No candidates found for election "${electionId}"`,
-      );
+      // No candidates yet — save answers without match results
+      let response = await this.responseRepository.findOne({
+        where: { userId, electionId },
+      });
+      if (response) {
+        response.answers = answers;
+        response.matchResults = [];
+        response.completedAt = new Date();
+      } else {
+        response = this.responseRepository.create({
+          userId,
+          electionId,
+          answers,
+          matchResults: [],
+          completedAt: new Date(),
+        });
+      }
+      await this.responseRepository.save(response);
+      return [];
     }
 
     // Compute match for each candidate

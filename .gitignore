@@ -8,6 +8,7 @@
 !.env.example
 *.pem
 *.key
+*.p8
 credentials.json
 firebase-adminsdk*.json
 google-services.json

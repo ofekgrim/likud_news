@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/feed_item.dart';
+import '../../../community_polls/presentation/bloc/polls_bloc.dart';
 
-/// Card widget for displaying a community poll in the feed
-class FeedPollCard extends StatelessWidget {
+/// Card widget for displaying a community poll in the feed with inline voting
+class FeedPollCard extends StatefulWidget {
   final FeedPollContent poll;
   final bool isPinned;
   final VoidCallback? onTap;
@@ -17,169 +19,288 @@ class FeedPollCard extends StatelessWidget {
   });
 
   @override
+  State<FeedPollCard> createState() => _FeedPollCardState();
+}
+
+class _FeedPollCardState extends State<FeedPollCard> {
+  bool _expandedMode = false;
+
+  /// Whether the poll is closed (expired or deactivated).
+  /// A closed poll should show results in read-only mode with no voting.
+  bool get _isPollClosed {
+    if (!widget.poll.isActive) return true;
+    if (widget.poll.endsAt != null &&
+        widget.poll.endsAt!.isBefore(DateTime.now())) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
+    return BlocListener<PollsBloc, PollsState>(
+      listenWhen: (previous, current) {
+        if (current is! PollsLoaded) return false;
+        if (previous is! PollsLoaded) return false;
+        // Only listen when this poll's voting state changes
+        return previous.votingPollId == widget.poll.id &&
+            current.votingPollId == null &&
+            current.successMessage != null;
+      },
+      listener: (context, state) {
+        if (state is PollsLoaded && state.successMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.successMessage!),
+              duration: const Duration(seconds: 2),
+              backgroundColor: state.hasVoted(widget.poll.id)
+                  ? AppColors.likudBlue
+                  : Colors.red[700],
+            ),
+          );
+        }
+      },
+      child: Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isPinned ? AppColors.likudBlue : Colors.transparent,
-          width: isPinned ? 2 : 0,
+          color: widget.isPinned ? AppColors.likudBlue : Colors.transparent,
+          width: widget.isPinned ? 2 : 0,
         ),
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.likudBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.poll_outlined,
+                        color: AppColors.likudBlue,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'community_poll'.tr(),
+                        style: TextStyle(
+                          color: AppColors.likudBlue,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                if (_isPollClosed)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                      horizontal: 10,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.likudBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.red[300]!,
+                        width: 1,
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.poll_outlined,
-                          color: AppColors.likudBlue,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'community_poll'.tr(),
-                          style: TextStyle(
-                            color: AppColors.likudBlue,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  if (isPinned)
-                    Icon(
-                      Icons.push_pin,
-                      color: AppColors.likudBlue,
-                      size: 18,
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Question
-              Text(
-                poll.question,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  height: 1.3,
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Options (show top 3 or all if less than 3)
-              ...poll.options
-                  .take(3)
-                  .map((option) => _PollOption(
-                        option: option,
-                        userHasVoted: poll.userHasVoted,
-                      ))
-                  .toList(),
-
-              if (poll.options.length > 3) ...[
-                const SizedBox(height: 8),
-                Center(
-                  child: Text(
-                    '+${poll.options.length - 3} ${'more_options'.tr()}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ],
-
-              const SizedBox(height: 16),
-
-              // Footer
-              Row(
-                children: [
-                  // Total votes
-                  Icon(Icons.people_outline, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${poll.totalVotes} ${'votes'.tr()}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // Action button
-                  TextButton.icon(
-                    onPressed: onTap,
-                    icon: Icon(
-                      poll.userHasVoted ? Icons.bar_chart : Icons.how_to_vote,
-                      size: 18,
-                    ),
-                    label: Text(
-                      poll.userHasVoted
-                          ? 'view_results'.tr()
-                          : 'vote_now'.tr(),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.likudBlue,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                    child: Text(
+                      'polls_closed'.tr(),
+                      style: TextStyle(
+                        color: Colors.red[700],
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
+                if (widget.isPinned) ...[
+                  if (_isPollClosed) const SizedBox(width: 8),
+                  Icon(
+                    Icons.push_pin,
+                    color: AppColors.likudBlue,
+                    size: 18,
+                  ),
                 ],
-              ),
+              ],
+            ),
 
-              // Expiration info
-              if (poll.endsAt != null) ...[
-                const SizedBox(height: 8),
-                Row(
+            const SizedBox(height: 16),
+
+            // Question
+            Text(
+              widget.poll.question,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                height: 1.3,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Options - show all if expanded, otherwise just first 3
+            _buildOptionsSection(context),
+
+            const SizedBox(height: 16),
+
+            // Footer - uses BlocBuilder to reflect voted state
+            BlocBuilder<PollsBloc, PollsState>(
+              builder: (context, pollsState) {
+                final pollClosed = _isPollClosed;
+                final int? votedIndex = (pollsState is PollsLoaded)
+                    ? (pollsState.votedOptionIndex(widget.poll.id) ?? widget.poll.votedOptionIndex)
+                    : widget.poll.votedOptionIndex;
+                final bool userHasVoted = votedIndex != null;
+
+                // Show updated total votes (original + 1 if just voted via PollsBloc)
+                final int displayTotalVotes = (pollsState is PollsLoaded && pollsState.hasVoted(widget.poll.id) && widget.poll.votedOptionIndex == null)
+                    ? widget.poll.totalVotes + 1
+                    : widget.poll.totalVotes;
+
+                return Row(
                   children: [
-                    Icon(Icons.timer_outlined, size: 14, color: Colors.grey[600]),
+                    // Total votes
+                    Icon(Icons.people_outline, size: 16, color: Colors.grey[600]),
                     const SizedBox(width: 4),
                     Text(
-                      '${'ends'.tr()}: ${_formatDate(poll.endsAt!)}',
+                      '$displayTotalVotes ${'votes'.tr()}',
                       style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[600],
+                        fontSize: 13,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
+
+                    const Spacer(),
+
+                    // Action button or expand button
+                    // When poll is closed or user has voted, show "view results"
+                    if (pollClosed || userHasVoted)
+                      TextButton.icon(
+                        onPressed: widget.onTap,
+                        icon: Icon(Icons.bar_chart, size: 18),
+                        label: Text(
+                          'view_results'.tr(),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.likudBlue,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                        ),
+                      )
+                    else if (widget.poll.options.length > 3 && !_expandedMode)
+                      TextButton.icon(
+                        onPressed: () => setState(() => _expandedMode = true),
+                        icon: Icon(Icons.expand_more, size: 18),
+                        label: Text(
+                          '+${widget.poll.options.length - 3} ${'more_options'.tr()}',
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.likudBlue,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
                   ],
-                ),
-              ],
+                );
+              },
+            ),
+
+            // Expiration info
+            if (widget.poll.endsAt != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.timer_outlined, size: 14, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${'ends'.tr()}: ${_formatDate(widget.poll.endsAt!)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
             ],
-          ),
+          ],
         ),
       ),
+      ),
     );
+  }
+
+  Widget _buildOptionsSection(BuildContext context) {
+    final optionsToShow =
+        _expandedMode ? widget.poll.options : widget.poll.options.take(3).toList();
+    final pollClosed = _isPollClosed;
+
+    return BlocBuilder<PollsBloc, PollsState>(
+      builder: (context, state) {
+        final isVoting = !pollClosed &&
+            state is PollsLoaded &&
+            state.votingPollId == widget.poll.id;
+
+        // Check both feed data and PollsBloc for voted state
+        // PollsBloc tracks optimistic votes made in this session
+        final int? votedIndex = (state is PollsLoaded)
+            ? (state.votedOptionIndex(widget.poll.id) ?? widget.poll.votedOptionIndex)
+            : widget.poll.votedOptionIndex;
+        // If poll is closed, always show results (read-only mode)
+        final bool showResults = pollClosed || votedIndex != null;
+
+        return Column(
+          children: [
+            ...optionsToShow.asMap().entries.map((entry) {
+              final index = entry.key;
+              final option = entry.value;
+
+              return _PollOption(
+                option: option,
+                optionIndex: index,
+                userHasVoted: showResults,
+                isThisVote: votedIndex == index,
+                isVoting: isVoting,
+                onVote: pollClosed ? () {} : () => _onVoteOption(context, index),
+                isDisabled: pollClosed,
+              );
+            }).toList(),
+          ],
+        );
+      },
+    );
+  }
+
+  void _onVoteOption(BuildContext context, int optionIndex) {
+    final pollsBloc = context.read<PollsBloc>();
+    pollsBloc.add(VoteOnPollEvent(
+      pollId: widget.poll.id,
+      optionIndex: optionIndex,
+    ));
   }
 
   String _formatDate(DateTime date) {
@@ -198,74 +319,147 @@ class FeedPollCard extends StatelessWidget {
   }
 }
 
-/// Widget for displaying a single poll option
+/// Widget for displaying a single poll option with voting capability
 class _PollOption extends StatelessWidget {
   final FeedPollOption option;
+  final int optionIndex;
   final bool userHasVoted;
+  final bool isThisVote;
+  final bool isVoting;
+  final VoidCallback onVote;
+  final bool isDisabled;
 
   const _PollOption({
     required this.option,
+    required this.optionIndex,
     required this.userHasVoted,
+    required this.isThisVote,
+    required this.isVoting,
+    required this.onVote,
+    this.isDisabled = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Stack(
-        children: [
-          // Background progress bar
-          if (userHasVoted)
+    return GestureDetector(
+      onTap: !userHasVoted && !isVoting && !isDisabled ? onVote : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: Stack(
+          children: [
+            // Background progress bar (shown when voted)
+            if (userHasVoted)
+              Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.likudBlue.withValues(alpha: 0.1),
+                ),
+                child: FractionallySizedBox(
+                  alignment: AlignmentDirectional.centerStart,
+                  widthFactor: option.percentage / 100,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.likudBlue.withValues(
+                        alpha: isThisVote ? 0.5 : 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            // Hover background for clickable option (not voted)
+            else if (!isVoting)
+              Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.grey.withValues(alpha: 0.05),
+                  border: Border.all(
+                    color: Colors.grey.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+              )
+            // Loading background while voting
+            else
+              Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.grey.withValues(alpha: 0.1),
+                ),
+              ),
+
+            // Option content
             Container(
               height: 44,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: AppColors.likudBlue.withValues(alpha: 0.1),
-              ),
-              child: FractionallySizedBox(
-                alignment: AlignmentDirectional.centerStart,
-                widthFactor: option.percentage / 100,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: AppColors.likudBlue.withValues(alpha: 0.3),
-                  ),
-                ),
-              ),
-            ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  // Checkbox or checkmark icon
+                  if (!isVoting)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 8),
+                      child: Icon(
+                        userHasVoted
+                            ? (isThisVote ? Icons.check_circle : Icons.radio_button_unchecked)
+                            : Icons.radio_button_unchecked,
+                        size: 20,
+                        color: userHasVoted && isThisVote
+                            ? AppColors.likudBlue
+                            : Colors.grey[400],
+                      ),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 8),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation(AppColors.likudBlue),
+                        ),
+                      ),
+                    ),
 
-          // Option content
-          Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    option.text,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (userHasVoted) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    '${option.percentage.toStringAsFixed(1)}%',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.likudBlue,
+                  // Option text
+                  Expanded(
+                    child: Text(
+                      option.text,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: userHasVoted && isThisVote
+                            ? AppColors.likudBlue
+                            : Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+
+                  // Percentage (shown when voted)
+                  if (userHasVoted) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      '${option.percentage.toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: isThisVote
+                            ? AppColors.likudBlue
+                            : Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

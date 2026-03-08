@@ -98,6 +98,14 @@ export class CreateArticleDto {
   @IsBoolean()
   isBreaking?: boolean;
 
+  @ApiPropertyOptional({
+    description: 'Whether this is the main/featured article (only one can be main)',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isMain?: boolean;
+
   @ApiProperty({
     description: 'URL-friendly slug (must be unique)',
     maxLength: 500,

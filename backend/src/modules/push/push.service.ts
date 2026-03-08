@@ -65,6 +65,11 @@ export class PushService {
     const BATCH_SIZE = 500;
 
     for (let i = 0; i < activeTokens.length; i += BATCH_SIZE) {
+      // Delay between batches to avoid FCM rate limiting
+      if (i > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+
       const batch = activeTokens.slice(i, i + BATCH_SIZE);
       const tokens = batch.map((t) => t.token);
 
@@ -135,5 +140,28 @@ export class PushService {
 
   async deactivateToken(deviceId: string): Promise<void> {
     await this.pushTokenRepository.update({ deviceId }, { isActive: false });
+  }
+
+  /**
+   * Prune stale tokens that haven't been updated in the given number of days.
+   * FCM best practice: remove tokens inactive for 30+ days.
+   */
+  async pruneStaleTokens(staleDays = 30): Promise<number> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - staleDays);
+
+    const result = await this.pushTokenRepository
+      .createQueryBuilder()
+      .update(PushToken)
+      .set({ isActive: false })
+      .where('"isActive" = true')
+      .andWhere('"updatedAt" < :cutoff', { cutoff })
+      .execute();
+
+    const pruned = result.affected || 0;
+    if (pruned > 0) {
+      this.logger.log(`Pruned ${pruned} stale push tokens (inactive > ${staleDays} days)`);
+    }
+    return pruned;
   }
 }

@@ -69,3 +69,8 @@ class FeedUpdateReceived extends FeedEvent {
   @override
   List<Object?> get props => [feedItem];
 }
+
+/// Internal event when auth state changes (user logs in/out)
+class AuthStateChangedFeed extends FeedEvent {
+  const AuthStateChangedFeed();
+}

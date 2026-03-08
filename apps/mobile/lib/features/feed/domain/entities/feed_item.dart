@@ -7,6 +7,7 @@ enum FeedItemType {
   event,
   electionUpdate,
   quizPrompt,
+  dailyQuiz,
 }
 
 /// Base class for all feed items
@@ -110,6 +111,22 @@ class QuizPromptFeedItem extends FeedItem {
   List<Object?> get props => [...super.props, quizPrompt];
 }
 
+/// Feed item containing a daily quiz
+class DailyQuizFeedItem extends FeedItem {
+  final FeedDailyQuizContent dailyQuiz;
+
+  const DailyQuizFeedItem({
+    required super.id,
+    required super.publishedAt,
+    required super.isPinned,
+    required super.sortPriority,
+    required this.dailyQuiz,
+  }) : super(type: FeedItemType.dailyQuiz);
+
+  @override
+  List<Object?> get props => [...super.props, dailyQuiz];
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // CONTENT ENTITIES (nested within feed items)
 // ═══════════════════════════════════════════════════════════════════
@@ -184,6 +201,7 @@ class FeedPollContent extends Equatable {
   final bool isActive;
   final bool allowMultipleVotes;
   final bool userHasVoted;
+  final int? votedOptionIndex;
 
   const FeedPollContent({
     required this.id,
@@ -195,6 +213,7 @@ class FeedPollContent extends Equatable {
     required this.isActive,
     required this.allowMultipleVotes,
     required this.userHasVoted,
+    this.votedOptionIndex,
   });
 
   @override
@@ -208,6 +227,7 @@ class FeedPollContent extends Equatable {
         isActive,
         allowMultipleVotes,
         userHasVoted,
+        votedOptionIndex,
       ];
 }
 
@@ -377,5 +397,34 @@ class FeedQuizContent extends Equatable {
         completionRate,
         userHasCompleted,
         userMatchPercentage,
+      ];
+}
+
+/// Daily quiz content within a feed item
+class FeedDailyQuizContent extends Equatable {
+  final String id;
+  final String date;
+  final int questionsCount;
+  final int pointsReward;
+  final bool userHasCompleted;
+  final int? userScore;
+
+  const FeedDailyQuizContent({
+    required this.id,
+    required this.date,
+    required this.questionsCount,
+    required this.pointsReward,
+    required this.userHasCompleted,
+    this.userScore,
+  });
+
+  @override
+  List<Object?> get props => [
+        id,
+        date,
+        questionsCount,
+        pointsReward,
+        userHasCompleted,
+        userScore,
       ];
 }

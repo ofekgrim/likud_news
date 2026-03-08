@@ -11,6 +11,12 @@ enum BadgeType {
   topContributor,
   earlyBird,
   socialSharer,
+  streak7,
+  streak30,
+  streak100,
+  quizMaster,
+  newsJunkie,
+  communityVoice,
 }
 
 /// Extension providing display metadata for each badge type.
@@ -34,6 +40,18 @@ extension BadgeTypeDisplay on BadgeType {
         return 'badge_early_bird';
       case BadgeType.socialSharer:
         return 'badge_social_sharer';
+      case BadgeType.streak7:
+        return 'badge_streak_7';
+      case BadgeType.streak30:
+        return 'badge_streak_30';
+      case BadgeType.streak100:
+        return 'badge_streak_100';
+      case BadgeType.quizMaster:
+        return 'badge_quiz_master';
+      case BadgeType.newsJunkie:
+        return 'badge_news_junkie';
+      case BadgeType.communityVoice:
+        return 'badge_community_voice';
     }
   }
 
@@ -56,6 +74,18 @@ extension BadgeTypeDisplay on BadgeType {
         return Icons.access_alarm;
       case BadgeType.socialSharer:
         return Icons.share;
+      case BadgeType.streak7:
+        return Icons.local_fire_department;
+      case BadgeType.streak30:
+        return Icons.whatshot;
+      case BadgeType.streak100:
+        return Icons.emoji_events;
+      case BadgeType.quizMaster:
+        return Icons.psychology;
+      case BadgeType.newsJunkie:
+        return Icons.newspaper;
+      case BadgeType.communityVoice:
+        return Icons.record_voice_over;
     }
   }
 }

@@ -59,15 +59,25 @@ class _QuizListPageState extends State<QuizListPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 48, color: AppColors.breakingRed),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: AppColors.breakingRed,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'quiz_list_error'.tr(),
-                      style: const TextStyle(fontFamily: 'Heebo', fontSize: 15, color: AppColors.textSecondary),
+                      style: const TextStyle(
+                        fontFamily: 'Heebo',
+                        fontSize: 15,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => context.read<QuizListBloc>().add(const LoadQuizElections()),
+                      onPressed: () => context.read<QuizListBloc>().add(
+                        const LoadQuizElections(),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.likudBlue,
                         foregroundColor: AppColors.white,
@@ -85,11 +95,19 @@ class _QuizListPageState extends State<QuizListPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.quiz_outlined, size: 64, color: AppColors.textTertiary.withValues(alpha: 0.5)),
+                      Icon(
+                        Icons.quiz_outlined,
+                        size: 64,
+                        color: AppColors.textTertiary.withValues(alpha: 0.5),
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'quiz_list_empty'.tr(),
-                        style: const TextStyle(fontFamily: 'Heebo', fontSize: 16, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                          fontFamily: 'Heebo',
+                          fontSize: 16,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -177,7 +195,11 @@ class _QuizListPageState extends State<QuizListPage> {
                     color: AppColors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.quiz_outlined, size: 28, color: AppColors.white),
+                  child: const Icon(
+                    Icons.quiz_outlined,
+                    size: 28,
+                    color: AppColors.white,
+                  ),
                 ),
               ],
             ),
@@ -259,7 +281,11 @@ class _QuizListPageState extends State<QuizListPage> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.check_circle, size: 14, color: AppColors.success),
+                            const Icon(
+                              Icons.check_circle,
+                              size: 14,
+                              color: AppColors.success,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'quiz_list_completed'.tr(),
@@ -286,7 +312,8 @@ class _QuizListPageState extends State<QuizListPage> {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                if (election.description != null && election.description!.isNotEmpty) ...[
+                if (election.description != null &&
+                    election.description!.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text(
                     election.description!,
@@ -306,12 +333,16 @@ class _QuizListPageState extends State<QuizListPage> {
                   children: [
                     _buildInfoChip(
                       Icons.format_list_numbered,
-                      'quiz_list_questions'.tr(namedArgs: {'count': '${election.questionCount}'}),
+                      'quiz_list_questions'.tr(
+                        namedArgs: {'count': '${election.questionCount}'},
+                      ),
                     ),
                     const SizedBox(width: 12),
                     _buildInfoChip(
                       Icons.people_outline,
-                      'quiz_list_candidates'.tr(namedArgs: {'count': '${election.candidateCount}'}),
+                      'quiz_list_candidates'.tr(
+                        namedArgs: {'count': '${election.candidateCount}'},
+                      ),
                     ),
                   ],
                 ),
@@ -323,7 +354,9 @@ class _QuizListPageState extends State<QuizListPage> {
                   child: isCompleted
                       ? OutlinedButton.icon(
                           onPressed: () {
-                            context.push('/primaries/quiz/${election.id}/results');
+                            context.push(
+                              '/primaries/quiz/${election.id}/results',
+                            );
                           },
                           icon: const Icon(Icons.bar_chart_outlined, size: 18),
                           label: Text('quiz_list_view_results'.tr()),
@@ -344,7 +377,7 @@ class _QuizListPageState extends State<QuizListPage> {
                           onPressed: () {
                             context.push('/primaries/quiz/${election.id}');
                           },
-                          icon: const Icon(Icons.play_arrow_outlined, size: 18),
+                          icon: const Icon(Icons.play_arrow_sharp, size: 18),
                           label: Text('quiz_list_start'.tr()),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.likudBlue,

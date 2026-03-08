@@ -36,6 +36,8 @@ import '../features/membership/presentation/bloc/membership_bloc.dart';
 import '../features/membership/presentation/pages/membership_page.dart';
 import '../features/gamification/presentation/bloc/gamification_bloc.dart';
 import '../features/gamification/presentation/pages/gamification_page.dart';
+import '../features/daily_quiz/presentation/bloc/daily_quiz_bloc.dart';
+import '../features/daily_quiz/presentation/pages/daily_quiz_page.dart';
 
 // Feature page imports
 import '../features/home/presentation/pages/home_page_with_feed.dart';
@@ -80,6 +82,7 @@ import '../features/enhanced_favorites/presentation/pages/folders_page.dart';
 import '../features/enhanced_favorites/presentation/pages/folder_detail_page.dart';
 import '../features/enhanced_favorites/domain/entities/bookmark_folder.dart';
 import '../features/enhanced_favorites/domain/repositories/enhanced_favorites_repository.dart';
+import '../features/notification_inbox/presentation/pages/notification_inbox_page.dart';
 import 'widgets/liquid_glass_nav_bar.dart';
 import 'widgets/app_drawer.dart';
 
@@ -118,7 +121,8 @@ class AppRouter {
 
       // Protected routes that require login
       final isProtectedRoute = location.startsWith('/profile') ||
-          location.startsWith('/folders');
+          location.startsWith('/folders') ||
+          location.startsWith('/daily-quiz');
 
       // Authenticated on auth page → go home
       if (isAuthenticated && isAuthRoute) return '/';
@@ -472,6 +476,17 @@ class AppRouter {
           create: (_) => getIt<GamificationBloc>(),
           child: const GamificationPage(),
         ),
+      ),
+      GoRoute(
+        path: '/daily-quiz',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<DailyQuizBloc>(),
+          child: const DailyQuizPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationInboxPage(),
       ),
     ],
   );

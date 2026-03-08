@@ -36,7 +36,7 @@ export default function PollsPage() {
 
   const { data: polls, isLoading } = useQuery({
     queryKey: ['community-polls'],
-    queryFn: () => api.get<CommunityPoll[]>('/community-polls'),
+    queryFn: () => api.get<CommunityPoll[]>('/community-polls?isActive=true'),
   });
 
   const deleteMutation = useMutation({

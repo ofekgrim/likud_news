@@ -5,6 +5,7 @@ import 'feed_poll_card.dart';
 import 'feed_event_card.dart';
 import 'feed_election_card.dart';
 import 'feed_quiz_prompt_card.dart';
+import 'feed_daily_quiz_card.dart';
 
 /// Polymorphic widget that renders the appropriate card based on feed item type
 class FeedItemCard extends StatelessWidget {
@@ -39,6 +40,11 @@ class FeedItemCard extends StatelessWidget {
       ),
       QuizPromptFeedItem item => FeedQuizPromptCard(
         quizPrompt: item.quizPrompt,
+        isPinned: item.isPinned,
+        onTap: onTap,
+      ),
+      DailyQuizFeedItem item => FeedDailyQuizCard(
+        dailyQuiz: item.dailyQuiz,
         isPinned: item.isPinned,
         onTap: onTap,
       ),

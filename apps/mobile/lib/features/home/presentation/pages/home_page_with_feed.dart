@@ -10,8 +10,10 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../features/categories/presentation/widgets/category_card.dart';
+import '../../../../features/community_polls/presentation/bloc/polls_bloc.dart';
 import '../../../../features/feed/presentation/bloc/feed_bloc.dart';
-import '../../../../features/feed/presentation/bloc/feed_event.dart' as feed_events;
+import '../../../../features/feed/presentation/bloc/feed_event.dart'
+    as feed_events;
 import '../../../../features/feed/presentation/bloc/feed_state.dart';
 import '../../../../features/feed/presentation/widgets/feed_item_card.dart';
 import '../../../feed/domain/entities/feed_item.dart';
@@ -32,6 +34,7 @@ class HomePageWithFeed extends StatefulWidget {
 class _HomePageWithFeedState extends State<HomePageWithFeed> {
   final _scrollController = ScrollController();
   late final FeedBloc _feedBloc;
+  late final PollsBloc _pollsBloc;
   bool _showRefreshButton = false;
 
   @override
@@ -46,6 +49,10 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
     _feedBloc.add(const feed_events.LoadFeed());
     _feedBloc.add(const feed_events.SubscribeToUpdates());
 
+    // Initialize PollsBloc for inline poll voting
+    _pollsBloc = getIt<PollsBloc>();
+    _pollsBloc.add(const LoadPolls());
+
     // Setup scroll listener for pagination and refresh button visibility
     _scrollController.addListener(_onScroll);
   }
@@ -54,6 +61,7 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
   void dispose() {
     _scrollController.dispose();
     _feedBloc.close();
+    _pollsBloc.close();
     super.dispose();
   }
 
@@ -78,12 +86,27 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
     context.read<HomeBloc>().add(const RefreshFeed());
     _feedBloc.add(const feed_events.RefreshFeed());
 
+    // Wait for completion with timeout to prevent infinite hanging
     await Future.wait([
-      context.read<HomeBloc>().stream.firstWhere(
-            (state) => state is HomeLoaded || state is HomeError,
+      context
+          .read<HomeBloc>()
+          .stream
+          .firstWhere((state) => state is HomeLoaded || state is HomeError)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              // If timeout, return current state
+              return context.read<HomeBloc>().state;
+            },
           ),
-      _feedBloc.stream.firstWhere(
-            (state) => state is FeedLoaded || state is FeedError,
+      _feedBloc.stream
+          .firstWhere((state) => state is FeedLoaded || state is FeedError)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              // If timeout, return current state
+              return _feedBloc.state;
+            },
           ),
     ]);
   }
@@ -92,49 +115,56 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: _feedBloc,
-      child: RtlScaffold(
-        showDrawerIcon: true,
-        floatingActionButton: _showRefreshButton
-            ? FloatingActionButton(
-                onPressed: () async {
-                  // Scroll to top with animation
-                  await _scrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                  );
-                  // Trigger refresh
-                  _onRefresh();
-                },
-                backgroundColor: AppColors.likudBlue,
-                child: const Icon(
-                  Icons.refresh,
-                  color: Colors.white,
-                ),
-              )
-            : null,
-        body: BlocBuilder<HomeBloc, HomeState>(
-          builder: (context, homeState) {
-            if (homeState is HomeLoading || homeState is HomeInitial) {
-              return _buildLoadingState();
-            }
+      child: BlocProvider.value(
+        value: _pollsBloc,
+        child: RtlScaffold(
+          showDrawerIcon: true,
+          floatingActionButton: _showRefreshButton
+              ? FloatingActionButton.small(
+                  onPressed: () async {
+                    // Scroll to top with animation
+                    await _scrollController.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
+                    // Trigger refresh and await completion
+                    await _onRefresh();
+                  },
+                  backgroundColor: AppColors.likudBlue,
+                  elevation: 4,
+                  child: const Icon(
+                    Icons.refresh,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                )
+              : null,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.miniCenterTop,
+          body: BlocBuilder<HomeBloc, HomeState>(
+            builder: (context, homeState) {
+              if (homeState is HomeLoading || homeState is HomeInitial) {
+                return _buildLoadingState();
+              }
 
-            if (homeState is HomeError) {
-              return ErrorView(
-                message: homeState.message,
-                onRetry: () {
-                  context.read<HomeBloc>().add(const LoadHome());
-                  _feedBloc.add(const feed_events.LoadFeed());
-                },
-              );
-            }
+              if (homeState is HomeError) {
+                return ErrorView(
+                  message: homeState.message,
+                  onRetry: () {
+                    context.read<HomeBloc>().add(const LoadHome());
+                    _feedBloc.add(const feed_events.LoadFeed());
+                  },
+                );
+              }
 
-            if (homeState is HomeLoaded) {
-              return _buildLoadedState(context, homeState);
-            }
+              if (homeState is HomeLoaded) {
+                return _buildLoadedState(context, homeState);
+              }
 
-            return const SizedBox.shrink();
-          },
+              return const SizedBox.shrink();
+            },
+          ),
         ),
       ),
     );
@@ -203,7 +233,9 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
               child: HeroCard(
                 article: homeState.heroArticle!,
                 onTap: () {
-                  context.push('/article/${homeState.heroArticle!.slug ?? homeState.heroArticle!.id}');
+                  context.push(
+                    '/article/${homeState.heroArticle!.slug ?? homeState.heroArticle!.id}',
+                  );
                 },
               ),
             ),
@@ -223,7 +255,10 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
                           initialIndex: index,
                         ),
                         transitionsBuilder: (_, animation, __, child) {
-                          return FadeTransition(opacity: animation, child: child);
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
                         },
                         transitionDuration: const Duration(milliseconds: 200),
                       ),
@@ -234,9 +269,7 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
             ),
 
           // Date display
-          SliverToBoxAdapter(
-            child: _buildDateHeader(),
-          ),
+          SliverToBoxAdapter(child: _buildDateHeader()),
 
           // Section header
           SliverToBoxAdapter(
@@ -261,7 +294,10 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (_, index) => const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: ShimmerLoading(height: 200, borderRadius: 12),
                     ),
                     childCount: 3,
@@ -275,7 +311,8 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
                     padding: const EdgeInsets.all(32),
                     child: ErrorView(
                       message: feedState.message,
-                      onRetry: () => _feedBloc.add(const feed_events.LoadFeed()),
+                      onRetry: () =>
+                          _feedBloc.add(const feed_events.LoadFeed()),
                     ),
                   ),
                 );
@@ -301,16 +338,13 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
                 }
 
                 return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final feedItem = feedState.items[index];
-                      return FeedItemCard(
-                        feedItem: feedItem,
-                        onTap: () => _handleFeedItemTap(context, feedItem),
-                      );
-                    },
-                    childCount: feedState.items.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final feedItem = feedState.items[index];
+                    return FeedItemCard(
+                      feedItem: feedItem,
+                      onTap: () => _handleFeedItemTap(context, feedItem),
+                    );
+                  }, childCount: feedState.items.length),
                 );
               }
 
@@ -318,14 +352,37 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
             },
           ),
 
-          // Loading more indicator
+          // Loading more indicator / end of feed
           BlocBuilder<FeedBloc, FeedState>(
             builder: (context, feedState) {
               if (feedState is FeedLoaded && feedState.isLoadingMore) {
                 return const SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.all(16),
-                    child: Center(child: CircularProgressIndicator()),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.likudBlue,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              if (feedState is FeedLoaded &&
+                  feedState.hasReachedMax &&
+                  feedState.items.isNotEmpty) {
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'end_of_feed'.tr(),
+                        style: const TextStyle(
+                          fontFamily: 'Heebo',
+                          fontSize: 13,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ),
                   ),
                 );
               }
@@ -358,25 +415,26 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
                   mainAxisSpacing: 12,
                   childAspectRatio: 1.2,
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final category = homeState.categories[index];
-                    return CategoryCard(
-                      category: category,
-                      onTap: () {
-                        context.push('/category/${category.slug}?name=${Uri.encodeComponent(category.name)}');
-                      },
-                    );
-                  },
-                  childCount: homeState.categories.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final category = homeState.categories[index];
+                  return CategoryCard(
+                    category: category,
+                    onTap: () {
+                      context.push(
+                        '/category/${category.slug}?name=${Uri.encodeComponent(category.name)}',
+                      );
+                    },
+                  );
+                }, childCount: homeState.categories.length),
               ),
             ),
           ],
 
           // Bottom padding
           SliverPadding(
-            padding: EdgeInsets.only(bottom: AppRouter.bottomNavClearance(context)),
+            padding: EdgeInsets.only(
+              bottom: AppRouter.bottomNavClearance(context),
+            ),
           ),
         ],
       ),
@@ -403,6 +461,10 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
       case QuizPromptFeedItem item:
         // Navigate to quiz intro page (quizPrompt.id is the electionId)
         context.push('/primaries/quiz/${item.quizPrompt.id}');
+        break;
+      case DailyQuizFeedItem _:
+        // Navigate to daily quiz page
+        context.push('/daily-quiz');
         break;
     }
   }

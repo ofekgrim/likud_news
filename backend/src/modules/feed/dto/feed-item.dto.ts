@@ -10,6 +10,7 @@ export enum FeedItemType {
   EVENT = 'event',
   ELECTION_UPDATE = 'election_update',
   QUIZ_PROMPT = 'quiz_prompt',
+  DAILY_QUIZ = 'daily_quiz',
 }
 
 /**
@@ -100,6 +101,7 @@ export class FeedItemDto {
     isActive: boolean;
     allowMultipleVotes: boolean;
     userHasVoted?: boolean;
+    votedOptionIndex?: number | null;
   };
 
   @ApiProperty({
@@ -159,5 +161,18 @@ export class FeedItemDto {
     completionRate?: number;
     userHasCompleted?: boolean;
     userMatchPercentage?: number;
+  };
+
+  @ApiProperty({
+    description: 'Daily quiz content (present when type=daily_quiz)',
+    required: false,
+  })
+  dailyQuiz?: {
+    id: string;
+    date: string;
+    questionsCount: number;
+    pointsReward: number;
+    userHasCompleted: boolean;
+    userScore?: number;
   };
 }

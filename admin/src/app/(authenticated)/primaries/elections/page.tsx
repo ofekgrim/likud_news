@@ -44,7 +44,7 @@ export default function ElectionsPage() {
 
   const { data: electionsRes, isLoading } = useQuery({
     queryKey: ['elections'],
-    queryFn: () => api.get<{ data: PrimaryElection[] }>('/elections'),
+    queryFn: () => api.get<{ data: PrimaryElection[] }>('/elections?isActive=true'),
   });
   const elections = electionsRes?.data;
 

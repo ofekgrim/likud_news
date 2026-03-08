@@ -7,15 +7,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive/hive.dart';
 import 'package:talker_bloc_logger/talker_bloc_logger.dart';
-// import 'package:firebase_core/firebase_core.dart';
-// import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'app/app.dart';
 import 'app/di.dart';
-// ignore: unused_import
-import 'app/router.dart'; // Used when push notifications are enabled
 import 'core/services/app_logger.dart';
 import 'core/services/device_id_service.dart';
-// import 'core/services/push_notification_service.dart';
+import 'core/services/notification_count_service.dart';
+import 'core/services/push_notification_service.dart';
 
 void main() async {
   // Catch all uncaught async errors
@@ -67,13 +66,15 @@ void main() async {
         ),
       );
 
-      // Firebase — uncomment after running: flutterfire configure
-      // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      // Initialize Firebase
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-      // Push notifications — uncomment after Firebase is initialized
-      // final pushService = getIt<PushNotificationService>();
-      // await pushService.init();
-      // pushService.setRouter(AppRouter.router);
+      // Initialize push notifications (router set later in app.dart)
+      final pushService = getIt<PushNotificationService>();
+      await pushService.init();
+
+      // Fetch initial unread notification count for bell badge
+      getIt<NotificationCountService>().refresh();
 
       AppLogger.info('App initialized successfully');
 

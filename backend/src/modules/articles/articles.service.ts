@@ -3,6 +3,8 @@ import {
   NotFoundException,
   ConflictException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -15,6 +17,8 @@ import { UserFavorite } from '../favorites/entities/user-favorite.entity';
 import { Comment } from '../comments/entities/comment.entity';
 import { SseService } from '../sse/sse.service';
 import { PushService } from '../push/push.service';
+import { FeedService } from '../feed/feed.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ArticlesService {
@@ -31,6 +35,9 @@ export class ArticlesService {
     private readonly commentRepository: Repository<Comment>,
     private readonly sseService: SseService,
     private readonly pushService: PushService,
+    private readonly notificationsService: NotificationsService,
+    @Inject(forwardRef(() => FeedService))
+    private readonly feedService: FeedService,
   ) {}
 
   /**
@@ -65,6 +72,15 @@ export class ArticlesService {
       throw new ConflictException(
         `An article with slug "${articleData.slug}" already exists`,
       );
+    }
+
+    // If setting this article as main, unset all other main articles first
+    if (articleData.isMain === true) {
+      await this.articleRepository.update(
+        { isMain: true },
+        { isMain: false },
+      );
+      this.logger.log('Unset previous main article(s)');
     }
 
     const article = this.articleRepository.create(articleData);
@@ -120,18 +136,27 @@ export class ArticlesService {
       this.sseService.emitBreaking(payload);
     }
 
-    // Send push notification if requested
+    // Broadcast to feed and invalidate feed cache
+    try {
+      await this.feedService.broadcastNewArticle(article);
+    } catch (error) {
+      this.logger.error(`Failed to broadcast article to feed: ${article.slug}`, error);
+    }
+
+    // Send push notification via NotificationsService if requested
     if (sendPush) {
       try {
-        await this.pushService.sendToAll({
-          title: article.isBreaking ? 'מבזק' : 'כתבה חדשה',
-          body: article.title,
-          imageUrl: article.heroImageUrl || undefined,
-          data: {
-            articleSlug: article.slug,
-            type: article.isBreaking ? 'breaking' : 'article',
+        await this.notificationsService.triggerContentNotification(
+          article.isBreaking ? 'article.breaking_published' : 'article.published',
+          'article',
+          article.id,
+          {
+            article_title: article.title,
+            article_slug: article.slug,
+            category_name: article.category?.name || '',
+            hero_image_url: article.heroImageUrl || '',
           },
-        });
+        );
         this.logger.log(`Push notification sent for article: ${article.slug}`);
       } catch (error) {
         this.logger.error(`Failed to send push for article ${article.slug}:`, error);
@@ -412,6 +437,18 @@ export class ArticlesService {
           `An article with slug "${updateData.slug}" already exists`,
         );
       }
+    }
+
+    // If setting this article as main, unset all other main articles first
+    if (updateData.isMain === true && !article.isMain) {
+      await this.articleRepository
+        .createQueryBuilder()
+        .update(Article)
+        .set({ isMain: false })
+        .where('id != :id', { id })
+        .andWhere('isMain = :isMain', { isMain: true })
+        .execute();
+      this.logger.log(`Unset previous main article(s) before setting ${id} as main`);
     }
 
     Object.assign(article, updateData);

@@ -51,6 +51,7 @@ export default function EditArticlePage() {
     categoryId: '',
     isHero: false,
     isBreaking: false,
+    isMain: false,
     heroImageUrl: '',
     memberIds: [] as string[],
     bodyBlocks: [] as ContentBlock[],
@@ -62,7 +63,7 @@ export default function EditArticlePage() {
     authorId: '',
     tagIds: [] as string[],
     allowComments: true,
-    sendPushNotification: false,
+    sendPushNotification: true,
   });
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export default function EditArticlePage() {
         categoryId: article.categoryId || '',
         isHero: article.isHero,
         isBreaking: article.isBreaking,
+        isMain: article.isMain || false,
         heroImageUrl: article.heroImageUrl || '',
         memberIds: article.members?.map((m) => m.id) || [],
         bodyBlocks: article.bodyBlocks || [],
@@ -87,6 +89,7 @@ export default function EditArticlePage() {
         authorId: article.authorId || '',
         tagIds: article.tags?.map((t) => t.id) || [],
         allowComments: article.allowComments ?? true,
+        sendPushNotification: false,
       });
     }
   }, [article]);
@@ -353,6 +356,17 @@ export default function EditArticlePage() {
                     className="h-4 w-4 rounded"
                   />
                   <span className="text-sm">מבזק</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.isMain}
+                    onChange={(e) =>
+                      setForm({ ...form, isMain: e.target.checked })
+                    }
+                    className="h-4 w-4 rounded"
+                  />
+                  <span className="text-sm font-medium text-primary">סמן ככתבה מרכזית (רק 1 יכולה להיות מרכזית)</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input

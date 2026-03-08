@@ -17,6 +17,12 @@ export enum BadgeType {
   TOP_CONTRIBUTOR = 'top_contributor',
   EARLY_BIRD = 'early_bird',
   SOCIAL_SHARER = 'social_sharer',
+  STREAK_7 = 'streak_7',
+  STREAK_30 = 'streak_30',
+  STREAK_100 = 'streak_100',
+  QUIZ_MASTER = 'quiz_master',
+  NEWS_JUNKIE = 'news_junkie',
+  COMMUNITY_VOICE = 'community_voice',
 }
 
 @Entity('user_badges')
