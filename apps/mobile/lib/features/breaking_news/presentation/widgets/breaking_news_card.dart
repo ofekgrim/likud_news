@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../../home/domain/entities/article.dart';
 
@@ -13,11 +14,7 @@ class BreakingNewsCard extends StatelessWidget {
   final Article article;
   final VoidCallback? onTap;
 
-  const BreakingNewsCard({
-    super.key,
-    required this.article,
-    this.onTap,
-  });
+  const BreakingNewsCard({super.key, required this.article, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -29,12 +26,12 @@ class BreakingNewsCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.cardSurface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.04),
+              color: context.colors.shadow,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -55,7 +52,7 @@ class BreakingNewsCard extends StatelessWidget {
                   child: Text(
                     article.author ?? '',
                     style: theme.textTheme.titleSmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -69,7 +66,7 @@ class BreakingNewsCard extends StatelessWidget {
                     child: Text(
                       _formatTime(article.publishedAt!),
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: AppColors.textTertiary,
+                        color: context.colors.textTertiary,
                       ),
                     ),
                   ),
@@ -82,7 +79,7 @@ class BreakingNewsCard extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     iconSize: 18,
                     icon: const Icon(Icons.share_outlined),
-                    color: AppColors.textTertiary,
+                    color: context.colors.textTertiary,
                     onPressed: _onShare,
                     tooltip: 'שיתוף',
                   ),
@@ -98,6 +95,7 @@ class BreakingNewsCard extends StatelessWidget {
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 height: 1.4,
+                color: context.colors.textPrimary,
               ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -109,7 +107,7 @@ class BreakingNewsCard extends StatelessWidget {
               Text(
                 article.subtitle!,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                   height: 1.5,
                 ),
                 maxLines: 2,
@@ -164,6 +162,7 @@ class BreakingNewsCard extends StatelessWidget {
 
   Widget _buildCategoryBadge(ThemeData theme) {
     final badgeColor = _parseCategoryColor();
+    final darkMode = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -174,7 +173,7 @@ class BreakingNewsCard extends StatelessWidget {
       child: Text(
         article.categoryName!,
         style: theme.textTheme.labelSmall?.copyWith(
-          color: badgeColor,
+          color: darkMode ? AppColors.white : badgeColor,
           fontWeight: FontWeight.w600,
         ),
       ),

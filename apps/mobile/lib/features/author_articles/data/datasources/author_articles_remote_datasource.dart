@@ -54,6 +54,9 @@ class AuthorArticlesRemoteDataSourceImpl
             bioHe: authorJson['bioHe'] as String?,
             avatarUrl: authorJson['avatarUrl'] as String?,
             avatarThumbnailUrl: authorJson['avatarThumbnailUrl'] as String?,
+            email: authorJson['email'] as String?,
+            socialLinks: _parseSocialLinks(authorJson['socialLinks']),
+            isActive: authorJson['isActive'] as bool? ?? true,
           )
         : Author(id: authorId, nameHe: '');
 
@@ -63,5 +66,12 @@ class AuthorArticlesRemoteDataSourceImpl
         .toList();
 
     return AuthorArticlesResponse(author: author, articles: articles);
+  }
+
+  static Map<String, String> _parseSocialLinks(dynamic json) {
+    if (json == null || json is! Map) return const {};
+    return (json as Map<String, dynamic>).map(
+      (key, value) => MapEntry(key, value.toString()),
+    );
   }
 }

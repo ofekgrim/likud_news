@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/notification_item.dart';
 
 class NotificationItemCard extends StatelessWidget {
@@ -32,7 +34,7 @@ class NotificationItemCard extends StatelessWidget {
   Color _getIconColor() {
     switch (notification.contentType) {
       case 'article':
-        return const Color(0xFF0099DB);
+        return AppColors.likudBlue;
       case 'poll':
         return const Color(0xFF10B981);
       case 'event':
@@ -87,11 +89,11 @@ class NotificationItemCard extends StatelessWidget {
         padding: const EdgeInsetsDirectional.all(16),
         decoration: BoxDecoration(
           color: notification.isRead
-              ? Colors.white
-              : const Color(0xFF0099DB).withValues(alpha: 0.04),
+              ? context.colors.surface
+              : AppColors.likudBlue.withValues(alpha: 0.04),
           border: Border(
             bottom: BorderSide(
-              color: Colors.grey.shade200,
+              color: context.colors.border,
               width: 0.5,
             ),
           ),
@@ -158,7 +160,7 @@ class NotificationItemCard extends StatelessWidget {
                             fontWeight: notification.isRead
                                 ? FontWeight.w500
                                 : FontWeight.w700,
-                            color: const Color(0xFF1E293B),
+                            color: context.colors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -171,7 +173,7 @@ class NotificationItemCard extends StatelessWidget {
                             : '',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey.shade500,
+                          color: context.colors.textTertiary,
                         ),
                       ),
                     ],
@@ -181,7 +183,7 @@ class NotificationItemCard extends StatelessWidget {
                     notification.body,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey.shade600,
+                      color: context.colors.textSecondary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -189,7 +191,7 @@ class NotificationItemCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: _getIconColor().withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
@@ -212,8 +214,8 @@ class NotificationItemCard extends StatelessWidget {
                 width: 8,
                 height: 8,
                 margin: const EdgeInsetsDirectional.only(start: 8, top: 6),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0099DB),
+                decoration: BoxDecoration(
+                  color: AppColors.likudBlue,
                   shape: BoxShape.circle,
                 ),
               ),

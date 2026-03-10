@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/services/notification_count_service.dart';
 import '../bloc/notification_inbox_bloc.dart';
 import '../bloc/notification_inbox_event.dart';
@@ -16,13 +18,13 @@ class NotificationInboxPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => GetIt.I<NotificationInboxBloc>()
         ..add(const LoadNotifications()),
-      child: const _NotificationInboxView(),
+      child: _NotificationInboxView(),
     );
   }
 }
 
 class _NotificationInboxView extends StatelessWidget {
-  const _NotificationInboxView();
+  _NotificationInboxView();
 
   void _navigateToContent(BuildContext context, String contentType, String? contentId, String? contentSlug) {
     switch (contentType) {
@@ -67,8 +69,8 @@ class _NotificationInboxView extends StatelessWidget {
           ),
           centerTitle: true,
           elevation: 0,
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF1E293B),
+          backgroundColor: context.colors.surface,
+          foregroundColor: context.colors.textPrimary,
           surfaceTintColor: Colors.transparent,
           actions: [
             BlocBuilder<NotificationInboxBloc, NotificationInboxState>(
@@ -91,13 +93,13 @@ class _NotificationInboxView extends StatelessWidget {
             ),
           ],
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: context.colors.surface,
         body: BlocBuilder<NotificationInboxBloc, NotificationInboxState>(
           builder: (context, state) {
             if (state is NotificationInboxLoading) {
               return const Center(
                 child: CircularProgressIndicator(
-                  color: Color(0xFF0099DB),
+                  color: AppColors.likudBlue,
                 ),
               );
             }
@@ -107,13 +109,13 @@ class _NotificationInboxView extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+                    Icon(Icons.error_outline, size: 48, color: context.colors.textTertiary),
                     const SizedBox(height: 12),
                     Text(
                       'שגיאה בטעינת ההתראות',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.grey.shade600,
+                        color: context.colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -122,7 +124,7 @@ class _NotificationInboxView extends StatelessWidget {
                           .read<NotificationInboxBloc>()
                           .add(const LoadNotifications()),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0099DB),
+                        backgroundColor: AppColors.likudBlue,
                       ),
                       child: const Text('נסה שוב'),
                     ),
@@ -138,14 +140,14 @@ class _NotificationInboxView extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.notifications_none,
-                          size: 64, color: Colors.grey.shade300),
+                          size: 64, color: context.colors.textTertiary),
                       const SizedBox(height: 16),
                       Text(
                         'אין התראות',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade500,
+                          color: context.colors.textTertiary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -153,7 +155,7 @@ class _NotificationInboxView extends StatelessWidget {
                         'ההתראות שלך יופיעו כאן',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade400,
+                          color: context.colors.textTertiary,
                         ),
                       ),
                     ],
@@ -162,7 +164,7 @@ class _NotificationInboxView extends StatelessWidget {
               }
 
               return RefreshIndicator(
-                color: const Color(0xFF0099DB),
+                color: AppColors.likudBlue,
                 onRefresh: () async {
                   context
                       .read<NotificationInboxBloc>()

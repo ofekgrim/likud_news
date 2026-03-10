@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../auth/domain/entities/app_user.dart';
@@ -36,7 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.surfaceLight,
+        backgroundColor: context.colors.surfaceVariant,
         body: BlocConsumer<UserProfileBloc, UserProfileState>(
           listener: (context, state) {
             if (state is UserProfileUpdated) {
@@ -179,11 +180,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         Text(
                           user.displayName ?? 'profile_anonymous'.tr(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Heebo',
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: context.colors.textPrimary,
                           ),
                         ),
                         if (user.isVerifiedMember) ...[
@@ -202,10 +203,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(height: 4),
                       Text(
                         user.email ?? user.phone ?? '',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Heebo',
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                       ),
                     ],
@@ -224,10 +225,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 16),
                   child: Text(
                     user.bio!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 14,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                       height: 1.6,
                     ),
                     textAlign: TextAlign.start,
@@ -343,8 +344,8 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       AppUserRole.guest => (
         'profile_role_guest'.tr(),
-        AppColors.textTertiary,
-        AppColors.surfaceMedium,
+        context.colors.textTertiary,
+        context.colors.surfaceMedium,
       ),
     };
 
@@ -371,12 +372,12 @@ class _ProfilePageState extends State<ProfilePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: context.colors.border, width: 0.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.05),
+            color: context.colors.shadow,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -395,11 +396,11 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(width: 8),
               Text(
                 'profile_preferred_categories'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
             ],
@@ -444,7 +445,7 @@ class _ProfilePageState extends State<ProfilePage> {
     Color color = AppColors.likudBlue,
   }) {
     return Material(
-      color: AppColors.white,
+      color: context.colors.cardSurface,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -453,7 +454,7 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border, width: 0.5),
+            border: Border.all(color: context.colors.border, width: 0.5),
           ),
           child: Row(
             children: [
@@ -468,14 +469,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     fontWeight: FontWeight.w500,
                     color: color == AppColors.breakingRed
                         ? AppColors.breakingRed
-                        : AppColors.textPrimary,
+                        : context.colors.textPrimary,
                   ),
                 ),
               ),
               Icon(
                 Icons.arrow_back_ios,
                 size: 16,
-                color: AppColors.textTertiary,
+                color: context.colors.textTertiary,
               ),
             ],
           ),
@@ -581,10 +582,10 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           content: Text(
             'profile_logout_confirm'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 14,
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           actions: [

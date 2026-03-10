@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../../home/domain/entities/article.dart';
 
@@ -36,7 +37,7 @@ class RelatedArticles extends StatelessWidget {
             'related_articles'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -66,12 +67,12 @@ class RelatedArticles extends StatelessWidget {
       child: Container(
         width: 220,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.cardSurface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.04),
+              color: context.colors.shadow,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -95,11 +96,11 @@ class RelatedArticles extends StatelessWidget {
                   : Container(
                       width: 220,
                       height: 110,
-                      color: AppColors.surfaceMedium,
-                      child: const Icon(
+                      color: context.colors.surfaceMedium,
+                      child: Icon(
                         Icons.article_outlined,
                         size: 32,
-                        color: AppColors.textTertiary,
+                        color: context.colors.textTertiary,
                       ),
                     ),
             ),
@@ -133,7 +134,7 @@ class RelatedArticles extends StatelessWidget {
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         height: 1.3,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
@@ -206,16 +207,16 @@ class _StatBadge extends StatelessWidget {
         Icon(
           icon,
           size: 12,
-          color: AppColors.textTertiary,
+          color: context.colors.textTertiary,
         ),
         const SizedBox(width: 3),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 10,
             fontWeight: FontWeight.w500,
-            color: AppColors.textTertiary,
+            color: context.colors.textTertiary,
           ),
         ),
       ],

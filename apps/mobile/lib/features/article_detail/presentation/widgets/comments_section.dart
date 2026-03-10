@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/comment.dart';
 import '../bloc/comments_bloc.dart';
@@ -144,11 +145,11 @@ class _CommentsSectionState extends State<CommentsSection> {
                   padding: const EdgeInsets.only(top: 4, bottom: 8),
                   child: Text(
                     widget.targetTitle!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -180,7 +181,7 @@ class _CommentsSectionState extends State<CommentsSection> {
       '${'comments_title'.tr()} (${widget.commentCount})',
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
     );
   }
@@ -191,7 +192,7 @@ class _CommentsSectionState extends State<CommentsSection> {
       child: Text(
         'comments_closed'.tr(),
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.textTertiary,
+              color: context.colors.textTertiary,
               fontStyle: FontStyle.italic,
             ),
       ),
@@ -234,15 +235,15 @@ class _CommentsSectionState extends State<CommentsSection> {
                     Icon(
                       Icons.chat_bubble_outline,
                       size: 40,
-                      color: AppColors.textTertiary.withValues(alpha: 0.5),
+                      color: context.colors.textTertiary.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'no_comments_yet'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 14,
-                        color: AppColors.textTertiary,
+                        color: context.colors.textTertiary,
                       ),
                     ),
                   ],
@@ -266,7 +267,7 @@ class _CommentsSectionState extends State<CommentsSection> {
                 if (i < state.comments.length - 1)
                   Divider(
                     height: 1,
-                    color: AppColors.border.withValues(alpha: 0.6),
+                    color: context.colors.border.withValues(alpha: 0.6),
                   ),
               ],
 
@@ -382,7 +383,7 @@ class _CommentsSectionState extends State<CommentsSection> {
                     radius: 16,
                     backgroundColor: name.isNotEmpty
                         ? _avatarColor(name)
-                        : AppColors.surfaceMedium,
+                        : context.colors.surfaceMedium,
                     child: Text(
                       name.isNotEmpty ? _initials(name) : '?',
                       style: const TextStyle(
@@ -407,11 +408,11 @@ class _CommentsSectionState extends State<CommentsSection> {
                   decoration: InputDecoration(
                     hintText: 'write_comment'.tr(),
                     hintStyle: TextStyle(
-                      color: AppColors.textTertiary,
+                      color: context.colors.textTertiary,
                       fontSize: 14,
                     ),
                     filled: true,
-                    fillColor: AppColors.surfaceLight,
+                    fillColor: context.colors.surfaceVariant,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                       borderSide: BorderSide.none,
@@ -422,10 +423,10 @@ class _CommentsSectionState extends State<CommentsSection> {
                     ),
                     isDense: true,
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 14,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   onChanged: (_) => setState(() {}),
                 ),
@@ -458,7 +459,7 @@ class _CommentsSectionState extends State<CommentsSection> {
                             Icons.send_rounded,
                             color: canSubmit
                                 ? AppColors.likudBlue
-                                : AppColors.textTertiary,
+                                : context.colors.textTertiary,
                           ),
                     padding: EdgeInsets.zero,
                     constraints:
@@ -549,7 +550,7 @@ class _CommentTile extends StatelessWidget {
                         fontFamily: 'Heebo',
                         fontSize: fontSize,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     if (comment.authorRole == 'verified_member' ||
@@ -579,7 +580,7 @@ class _CommentTile extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: fontSize,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                     height: 1.4,
                   ),
                 ),
@@ -594,26 +595,29 @@ class _CommentTile extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 12,
-                        color: AppColors.textTertiary,
+                        color: context.colors.textTertiary,
                       ),
                     ),
                     const SizedBox(width: 16),
 
                     // Reply button
                     GestureDetector(
-                      onTap: () => context.read<CommentsBloc>().add(
-                            SetReplyTarget(
-                              commentId: comment.id,
-                              authorName: comment.authorName,
-                            ),
-                          ),
+                      onTap: () {
+                        if (!requireAuth(context)) return;
+                        context.read<CommentsBloc>().add(
+                              SetReplyTarget(
+                                commentId: comment.id,
+                                authorName: comment.authorName,
+                              ),
+                            );
+                      },
                       child: Text(
                         'reply'.tr(),
                         style: TextStyle(
                           fontFamily: 'Heebo',
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                       ),
                     ),
@@ -629,7 +633,7 @@ class _CommentTile extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: 'Heebo',
                             fontSize: 12,
-                            color: AppColors.textTertiary,
+                            color: context.colors.textTertiary,
                           ),
                         ),
                       ),
@@ -649,7 +653,7 @@ class _CommentTile extends StatelessWidget {
                         size: 18,
                         color: isLiked
                             ? AppColors.breakingRed
-                            : AppColors.textTertiary,
+                            : context.colors.textTertiary,
                       ),
                     ),
                   ],
@@ -689,7 +693,7 @@ class _CommentTile extends StatelessWidget {
               fontFamily: 'Heebo',
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ),

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 
 /// Animated linear progress indicator for the quiz with step count text.
 ///
@@ -36,11 +37,11 @@ class QuizProgressBar extends StatelessWidget {
                     'total': '$totalQuestions',
                   },
                 ),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
               Text(

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../domain/entities/membership_info.dart';
@@ -46,10 +47,10 @@ class _MembershipPageState extends State<MembershipPage> {
       appBar: AppBar(
         title: Text(
           'membership_title'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -157,7 +158,7 @@ class _MembershipPageState extends State<MembershipPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: AppColors.white,
+      color: context.colors.cardSurface,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -175,11 +176,11 @@ class _MembershipPageState extends State<MembershipPage> {
                 Expanded(
                   child: Text(
                     'membership_status'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                     textDirection: TextDirection.rtl,
                   ),
@@ -189,7 +190,7 @@ class _MembershipPageState extends State<MembershipPage> {
             ),
 
             const SizedBox(height: 16),
-            const Divider(color: AppColors.border, height: 1),
+            Divider(color: context.colors.border, height: 1),
             const SizedBox(height: 16),
 
             // Membership ID.
@@ -217,10 +218,10 @@ class _MembershipPageState extends State<MembershipPage> {
                 info.status == MembershipStatus.none)
               Text(
                 'membership_not_verified'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
                 textDirection: TextDirection.rtl,
               ),
@@ -249,8 +250,8 @@ class _MembershipPageState extends State<MembershipPage> {
         textColor = AppColors.breakingRed;
       case MembershipStatus.none:
         backgroundColor =
-            AppColors.textSecondary.withValues(alpha: 0.12);
-        textColor = AppColors.textSecondary;
+            context.colors.textSecondary.withValues(alpha: 0.12);
+        textColor = context.colors.textSecondary;
     }
 
     return Container(
@@ -278,25 +279,25 @@ class _MembershipPageState extends State<MembershipPage> {
   }) {
     return Row(
       children: [
-        Icon(icon, color: AppColors.textSecondary, size: 20),
+        Icon(icon, color: context.colors.textSecondary, size: 20),
         const SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 13,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
             textDirection: TextDirection.ltr,
             textAlign: TextAlign.end,
@@ -370,10 +371,10 @@ class _MembershipPageState extends State<MembershipPage> {
                   const SizedBox(height: 4),
                   Text(
                     'membership_verify_subtitle'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     textDirection: TextDirection.rtl,
                   ),
@@ -428,10 +429,10 @@ class _MembershipPageState extends State<MembershipPage> {
                   const SizedBox(height: 4),
                   Text(
                     'membership_verify_subtitle'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     textDirection: TextDirection.rtl,
                   ),
@@ -450,7 +451,7 @@ class _MembershipPageState extends State<MembershipPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: AppColors.white,
+      color: context.colors.cardSurface,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -460,21 +461,21 @@ class _MembershipPageState extends State<MembershipPage> {
             children: [
               Text(
                 'membership_verify_title'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
                 textDirection: TextDirection.rtl,
               ),
               const SizedBox(height: 4),
               Text(
                 'membership_verify_subtitle'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 13,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
                 textDirection: TextDirection.rtl,
               ),
@@ -554,7 +555,7 @@ class _MembershipPageState extends State<MembershipPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: AppColors.white,
+      color: context.colors.cardSurface,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -570,18 +571,18 @@ class _MembershipPageState extends State<MembershipPage> {
                 const SizedBox(width: 8),
                 Text(
                   'membership_branch'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   textDirection: TextDirection.rtl,
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            const Divider(color: AppColors.border, height: 1),
+            Divider(color: context.colors.border, height: 1),
             const SizedBox(height: 12),
 
             if (info.branch != null)
@@ -623,7 +624,7 @@ class _MembershipPageState extends State<MembershipPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: AppColors.white,
+      color: context.colors.cardSurface,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -641,11 +642,11 @@ class _MembershipPageState extends State<MembershipPage> {
                 Expanded(
                   child: Text(
                     'membership_voting_title'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                     textDirection: TextDirection.rtl,
                   ),
@@ -653,7 +654,7 @@ class _MembershipPageState extends State<MembershipPage> {
               ],
             ),
             const SizedBox(height: 12),
-            const Divider(color: AppColors.border, height: 1),
+            Divider(color: context.colors.border, height: 1),
             const SizedBox(height: 16),
 
             // Eligibility status row.
@@ -681,10 +682,10 @@ class _MembershipPageState extends State<MembershipPage> {
                         const SizedBox(height: 4),
                         Text(
                           eligibility.reason!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Heebo',
                             fontSize: 13,
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                           ),
                           textDirection: TextDirection.rtl,
                         ),
@@ -704,26 +705,26 @@ class _MembershipPageState extends State<MembershipPage> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceLight,
+                  color: context.colors.surfaceVariant,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.border, width: 0.5),
+                  border: Border.all(color: context.colors.border, width: 0.5),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.event_outlined,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                       size: 18,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         eligibility.electionName!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Heebo',
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
+                          color: context.colors.textPrimary,
                         ),
                         textDirection: TextDirection.rtl,
                       ),
@@ -738,29 +739,29 @@ class _MembershipPageState extends State<MembershipPage> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.schedule,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     size: 16,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     'membership_registration_deadline'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     DateFormat('dd/MM/yyyy')
                         .format(eligibility.registrationDeadline!),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                     textDirection: TextDirection.ltr,
                   ),
@@ -817,14 +818,14 @@ class _MembershipPageState extends State<MembershipPage> {
   }) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon, color: AppColors.textSecondary),
+      prefixIcon: Icon(icon, color: context.colors.textSecondary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -835,7 +836,7 @@ class _MembershipPageState extends State<MembershipPage> {
         borderSide: const BorderSide(color: AppColors.breakingRed),
       ),
       filled: true,
-      fillColor: AppColors.surfaceLight,
+      fillColor: context.colors.surfaceVariant,
     );
   }
 
@@ -878,9 +879,9 @@ class _ActionCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: AppColors.border, width: 0.5),
+        side: BorderSide(color: context.colors.border, width: 0.5),
       ),
-      color: AppColors.white,
+      color: context.colors.cardSurface,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -896,18 +897,18 @@ class _ActionCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   textDirection: TextDirection.rtl,
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_left,
-                color: AppColors.textTertiary,
+                color: context.colors.textTertiary,
                 size: 20,
               ),
             ],

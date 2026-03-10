@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/member.dart';
 
@@ -21,16 +21,16 @@ class MemberCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.white,
+      color: context.colors.cardSurface,
       borderRadius: BorderRadius.circular(12),
       elevation: 0,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.cardSurface,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.06),
+              color: context.colors.shadow,
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -62,10 +62,10 @@ class MemberCard extends StatelessWidget {
                           : Container(
                               width: 56,
                               height: 56,
-                              color: AppColors.surfaceMedium,
-                              child: const Icon(
+                              color: context.colors.surfaceMedium,
+                              child: Icon(
                                 Icons.person,
-                                color: AppColors.textTertiary,
+                                color: context.colors.textTertiary,
                                 size: 28,
                               ),
                             ),
@@ -83,11 +83,11 @@ class MemberCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textDirection: TextDirection.rtl,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Heebo',
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
+                              color: context.colors.textPrimary,
                             ),
                           ),
                           // Title.
@@ -99,10 +99,10 @@ class MemberCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               textDirection: TextDirection.rtl,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Heebo',
                                 fontSize: 14,
-                                color: AppColors.textSecondary,
+                                color: context.colors.textSecondary,
                               ),
                             ),
                           ],
@@ -115,10 +115,10 @@ class MemberCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               textDirection: TextDirection.rtl,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Heebo',
                                 fontSize: 12,
-                                color: AppColors.textTertiary,
+                                color: context.colors.textTertiary,
                               ),
                             ),
                           ],

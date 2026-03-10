@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/content_block.dart';
 import 'full_image_dialog.dart';
@@ -64,7 +64,7 @@ class InlineImageWidget extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 12 * fontScale,
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                   height: 1.4,
                 ),
               ),
@@ -81,7 +81,7 @@ class InlineImageWidget extends StatelessWidget {
                   fontFamily: 'Heebo',
                   fontSize: 14 * fontScale,
                   fontStyle: FontStyle.italic,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                   height: 1.5,
                 ),
               ),

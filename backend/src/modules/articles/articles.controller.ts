@@ -74,6 +74,29 @@ export class ArticlesController {
     return this.articlesService.findMostRead(limit ? Number(limit) : 10);
   }
 
+  @Get('trending')
+  @ApiOperation({ summary: 'Get trending articles from the last 7 days' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of articles to return (default: 5)',
+  })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    type: String,
+    description: 'Time period: 7d (default) or 30d',
+  })
+  @ApiResponse({ status: 200, description: 'List of trending articles' })
+  findTrending(
+    @Query('limit') limit?: number,
+    @Query('period') period?: string,
+  ) {
+    const days = period === '30d' ? 30 : 7;
+    return this.articlesService.findTrending(limit ? Number(limit) : 5, days);
+  }
+
   @Get('search')
   @ApiOperation({ summary: 'Search articles by keyword with pagination' })
   @ApiQuery({

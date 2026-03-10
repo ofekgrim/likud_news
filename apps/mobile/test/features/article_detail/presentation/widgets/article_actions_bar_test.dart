@@ -23,7 +23,7 @@ void main() {
 
       await pumpTestWidget(
         tester,
-        const ArticleActionsBar(),
+        ArticleActionsBar(),
         providers: [
           BlocProvider<ArticleDetailBloc>.value(value: mockArticleDetailBloc),
         ],
@@ -39,7 +39,7 @@ void main() {
 
       await pumpTestWidget(
         tester,
-        const ArticleActionsBar(),
+        ArticleActionsBar(),
         providers: [
           BlocProvider<ArticleDetailBloc>.value(value: mockArticleDetailBloc),
         ],
@@ -54,7 +54,7 @@ void main() {
 
       await pumpTestWidget(
         tester,
-        const ArticleActionsBar(),
+        ArticleActionsBar(),
         providers: [
           BlocProvider<ArticleDetailBloc>.value(value: mockArticleDetailBloc),
         ],
@@ -69,7 +69,7 @@ void main() {
 
       await pumpTestWidget(
         tester,
-        const ArticleActionsBar(),
+        ArticleActionsBar(),
         providers: [
           BlocProvider<ArticleDetailBloc>.value(value: mockArticleDetailBloc),
         ],
@@ -84,7 +84,7 @@ void main() {
 
       await pumpTestWidget(
         tester,
-        const ArticleActionsBar(),
+        ArticleActionsBar(),
         providers: [
           BlocProvider<ArticleDetailBloc>.value(value: mockArticleDetailBloc),
         ],
@@ -99,7 +99,7 @@ void main() {
 
       await pumpTestWidget(
         tester,
-        const ArticleActionsBar(),
+        ArticleActionsBar(),
         providers: [
           BlocProvider<ArticleDetailBloc>.value(value: mockArticleDetailBloc),
         ],
@@ -114,7 +114,7 @@ void main() {
 
       await pumpTestWidget(
         tester,
-        const ArticleActionsBar(),
+        ArticleActionsBar(),
         providers: [
           BlocProvider<ArticleDetailBloc>.value(value: mockArticleDetailBloc),
         ],
@@ -135,7 +135,7 @@ void main() {
 
       await pumpTestWidget(
         tester,
-        const ArticleActionsBar(),
+        ArticleActionsBar(),
         providers: [
           BlocProvider<ArticleDetailBloc>.value(value: mockArticleDetailBloc),
         ],
@@ -151,7 +151,7 @@ void main() {
 
       await pumpTestWidget(
         tester,
-        const ArticleActionsBar(),
+        ArticleActionsBar(),
         providers: [
           BlocProvider<ArticleDetailBloc>.value(value: mockArticleDetailBloc),
         ],

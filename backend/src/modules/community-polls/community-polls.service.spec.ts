@@ -9,6 +9,8 @@ import { Repository } from 'typeorm';
 import { CommunityPollsService } from './community-polls.service';
 import { CommunityPoll } from './entities/community-poll.entity';
 import { PollVote } from './entities/poll-vote.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { GamificationService } from '../gamification/gamification.service';
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -59,6 +61,8 @@ describe('CommunityPollsService', () => {
         CommunityPollsService,
         { provide: getRepositoryToken(CommunityPoll), useFactory: mockRepository },
         { provide: getRepositoryToken(PollVote), useFactory: mockRepository },
+        { provide: NotificationsService, useValue: { triggerContentNotification: jest.fn().mockResolvedValue(undefined) } },
+        { provide: GamificationService, useValue: { awardPoints: jest.fn().mockResolvedValue(undefined), trackAction: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 
@@ -349,7 +353,9 @@ describe('CommunityPollsService', () => {
     });
 
     it('should throw BadRequestException when poll is closed', async () => {
-      const closedPoll = { ...activePoll, closedAt: new Date() };
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 1);
+      const closedPoll = { ...activePoll, closedAt: pastDate };
       pollRepository.findOne.mockResolvedValue(closedPoll);
 
       await expect(

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 
 /// Privacy policy page.
@@ -17,9 +18,9 @@ class PrivacyPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'privacy_title'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -89,7 +90,7 @@ class PrivacyPage extends StatelessWidget {
               child: Text(
                 'privacy_updated_text'.tr(),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textTertiary,
+                      color: context.colors.textTertiary,
                     ),
               ),
             ),
@@ -111,9 +112,9 @@ class PrivacyPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: context.colors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,7 +131,7 @@ class PrivacyPage extends StatelessWidget {
             Text(
               content,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                     height: 1.6,
                   ),
               textDirection: TextDirection.rtl,

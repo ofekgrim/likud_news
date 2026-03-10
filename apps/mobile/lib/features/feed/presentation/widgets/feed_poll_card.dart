@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
+import '../../../../core/utils/auth_guard.dart';
 import '../../domain/entities/feed_item.dart';
 import '../../../community_polls/presentation/bloc/polls_bloc.dart';
 
@@ -147,10 +149,11 @@ class _FeedPollCardState extends State<FeedPollCard> {
             // Question
             Text(
               widget.poll.question,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 height: 1.3,
+                color: context.colors.textPrimary,
               ),
             ),
 
@@ -178,13 +181,13 @@ class _FeedPollCardState extends State<FeedPollCard> {
                 return Row(
                   children: [
                     // Total votes
-                    Icon(Icons.people_outline, size: 16, color: Colors.grey[600]),
+                    Icon(Icons.people_outline, size: 16, color: context.colors.textTertiary),
                     const SizedBox(width: 4),
                     Text(
                       '$displayTotalVotes ${'votes'.tr()}',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey[700],
+                        color: context.colors.textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -235,13 +238,13 @@ class _FeedPollCardState extends State<FeedPollCard> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.timer_outlined, size: 14, color: Colors.grey[600]),
+                  Icon(Icons.timer_outlined, size: 14, color: context.colors.textTertiary),
                   const SizedBox(width: 4),
                   Text(
                     '${'ends'.tr()}: ${_formatDate(widget.poll.endsAt!)}',
                     style: TextStyle(
                       fontSize: 11,
-                      color: Colors.grey[600],
+                      color: context.colors.textTertiary,
                     ),
                   ),
                 ],
@@ -296,6 +299,7 @@ class _FeedPollCardState extends State<FeedPollCard> {
   }
 
   void _onVoteOption(BuildContext context, int optionIndex) {
+    if (!requireAuth(context)) return;
     final pollsBloc = context.read<PollsBloc>();
     pollsBloc.add(VoteOnPollEvent(
       pollId: widget.poll.id,
@@ -349,20 +353,21 @@ class _PollOption extends StatelessWidget {
           children: [
             // Background progress bar (shown when voted)
             if (userHasVoted)
-              Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: AppColors.likudBlue.withValues(alpha: 0.1),
-                ),
-                child: FractionallySizedBox(
-                  alignment: AlignmentDirectional.centerStart,
-                  widthFactor: option.percentage / 100,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: AppColors.likudBlue.withValues(
-                        alpha: isThisVote ? 0.5 : 0.3,
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.likudBlue.withValues(alpha: 0.1),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: AlignmentDirectional.centerStart,
+                    widthFactor: option.percentage / 100,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.likudBlue.withValues(
+                          alpha: isThisVote ? 0.5 : 0.3,
+                        ),
                       ),
                     ),
                   ),
@@ -370,92 +375,96 @@ class _PollOption extends StatelessWidget {
               )
             // Hover background for clickable option (not voted)
             else if (!isVoting)
-              Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey.withValues(alpha: 0.05),
-                  border: Border.all(
-                    color: Colors.grey.withValues(alpha: 0.2),
-                    width: 1,
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: context.colors.shadow,
+                    border: Border.all(
+                      color: context.colors.border,
+                      width: 1,
+                    ),
                   ),
                 ),
               )
             // Loading background while voting
             else
-              Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.grey.withValues(alpha: 0.1),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: context.colors.shadow,
+                  ),
                 ),
               ),
 
             // Option content
-            Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  // Checkbox or checkmark icon
-                  if (!isVoting)
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 8),
-                      child: Icon(
-                        userHasVoted
-                            ? (isThisVote ? Icons.check_circle : Icons.radio_button_unchecked)
-                            : Icons.radio_button_unchecked,
-                        size: 20,
-                        color: userHasVoted && isThisVote
-                            ? AppColors.likudBlue
-                            : Colors.grey[400],
-                      ),
-                    )
-                  else
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 8),
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation(AppColors.likudBlue),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 44),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    // Checkbox or checkmark icon
+                    if (!isVoting)
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8),
+                        child: Icon(
+                          userHasVoted
+                              ? (isThisVote ? Icons.check_circle : Icons.radio_button_unchecked)
+                              : Icons.radio_button_unchecked,
+                          size: 20,
+                          color: userHasVoted && isThisVote
+                              ? AppColors.likudBlue
+                              : context.colors.textTertiary,
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 8),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation(AppColors.likudBlue),
+                          ),
                         ),
                       ),
-                    ),
 
-                  // Option text
-                  Expanded(
-                    child: Text(
-                      option.text,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: userHasVoted && isThisVote
-                            ? AppColors.likudBlue
-                            : Colors.black87,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-
-                  // Percentage (shown when voted)
-                  if (userHasVoted) ...[
-                    const SizedBox(width: 8),
-                    Text(
-                      '${option.percentage.toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: isThisVote
-                            ? AppColors.likudBlue
-                            : Colors.grey[600],
+                    // Option text
+                    Expanded(
+                      child: Text(
+                        option.text,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: userHasVoted && isThisVote
+                              ? AppColors.likudBlue
+                              : context.colors.textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+
+                    // Percentage (shown when voted)
+                    if (userHasVoted) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '${option.percentage.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isThisVote
+                              ? AppColors.likudBlue
+                              : context.colors.textTertiary,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],

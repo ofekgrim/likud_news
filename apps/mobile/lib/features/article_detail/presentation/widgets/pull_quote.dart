@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 
 /// A decorative pull quote block used to highlight short, impactful
 /// quotations within an article.
@@ -29,7 +30,7 @@ class PullQuote extends StatelessWidget {
           horizontal: 24,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -53,12 +54,12 @@ class PullQuote extends StatelessWidget {
             Text(
               text,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 20,
                 fontStyle: FontStyle.italic,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
                 height: 1.6,
               ),
             ),

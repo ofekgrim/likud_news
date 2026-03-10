@@ -4,7 +4,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/usecases/usecase.dart';
 import '../../../home/domain/entities/story.dart';
-import '../../../home/domain/usecases/get_stories.dart';
+import '../../domain/usecases/get_stories.dart';
 
 // Events
 sealed class StoriesEvent extends Equatable {
@@ -53,7 +53,7 @@ class StoriesError extends StoriesState {
 // BLoC
 @injectable
 class StoriesBloc extends Bloc<StoriesEvent, StoriesState> {
-  final GetStories _getStories;
+  final GetStoriesUseCase _getStories;
 
   StoriesBloc(this._getStories) : super(const StoriesInitial()) {
     on<LoadStories>(_onLoad);

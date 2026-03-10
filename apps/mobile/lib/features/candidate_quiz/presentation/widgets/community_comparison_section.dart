@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/community_average.dart';
 import '../../domain/entities/quiz_result.dart';
 
@@ -62,20 +63,20 @@ class CommunityComparisonSection extends StatelessWidget {
                 children: [
                   Text(
                     'quiz_compare_to_community'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                   if (totalResponses > 0)
                     Text(
                       'quiz_total_responses'.tr(args: ['$totalResponses']),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                     ),
                 ],
@@ -94,7 +95,7 @@ class CommunityComparisonSection extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             _LegendDot(
-              color: AppColors.textTertiary,
+              color: context.colors.textTertiary,
               label: 'quiz_community_average'.tr(),
             ),
           ],
@@ -140,10 +141,10 @@ class _LegendDot extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 12,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       ],
@@ -171,7 +172,7 @@ class _ComparisonBar extends StatelessWidget {
         ? AppColors.success
         : diff < 0
             ? AppColors.breakingRed
-            : AppColors.textSecondary;
+            : context.colors.textSecondary;
 
     return Padding(
       padding: const EdgeInsetsDirectional.only(bottom: 16),
@@ -186,11 +187,11 @@ class _ComparisonBar extends StatelessWidget {
                   candidateName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
               ),
@@ -228,7 +229,7 @@ class _ComparisonBar extends StatelessWidget {
           // Community bar
           _PercentageBar(
             percentage: communityPercentage,
-            color: AppColors.textTertiary,
+            color: context.colors.textTertiary,
           ),
         ],
       ),

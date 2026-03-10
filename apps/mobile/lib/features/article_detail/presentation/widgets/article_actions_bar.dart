@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../bloc/article_detail_bloc.dart';
 import '../../../../core/utils/auth_guard.dart';
 
@@ -11,7 +12,7 @@ import '../../../../core/utils/auth_guard.dart';
 /// Provides share buttons for WhatsApp, Telegram, Facebook, X (Twitter),
 /// copy link, and a bookmark/favorite toggle.
 class ArticleActionsBar extends StatelessWidget {
-  const ArticleActionsBar({super.key});
+  ArticleActionsBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,13 +29,13 @@ class ArticleActionsBar extends StatelessWidget {
             bottom: MediaQuery.of(context).padding.bottom + 8,
           ),
           decoration: BoxDecoration(
-            color: AppColors.white,
-            border: const Border(
-              top: BorderSide(color: AppColors.border),
+            color: context.colors.surface,
+            border: Border(
+              top: BorderSide(color: context.colors.border),
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.06),
+                color: context.colors.shadow,
                 blurRadius: 8,
                 offset: const Offset(0, -2),
               ),
@@ -46,7 +47,7 @@ class ArticleActionsBar extends StatelessWidget {
               Text(
                 'share_label'.tr(),
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
               ),
@@ -79,7 +80,7 @@ class ArticleActionsBar extends StatelessWidget {
               // X (Twitter)
               _ShareIconButton(
                 icon: Icons.alternate_email,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
                 tooltip: 'X',
                 onPressed: () => _share(context, SharePlatform.x),
               ),
@@ -87,7 +88,7 @@ class ArticleActionsBar extends StatelessWidget {
               // Copy link
               _ShareIconButton(
                 icon: Icons.link,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
                 tooltip: 'copy_link'.tr(),
                 onPressed: () {
                   _share(context, SharePlatform.copyLink);
@@ -108,7 +109,7 @@ class ArticleActionsBar extends StatelessWidget {
                   isFavorite ? Icons.bookmark : Icons.bookmark_border,
                   color: isFavorite
                       ? AppColors.likudBlue
-                      : AppColors.textSecondary,
+                      : context.colors.textSecondary,
                 ),
                 tooltip: isFavorite ? 'remove_favorite'.tr() : 'save_article'.tr(),
                 onPressed: () {
@@ -147,8 +148,8 @@ class _ShareIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 36,
-      height: 36,
+      width: 44,
+      height: 44,
       child: IconButton(
         padding: EdgeInsets.zero,
         iconSize: 20,

@@ -31,7 +31,7 @@ async function bootstrap() {
   } else {
     const corsOrigins = config.get<string[]>('cors.origins', [
       'http://localhost:3001',
-      'http://localhost:3001',
+      'https://admin.metzudathalikud.co.il',
     ]);
     app.enableCors({
       origin: corsOrigins,

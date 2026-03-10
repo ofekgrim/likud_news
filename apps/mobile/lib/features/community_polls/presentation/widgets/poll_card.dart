@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/community_poll.dart';
 import '../../../../core/utils/auth_guard.dart';
 
@@ -39,12 +40,12 @@ class _PollCardState extends State<PollCard> {
 
     return Card(
       elevation: 0,
-      color: AppColors.white,
+      color: context.colors.cardSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: poll.isPinned
             ? const BorderSide(color: AppColors.likudBlue, width: 1.5)
-            : const BorderSide(color: AppColors.border),
+            : BorderSide(color: context.colors.border),
       ),
       child: Padding(
         padding: const EdgeInsetsDirectional.all(20),
@@ -59,10 +60,10 @@ class _PollCardState extends State<PollCard> {
             // Question
             Text(
               poll.question,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
                 height: 1.4,
               ),
             ),
@@ -72,9 +73,9 @@ class _PollCardState extends State<PollCard> {
               const SizedBox(height: 8),
               Text(
                 poll.description!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                   height: 1.4,
                 ),
               ),
@@ -139,24 +140,24 @@ class _PollCardState extends State<PollCard> {
         Container(
           padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 8, 4),
           decoration: BoxDecoration(
-            color: AppColors.textSecondary.withValues(alpha: 0.1),
+            color: context.colors.textSecondary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.lock_outline,
                 size: 14,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
               const SizedBox(width: 4),
               Text(
                 'polls_closed'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ],
@@ -203,12 +204,12 @@ class _PollCardState extends State<PollCard> {
                   border: Border.all(
                     color: isSelected
                         ? AppColors.likudBlue
-                        : AppColors.border,
+                        : context.colors.border,
                     width: isSelected ? 2 : 1,
                   ),
                   color: isSelected
                       ? AppColors.likudBlue.withValues(alpha: 0.05)
-                      : AppColors.white,
+                      : context.colors.cardSurface,
                 ),
                 child: Row(
                   children: [
@@ -221,7 +222,7 @@ class _PollCardState extends State<PollCard> {
                         border: Border.all(
                           color: isSelected
                               ? AppColors.likudBlue
-                              : AppColors.textSecondary,
+                              : context.colors.textSecondary,
                           width: 2,
                         ),
                         color: isSelected
@@ -245,7 +246,7 @@ class _PollCardState extends State<PollCard> {
                           fontWeight: isSelected
                               ? FontWeight.w600
                               : FontWeight.w400,
-                          color: AppColors.textPrimary,
+                          color: context.colors.textPrimary,
                         ),
                       ),
                     ),
@@ -278,8 +279,8 @@ class _PollCardState extends State<PollCard> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.likudBlue,
           foregroundColor: AppColors.white,
-          disabledBackgroundColor: AppColors.border,
-          disabledForegroundColor: AppColors.textSecondary,
+          disabledBackgroundColor: context.colors.border,
+          disabledForegroundColor: context.colors.textSecondary,
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -350,14 +351,14 @@ class _PollCardState extends State<PollCard> {
         Icon(
           Icons.people_outline,
           size: 16,
-          color: AppColors.textSecondary.withValues(alpha: 0.7),
+          color: context.colors.textSecondary.withValues(alpha: 0.7),
         ),
         const SizedBox(width: 6),
         Text(
           'polls_total_votes'.tr(args: [poll.totalVotes.toString()]),
           style: TextStyle(
             fontSize: 13,
-            color: AppColors.textSecondary.withValues(alpha: 0.7),
+            color: context.colors.textSecondary.withValues(alpha: 0.7),
           ),
         ),
         if (widget.hasVoted) ...[
@@ -408,7 +409,7 @@ class _AnimatedResultBar extends StatelessWidget {
         : AppColors.likudBlue.withValues(alpha: 0.4);
     final bgColor = isWinning
         ? AppColors.likudBlue.withValues(alpha: 0.08)
-        : AppColors.surfaceLight;
+        : context.colors.surfaceVariant;
 
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: percentage),
@@ -461,7 +462,7 @@ class _AnimatedResultBar extends StatelessWidget {
                           fontSize: 14,
                           fontWeight:
                               isWinning ? FontWeight.w700 : FontWeight.w500,
-                          color: AppColors.textPrimary,
+                          color: context.colors.textPrimary,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -483,7 +484,7 @@ class _AnimatedResultBar extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             color: isWinning
                                 ? AppColors.likudBlue
-                                : AppColors.textPrimary,
+                                : context.colors.textPrimary,
                           ),
                         );
                       },

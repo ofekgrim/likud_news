@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/quiz_result.dart';
 import 'match_percentage_circle.dart';
 
@@ -33,17 +34,17 @@ class CandidateMatchCard extends StatelessWidget {
         margin: const EdgeInsetsDirectional.only(bottom: 12),
         padding: const EdgeInsetsDirectional.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.cardSurface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isBestMatch ? AppColors.likudBlue : AppColors.border,
+            color: isBestMatch ? AppColors.likudBlue : context.colors.border,
             width: isBestMatch ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
               color: isBestMatch
                   ? AppColors.likudBlue.withValues(alpha: 0.12)
-                  : AppColors.black.withValues(alpha: 0.04),
+                  : context.colors.shadow,
               blurRadius: isBestMatch ? 12 : 6,
               offset: const Offset(0, 2),
             ),
@@ -68,7 +69,7 @@ class CandidateMatchCard extends StatelessWidget {
                   fontFamily: 'Heebo',
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: isBestMatch ? AppColors.white : AppColors.textPrimary,
+                  color: isBestMatch ? AppColors.white : context.colors.textPrimary,
                 ),
               ),
             ),
@@ -89,7 +90,7 @@ class CandidateMatchCard extends StatelessWidget {
                             fontFamily: 'Heebo',
                             fontSize: isBestMatch ? 17 : 15,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                            color: context.colors.textPrimary,
                           ),
                         ),
                       ),

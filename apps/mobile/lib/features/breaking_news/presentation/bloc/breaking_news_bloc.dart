@@ -231,19 +231,25 @@ class BreakingNewsBloc extends Bloc<BreakingNewsEvent, BreakingNewsState> {
     RefreshBreaking event,
     Emitter<BreakingNewsState> emit,
   ) async {
+    final currentState = state;
     final result = await _getBreakingArticles(const NoParams());
 
     result.fold(
       (failure) {
         // On refresh failure, keep current articles if available.
-        if (state is! BreakingNewsLoaded) {
+        if (currentState is! BreakingNewsLoaded) {
           emit(BreakingNewsError(
             failure.message ?? 'error_loading_breaking'.tr(),
           ));
         }
       },
       (articles) {
-        emit(BreakingNewsLoaded(articles: articles, isLive: true));
+        if (currentState is BreakingNewsLoaded) {
+          // Preserve allArticles/search state so tab 2 isn't wiped.
+          emit(currentState.copyWith(articles: articles, isLive: true));
+        } else {
+          emit(BreakingNewsLoaded(articles: articles, isLive: true));
+        }
       },
     );
   }

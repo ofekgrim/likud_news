@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/community_average.dart';
 import '../../domain/entities/quiz_result.dart';
 import '../bloc/quiz_bloc.dart';
@@ -46,22 +47,22 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.surfaceLight,
+        backgroundColor: context.colors.surfaceVariant,
         appBar: AppBar(
-          backgroundColor: AppColors.white,
+          backgroundColor: context.colors.cardSurface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.close, color: AppColors.textPrimary),
+            icon: Icon(Icons.close, color: context.colors.textPrimary),
             onPressed: () => context.pop(),
           ),
           centerTitle: true,
           title: Text(
             'quiz_results_title'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           actions: [
@@ -105,10 +106,10 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
                       Text(
                         state.message,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Heebo',
                           fontSize: 15,
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -146,10 +147,10 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
       return Center(
         child: Text(
           'quiz_no_results'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 16,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );
@@ -175,11 +176,11 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
           // Section title
           Text(
             'quiz_all_matches'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -225,7 +226,7 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
           end: Alignment.bottomCenter,
           colors: [
             AppColors.likudBlue.withValues(alpha: 0.08),
-            AppColors.white,
+            context.colors.cardSurface,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
@@ -252,21 +253,21 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
           const SizedBox(height: 12),
           Text(
             'quiz_your_best_match'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             bestMatch.candidateName,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -344,8 +345,8 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
             icon: const Icon(Icons.refresh, size: 18),
             label: Text('quiz_retake'.tr()),
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.textPrimary,
-              side: const BorderSide(color: AppColors.border),
+              foregroundColor: context.colors.textPrimary,
+              side: BorderSide(color: context.colors.border),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

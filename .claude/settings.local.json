@@ -66,7 +66,12 @@
       "Bash(npx -y json)",
       "Bash(pg_isready -h localhost -p 5432)",
       "Bash(psql -h localhost -U likud -d likud_news -c \"SELECT typname FROM pg_type WHERE typname LIKE ''%action%'' OR typname LIKE ''%point%'';\")",
-      "Bash(psql -h localhost -U likud -d likud_news -c \"SELECT typname FROM pg_type WHERE typname LIKE ''%badge%'';\")"
+      "Bash(psql -h localhost -U likud -d likud_news -c \"SELECT typname FROM pg_type WHERE typname LIKE ''%badge%'';\")",
+      "Bash(flutter pub add flutter_tts)",
+      "Bash(pod install)",
+      "Bash(ls -la /Users/ofekgrim/likud_news/admin/src/app/\\\\\\(authenticated\\\\\\)/stories/)",
+      "Bash(cat /Users/ofekgrim/likud_news/admin/src/app/\\\\\\(authenticated\\\\\\)/stories/page.tsx)",
+      "Bash(cat \"/Users/ofekgrim/likud_news/admin/src/app/\\(authenticated\\)/stories/page.tsx\")"
     ]
   }
 }

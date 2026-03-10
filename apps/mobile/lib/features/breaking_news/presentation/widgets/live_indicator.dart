@@ -47,6 +47,15 @@ class _LiveIndicatorState extends State<LiveIndicator>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.of(context).disableAnimations) {
+      _controller.stop();
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
   void didUpdateWidget(covariant LiveIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isLive && !_controller.isAnimating) {

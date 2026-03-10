@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 
 /// Horizontal scrolling filter bar for candidate districts.
 ///
@@ -32,6 +33,7 @@ class DistrictFilterBar extends StatelessWidget {
             label: 'candidates_all_districts'.tr(),
             isSelected: selectedDistrict == null || selectedDistrict!.isEmpty,
             onTap: () => onDistrictSelected(null),
+            context: context,
           ),
           const SizedBox(width: 8),
           // District chips.
@@ -42,6 +44,7 @@ class DistrictFilterBar extends StatelessWidget {
                 label: district,
                 isSelected: selectedDistrict == district,
                 onTap: () => onDistrictSelected(district),
+                context: context,
               ),
             ),
           ),
@@ -54,6 +57,7 @@ class DistrictFilterBar extends StatelessWidget {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    required BuildContext context,
   }) {
     return FilterChip(
       label: Text(
@@ -62,17 +66,17 @@ class DistrictFilterBar extends StatelessWidget {
           fontFamily: 'Heebo',
           fontSize: 13,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          color: isSelected ? AppColors.white : AppColors.textPrimary,
+          color: isSelected ? AppColors.white : context.colors.textPrimary,
         ),
         textDirection: TextDirection.rtl,
       ),
       selected: isSelected,
       onSelected: (_) => onTap(),
       selectedColor: AppColors.likudBlue,
-      backgroundColor: AppColors.surfaceMedium,
+      backgroundColor: context.colors.surfaceMedium,
       checkmarkColor: AppColors.white,
       side: BorderSide(
-        color: isSelected ? AppColors.likudBlue : AppColors.border,
+        color: isSelected ? AppColors.likudBlue : context.colors.border,
         width: 0.5,
       ),
       shape: RoundedRectangleBorder(

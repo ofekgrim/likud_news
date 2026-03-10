@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -223,11 +224,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 // Title.
                 Text(
                   event.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                     height: 1.3,
                   ),
                   textDirection: TextDirection.rtl,
@@ -261,10 +262,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
                     event.description!.isNotEmpty) ...[
                   Text(
                     event.description!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 15,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                       height: 1.7,
                     ),
                     textDirection: TextDirection.rtl,
@@ -341,9 +342,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
     return Container(
       padding: const EdgeInsetsDirectional.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: context.colors.border, width: 0.5),
       ),
       child: Row(
         children: [
@@ -355,20 +356,20 @@ class _EventDetailPageState extends State<EventDetailPage> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 11,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 14,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                   textDirection: TextDirection.rtl,
@@ -385,9 +386,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
     return Container(
       padding: const EdgeInsetsDirectional.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: context.colors.border, width: 0.5),
       ),
       child: Row(
         children: [
@@ -399,20 +400,20 @@ class _EventDetailPageState extends State<EventDetailPage> {
               children: [
                 Text(
                   'events_location'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 11,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   event.location!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 14,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w500,
                   ),
                   textDirection: TextDirection.rtl,
@@ -421,10 +422,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   const SizedBox(height: 2),
                   Text(
                     event.city!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     textDirection: TextDirection.rtl,
                   ),
@@ -464,9 +465,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
     return Container(
       padding: const EdgeInsetsDirectional.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: context.colors.border, width: 0.5),
       ),
       child: Row(
         children: [
@@ -483,10 +484,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 : Container(
                     width: 44,
                     height: 44,
-                    color: AppColors.surfaceMedium,
-                    child: const Icon(
+                    color: context.colors.surfaceMedium,
+                    child: Icon(
                       Icons.person,
-                      color: AppColors.textTertiary,
+                      color: context.colors.textTertiary,
                       size: 24,
                     ),
                   ),
@@ -498,20 +499,20 @@ class _EventDetailPageState extends State<EventDetailPage> {
               children: [
                 Text(
                   'events_hosted_by'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 11,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   event.candidateName!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 15,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                   textDirection: TextDirection.rtl,
@@ -533,11 +534,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
           children: [
             Text(
               'events_rsvp'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
             const Spacer(),
@@ -611,7 +612,7 @@ class _RsvpChoiceChip extends StatelessWidget {
     return Material(
       color: isSelected
           ? AppColors.likudBlue.withValues(alpha: 0.12)
-          : AppColors.surfaceLight,
+          : context.colors.surfaceVariant,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -621,7 +622,7 @@ class _RsvpChoiceChip extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.likudBlue : AppColors.border,
+              color: isSelected ? AppColors.likudBlue : context.colors.border,
               width: isSelected ? 1.5 : 0.5,
             ),
           ),
@@ -632,7 +633,7 @@ class _RsvpChoiceChip extends StatelessWidget {
                 icon,
                 size: 22,
                 color:
-                    isSelected ? AppColors.likudBlue : AppColors.textSecondary,
+                    isSelected ? AppColors.likudBlue : context.colors.textSecondary,
               ),
               const SizedBox(height: 4),
               Text(
@@ -643,7 +644,7 @@ class _RsvpChoiceChip extends StatelessWidget {
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected
                       ? AppColors.likudBlue
-                      : AppColors.textSecondary,
+                      : context.colors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),

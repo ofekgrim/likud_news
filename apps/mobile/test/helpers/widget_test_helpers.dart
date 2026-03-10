@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:metzudat_halikud/app/theme/app_colors_extension.dart';
 
 /// Pumps a widget wrapped in MaterialApp with RTL directionality.
 ///
@@ -13,6 +14,9 @@ Future<void> pumpTestWidget(
   List<BlocProvider> providers = const [],
 }) async {
   Widget app = MaterialApp(
+    theme: ThemeData(
+      extensions: const [AppColorsExtension.light],
+    ),
     home: Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(body: child),

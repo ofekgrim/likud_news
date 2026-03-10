@@ -8,6 +8,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 import '../core/services/app_logger.dart';
 import '../core/services/push_notification_service.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
+import '../features/settings/presentation/bloc/settings_bloc.dart';
 import 'di.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
@@ -32,12 +33,14 @@ class MetzudatApp extends StatefulWidget {
 
 class _MetzudatAppState extends State<MetzudatApp> {
   late final AuthBloc _authBloc;
+  late final SettingsBloc _settingsBloc;
   late final GoRouter _router;
 
   @override
   void initState() {
     super.initState();
     _authBloc = getIt<AuthBloc>()..add(const CheckAuthStatus());
+    _settingsBloc = getIt<SettingsBloc>()..add(const LoadSettings());
     _router = AppRouter.createRouter(_authBloc);
     getIt<PushNotificationService>().setRouter(_router);
   }
@@ -50,33 +53,52 @@ class _MetzudatAppState extends State<MetzudatApp> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthBloc>.value(
-      value: _authBloc,
-      child: MaterialApp.router(
-        title: 'app_name'.tr(),
-        debugShowCheckedModeBanner: false,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>.value(value: _authBloc),
+        BlocProvider<SettingsBloc>.value(value: _settingsBloc),
+      ],
+      child: BlocBuilder<SettingsBloc, SettingsState>(
+        builder: (context, settingsState) {
+          var themeMode = settingsState is SettingsLoaded
+              ? settingsState.themeMode
+              : ThemeMode.system;
 
-        // Theme
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.light,
+          // "System" = time-based: dark at night (19:00–06:00), light during day.
+          if (themeMode == ThemeMode.system) {
+            final hour = DateTime.now().hour;
+            themeMode = (hour >= 19 || hour < 6)
+                ? ThemeMode.dark
+                : ThemeMode.light;
+          }
 
-        // Localization
-        locale: context.locale,
-        supportedLocales: context.supportedLocales,
-        localizationsDelegates: [
-          ...context.localizationDelegates,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
+          return MaterialApp.router(
+            title: 'app_name'.tr(),
+            debugShowCheckedModeBanner: false,
 
-        // Router
-        routerConfig: _router,
+            // Theme — dynamically controlled by SettingsBloc
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeMode,
 
-        // Navigation observer for logging route changes
-        builder: (context, child) {
-          return child ?? const SizedBox.shrink();
+            // Localization
+            locale: context.locale,
+            supportedLocales: context.supportedLocales,
+            localizationsDelegates: [
+              ...context.localizationDelegates,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+
+            // Router
+            routerConfig: _router,
+
+            // Navigation observer for logging route changes
+            builder: (context, child) {
+              return child ?? const SizedBox.shrink();
+            },
+          );
         },
       ),
     );

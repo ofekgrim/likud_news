@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../home/presentation/widgets/feed_article_card.dart';
@@ -85,11 +86,11 @@ class _CategoryArticlesPageState extends State<CategoryArticlesPage> {
         centerTitle: true,
         title: Text(
           widget.name,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
       ),
@@ -166,11 +167,11 @@ class _CategoryArticlesPageState extends State<CategoryArticlesPage> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: state.articles.length + (state.hasMore ? 1 : 0),
-        separatorBuilder: (_, __) => const Divider(
+        separatorBuilder: (_, __) => Divider(
           height: 1,
           indent: 16,
           endIndent: 16,
-          color: AppColors.border,
+          color: context.colors.border,
         ),
         itemBuilder: (context, index) {
           if (index < state.articles.length) {

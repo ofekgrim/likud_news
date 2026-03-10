@@ -56,7 +56,14 @@ class TtsService {
   /// Suppresses the completionHandler during explicit skip/stop operations.
   bool _suppressCompletion = false;
 
-  TtsService({FlutterTts? tts}) : _tts = tts ?? FlutterTts() {
+  TtsService() : _tts = FlutterTts() {
+    _loadSpeed();
+    _init();
+  }
+
+  /// Test-only constructor that accepts a mock [FlutterTts].
+  @visibleForTesting
+  TtsService.withTts(FlutterTts tts) : _tts = tts {
     _loadSpeed();
     _init();
   }

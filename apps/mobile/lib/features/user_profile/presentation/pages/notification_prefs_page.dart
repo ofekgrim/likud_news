@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../bloc/user_profile_bloc.dart';
 
@@ -63,7 +64,7 @@ class _NotificationPrefsPageState extends State<NotificationPrefsPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.surfaceLight,
+        backgroundColor: context.colors.surfaceVariant,
         appBar: AppBar(
           backgroundColor: AppColors.likudBlue,
           title: Text(
@@ -126,10 +127,10 @@ class _NotificationPrefsPageState extends State<NotificationPrefsPage> {
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(
                     'profile_notification_desc'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                       height: 1.5,
                     ),
                   ),
@@ -225,12 +226,12 @@ class _NotificationPrefsPageState extends State<NotificationPrefsPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: context.colors.border, width: 0.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.04),
+            color: context.colors.shadow,
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -249,19 +250,19 @@ class _NotificationPrefsPageState extends State<NotificationPrefsPage> {
         secondary: Icon(icon, color: iconColor, size: 24),
         title: Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 12,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
             height: 1.3,
           ),
         ),

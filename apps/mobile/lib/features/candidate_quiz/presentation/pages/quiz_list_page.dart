@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/quiz_election.dart';
 import '../bloc/quiz_list_bloc.dart';
 
@@ -27,22 +28,22 @@ class _QuizListPageState extends State<QuizListPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.surfaceLight,
+        backgroundColor: context.colors.surfaceVariant,
         appBar: AppBar(
-          backgroundColor: AppColors.white,
+          backgroundColor: context.colors.cardSurface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary),
+            icon: Icon(Icons.arrow_forward, color: context.colors.textPrimary),
             onPressed: () => context.pop(),
           ),
           centerTitle: true,
           title: Text(
             'quiz_list_title'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -67,10 +68,10 @@ class _QuizListPageState extends State<QuizListPage> {
                     const SizedBox(height: 16),
                     Text(
                       'quiz_list_error'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 15,
-                        color: AppColors.textSecondary,
+                        color: context.colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -98,15 +99,15 @@ class _QuizListPageState extends State<QuizListPage> {
                       Icon(
                         Icons.quiz_outlined,
                         size: 64,
-                        color: AppColors.textTertiary.withValues(alpha: 0.5),
+                        color: context.colors.textTertiary.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'quiz_list_empty'.tr(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Heebo',
                           fontSize: 16,
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                       ),
                     ],
@@ -217,7 +218,7 @@ class _QuizListPageState extends State<QuizListPage> {
     return Padding(
       padding: const EdgeInsetsDirectional.only(bottom: 12),
       child: Material(
-        color: AppColors.white,
+        color: context.colors.cardSurface,
         borderRadius: BorderRadius.circular(14),
         elevation: 0,
         child: InkWell(
@@ -238,7 +239,7 @@ class _QuizListPageState extends State<QuizListPage> {
               border: Border.all(
                 color: isCompleted
                     ? AppColors.success.withValues(alpha: 0.3)
-                    : AppColors.border,
+                    : context.colors.border,
               ),
             ),
             child: Column(
@@ -305,11 +306,11 @@ class _QuizListPageState extends State<QuizListPage> {
                 // Title
                 Text(
                   election.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 if (election.description != null &&
@@ -319,10 +320,10 @@ class _QuizListPageState extends State<QuizListPage> {
                     election.description!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                       height: 1.4,
                     ),
                   ),
@@ -406,14 +407,14 @@ class _QuizListPageState extends State<QuizListPage> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: AppColors.textTertiary),
+        Icon(icon, size: 16, color: context.colors.textTertiary),
         const SizedBox(width: 4),
         Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 12,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       ],
@@ -440,11 +441,11 @@ class _QuizListPageState extends State<QuizListPage> {
       case 'voting':
         return AppColors.likudBlue;
       case 'completed':
-        return AppColors.textTertiary;
+        return context.colors.textTertiary;
       case 'upcoming':
         return AppColors.warning;
       default:
-        return AppColors.textSecondary;
+        return context.colors.textSecondary;
     }
   }
 }

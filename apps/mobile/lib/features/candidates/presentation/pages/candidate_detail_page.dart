@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -263,10 +264,10 @@ class _CandidateDetailPageState extends State<CandidateDetailPage> {
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.white, width: 3),
+                    border: Border.all(color: context.colors.cardSurface, width: 3),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.black.withValues(alpha: 0.15),
+                        color: context.colors.shadow,
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -285,10 +286,10 @@ class _CandidateDetailPageState extends State<CandidateDetailPage> {
                         : Container(
                             width: 100,
                             height: 100,
-                            color: AppColors.surfaceMedium,
-                            child: const Icon(
+                            color: context.colors.surfaceMedium,
+                            child: Icon(
                               Icons.person,
-                              color: AppColors.textTertiary,
+                              color: context.colors.textTertiary,
                               size: 48,
                             ),
                           ),
@@ -299,11 +300,11 @@ class _CandidateDetailPageState extends State<CandidateDetailPage> {
                 // Name.
                 Text(
                   candidate.fullName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -314,10 +315,10 @@ class _CandidateDetailPageState extends State<CandidateDetailPage> {
                   const SizedBox(height: 4),
                   Text(
                     candidate.district!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -329,10 +330,10 @@ class _CandidateDetailPageState extends State<CandidateDetailPage> {
                   const SizedBox(height: 2),
                   Text(
                     candidate.position!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 12,
-                      color: AppColors.textTertiary,
+                      color: context.colors.textTertiary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -391,10 +392,10 @@ class _CandidateDetailPageState extends State<CandidateDetailPage> {
                     ),
                     child: Text(
                       candidate.bio!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 14,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                         height: 1.6,
                       ),
                       textDirection: TextDirection.rtl,
@@ -490,9 +491,9 @@ class _CandidateDetailPageState extends State<CandidateDetailPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border, width: 0.5),
+          border: Border.all(color: context.colors.border, width: 0.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -551,10 +552,10 @@ class _ContactIconButton extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 10,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),

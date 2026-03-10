@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/quiz_question.dart';
 
 /// Selectable card for a single quiz answer option.
@@ -33,10 +34,10 @@ class QuizOptionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.likudBlue.withValues(alpha: 0.08)
-              : AppColors.white,
+              : context.colors.cardSurface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.likudBlue : AppColors.border,
+            color: isSelected ? AppColors.likudBlue : context.colors.border,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
@@ -49,7 +50,7 @@ class QuizOptionCard extends StatelessWidget {
                 ]
               : [
                   BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.04),
+                    color: context.colors.shadow,
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -65,7 +66,7 @@ class QuizOptionCard extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.likudBlue : AppColors.border,
+                  color: isSelected ? AppColors.likudBlue : context.colors.border,
                   width: 2,
                 ),
                 color: isSelected ? AppColors.likudBlue : Colors.transparent,
@@ -88,7 +89,7 @@ class QuizOptionCard extends StatelessWidget {
                   fontSize: 15,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color:
-                      isSelected ? AppColors.likudBlue : AppColors.textPrimary,
+                      isSelected ? AppColors.likudBlue : context.colors.textPrimary,
                 ),
               ),
             ),

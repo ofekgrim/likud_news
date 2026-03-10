@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart';
 import 'package:injectable/injectable.dart';
 
 // ---------------------------------------------------------------------------
@@ -15,7 +16,7 @@ sealed class SettingsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Triggers loading of current settings (in-memory defaults for now).
+/// Triggers loading of current settings from Hive storage.
 class LoadSettings extends SettingsEvent {
   const LoadSettings();
 }
@@ -125,9 +126,14 @@ class SettingsLoaded extends SettingsState {
 /// Manages the state for the Settings screen.
 ///
 /// Handles language, theme, font size, and cache clearing.
-/// Currently uses in-memory defaults (no persistence).
-@injectable
+/// Persists preferences to Hive 'settings' box.
+@lazySingleton
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
+  static const _boxName = 'settings';
+  static const _themeKey = 'themeMode';
+  static const _fontSizeKey = 'fontSize';
+  static const _localeKey = 'locale';
+
   SettingsBloc()
       : super(const SettingsLoaded(
           locale: Locale('he'),
@@ -145,11 +151,16 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     LoadSettings event,
     Emitter<SettingsState> emit,
   ) async {
-    // In-memory defaults — no persistence for now.
-    emit(const SettingsLoaded(
-      locale: Locale('he'),
-      themeMode: ThemeMode.system,
-      fontSize: FontSizeOption.medium,
+    final box = Hive.box(_boxName);
+
+    final themeModeIndex = box.get(_themeKey, defaultValue: ThemeMode.system.index) as int;
+    final fontSizeIndex = box.get(_fontSizeKey, defaultValue: FontSizeOption.medium.index) as int;
+    final localeCode = box.get(_localeKey, defaultValue: 'he') as String;
+
+    emit(SettingsLoaded(
+      locale: Locale(localeCode),
+      themeMode: ThemeMode.values[themeModeIndex],
+      fontSize: FontSizeOption.values[fontSizeIndex],
     ));
   }
 
@@ -159,6 +170,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     final current = state;
     if (current is SettingsLoaded) {
+      final box = Hive.box(_boxName);
+      await box.put(_localeKey, event.locale.languageCode);
       emit(current.copyWith(locale: event.locale));
     }
   }
@@ -169,6 +182,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     final current = state;
     if (current is SettingsLoaded) {
+      final box = Hive.box(_boxName);
+      await box.put(_themeKey, event.themeMode.index);
       emit(current.copyWith(themeMode: event.themeMode));
     }
   }
@@ -179,6 +194,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     final current = state;
     if (current is SettingsLoaded) {
+      final box = Hive.box(_boxName);
+      await box.put(_fontSizeKey, event.fontSize.index);
       emit(current.copyWith(fontSize: event.fontSize));
     }
   }
@@ -189,9 +206,11 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     final current = state;
     if (current is SettingsLoaded) {
-      // TODO: Add actual cache clearing logic when persistence is implemented.
+      // Clear feed cache box
+      if (Hive.isBoxOpen('feed_cache')) {
+        await Hive.box('feed_cache').clear();
+      }
       emit(current.copyWith(cacheCleared: true));
-      // Reset the flag after emitting.
       emit(current.copyWith(cacheCleared: false));
     }
   }

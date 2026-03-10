@@ -8,18 +8,24 @@ import '../../../../core/network/sse_client.dart';
 import '../../domain/entities/feed_item.dart';
 import '../../domain/entities/feed_response.dart';
 import '../../domain/repositories/feed_repository.dart';
+import '../datasources/feed_local_datasource.dart';
 import '../datasources/feed_remote_datasource.dart';
 import '../models/feed_item_model.dart';
 
 @LazySingleton(as: FeedRepository)
 class FeedRepositoryImpl implements FeedRepository {
   final FeedRemoteDataSource remoteDataSource;
+  final FeedLocalDataSource localDataSource;
   final SseClient sseClient;
 
   StreamController<FeedItem>? _feedUpdatesController;
   StreamSubscription? _sseSubscription;
 
-  FeedRepositoryImpl({required this.remoteDataSource, required this.sseClient});
+  FeedRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+    required this.sseClient,
+  });
 
   @override
   Future<Either<Failure, FeedResponse>> getFeed({
@@ -43,10 +49,22 @@ class FeedRepositoryImpl implements FeedRepository {
         userId: userId,
       );
 
+      // Cache first page for offline access
+      if (page == 1 && types == null && categoryId == null) {
+        localDataSource.cacheFeed(model);
+      }
+
       return Right(model.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message));
     } on NetworkException {
+      // Fall back to cached feed on network error (first page only)
+      if (page == 1) {
+        final cached = localDataSource.getCachedFeed();
+        if (cached != null) {
+          return Right(cached.toEntity());
+        }
+      }
       return const Left(NetworkFailure());
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));

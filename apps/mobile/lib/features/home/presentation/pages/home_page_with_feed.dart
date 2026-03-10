@@ -1,11 +1,15 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/di.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -22,6 +26,7 @@ import '../widgets/breaking_ticker.dart';
 import '../widgets/hero_card.dart';
 import '../widgets/story_circles.dart';
 import '../widgets/story_viewer.dart';
+import '../widgets/trending_breaking_tabs.dart';
 
 /// Main home screen with unified mixed-content feed
 class HomePageWithFeed extends StatefulWidget {
@@ -82,6 +87,7 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
   }
 
   Future<void> _onRefresh() async {
+    HapticFeedback.mediumImpact();
     // Refresh both home content and feed
     context.read<HomeBloc>().add(const RefreshFeed());
     _feedBloc.add(const feed_events.RefreshFeed());
@@ -120,25 +126,7 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
         child: RtlScaffold(
           showDrawerIcon: true,
           floatingActionButton: _showRefreshButton
-              ? FloatingActionButton.small(
-                  onPressed: () async {
-                    // Scroll to top with animation
-                    await _scrollController.animateTo(
-                      0,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOut,
-                    );
-                    // Trigger refresh and await completion
-                    await _onRefresh();
-                  },
-                  backgroundColor: AppColors.likudBlue,
-                  elevation: 4,
-                  child: const Icon(
-                    Icons.refresh,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                )
+              ? _buildLiquidGlassRefreshButton()
               : null,
           floatingActionButtonLocation:
               FloatingActionButtonLocation.miniCenterTop,
@@ -164,6 +152,61 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
 
               return const SizedBox.shrink();
             },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLiquidGlassRefreshButton() {
+    final colors = context.colors;
+    return GestureDetector(
+      onTap: () async {
+        await _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+        await _onRefresh();
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              color: colors.glassBg,
+              border: Border.all(color: colors.glassBorder, width: 0.5),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.likudBlue.withValues(alpha: 0.15),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.refresh_rounded,
+                  size: 18,
+                  color: colors.textPrimary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'refresh'.tr(),
+                  style: TextStyle(
+                    fontFamily: 'Heebo',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -268,6 +311,19 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
               ),
             ),
 
+          // Trending / Breaking tabs carousel
+          if (homeState.trendingArticles.isNotEmpty ||
+              homeState.breakingArticles.isNotEmpty)
+            SliverToBoxAdapter(
+              child: TrendingBreakingTabs(
+                trendingArticles: homeState.trendingArticles,
+                breakingArticles: homeState.breakingArticles,
+                onArticleTap: (article) {
+                  context.push('/article/${article.slug ?? article.id}');
+                },
+              ),
+            ),
+
           // Date display
           SliverToBoxAdapter(child: _buildDateHeader()),
 
@@ -277,11 +333,11 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
               child: Text(
                 'latest_news'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
             ),
@@ -326,10 +382,10 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
                       child: Center(
                         child: Text(
                           'no_content'.tr(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Heebo',
                             fontSize: 14,
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                           ),
                         ),
                       ),
@@ -376,59 +432,23 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
                     child: Center(
                       child: Text(
                         'end_of_feed'.tr(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Heebo',
                           fontSize: 13,
-                          color: AppColors.textTertiary,
+                          color: context.colors.textTertiary,
                         ),
                       ),
                     ),
                   ),
                 );
               }
+              // Show category grid after first feed page loads
+              if (feedState is FeedLoaded && feedState.items.isNotEmpty) {
+                return _buildCategoryGrid(homeState);
+              }
               return const SliverToBoxAdapter(child: SizedBox.shrink());
             },
           ),
-
-          // Browse categories section
-          if (homeState.categories.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 4),
-                child: Text(
-                  'browse_categories'.tr(),
-                  style: const TextStyle(
-                    fontFamily: 'Heebo',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.2,
-                ),
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final category = homeState.categories[index];
-                  return CategoryCard(
-                    category: category,
-                    onTap: () {
-                      context.push(
-                        '/category/${category.slug}?name=${Uri.encodeComponent(category.name)}',
-                      );
-                    },
-                  );
-                }, childCount: homeState.categories.length),
-              ),
-            ),
-          ],
 
           // Bottom padding
           SliverPadding(
@@ -446,7 +466,7 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
       case ArticleFeedItem item:
         context.push('/article/${item.article.slug}');
         break;
-      case PollFeedItem item:
+      case PollFeedItem _:
         // Navigate to polls list page (voting happens inline)
         context.push('/polls');
         break;
@@ -478,23 +498,69 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.calendar_today_outlined,
             size: 16,
-            color: AppColors.textTertiary,
+            color: context.colors.textTertiary,
           ),
           const SizedBox(width: 6),
           Text(
             '$hebrewDay, $gregorianDate',
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 13,
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCategoryGrid(HomeLoaded homeState) {
+    if (homeState.categories.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 4),
+            child: Text(
+              'browse_categories'.tr(),
+              style: TextStyle(
+                fontFamily: 'Heebo',
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: context.colors.textPrimary,
+              ),
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.2,
+            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final category = homeState.categories[index];
+              return CategoryCard(
+                category: category,
+                onTap: () {
+                  context.push(
+                    '/category/${category.slug}?name=${Uri.encodeComponent(category.name)}',
+                  );
+                },
+              );
+            }, childCount: homeState.categories.length),
+          ),
+        ),
+      ],
     );
   }
 

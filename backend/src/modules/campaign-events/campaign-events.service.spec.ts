@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CampaignEventsService } from './campaign-events.service';
 import { CampaignEvent } from './entities/campaign-event.entity';
 import { EventRsvp, RsvpStatus } from './entities/event-rsvp.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -55,6 +56,7 @@ describe('CampaignEventsService', () => {
         CampaignEventsService,
         { provide: getRepositoryToken(CampaignEvent), useFactory: mockRepository },
         { provide: getRepositoryToken(EventRsvp), useFactory: mockRepository },
+        { provide: NotificationsService, useValue: { triggerContentNotification: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 

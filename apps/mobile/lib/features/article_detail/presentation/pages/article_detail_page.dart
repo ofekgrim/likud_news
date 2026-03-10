@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../bloc/article_detail_bloc.dart';
 import '../bloc/comments_bloc.dart';
@@ -17,6 +18,7 @@ import '../widgets/recommended_articles.dart' show AllArticlesCarousel;
 import '../widgets/related_articles.dart';
 import '../widgets/reporter_row.dart';
 import '../widgets/tags_section.dart';
+import '../widgets/tts_player_bar.dart';
 
 /// Full-screen article detail page.
 ///
@@ -95,7 +97,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                       'font_size_title'.tr(),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -106,7 +108,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                           style: TextStyle(
                             fontFamily: 'Heebo',
                             fontSize: 14,
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                           ),
                         ),
                         Expanded(
@@ -133,7 +135,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                             fontFamily: 'Heebo',
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                           ),
                         ),
                       ],
@@ -232,7 +234,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                               .textTheme
                                               .bodySmall
                                               ?.copyWith(
-                                                color: AppColors.textTertiary,
+                                                color: context.colors.textTertiary,
                                                 fontStyle: FontStyle.italic,
                                               ),
                                         ),
@@ -263,6 +265,13 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                           : null,
                                     ),
 
+                                    // 3.5. TTS player — listen to article
+                                    TtsPlayerBar(
+                                      title: article.title,
+                                      subtitle: article.subtitle,
+                                      content: article.content ?? '',
+                                    ),
+
                                     // 4. Block renderer (body content)
                                     BlockRenderer(
                                       blocks: article.bodyBlocks,
@@ -283,11 +292,11 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                     // 6. Related articles (by tags)
                                     if (article.relatedArticles.isNotEmpty) ...[
                                       const SizedBox(height: 24),
-                                      const Divider(
+                                      Divider(
                                         height: 1,
                                         indent: 16,
                                         endIndent: 16,
-                                        color: AppColors.border,
+                                        color: context.colors.border,
                                       ),
                                       const SizedBox(height: 20),
                                       RelatedArticles(
@@ -363,7 +372,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                         ),
 
                         // Bottom action bar
-                        const ArticleActionsBar(),
+                        ArticleActionsBar(),
                       ],
                     ),
 

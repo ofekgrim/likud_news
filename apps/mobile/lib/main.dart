@@ -8,6 +8,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive/hive.dart';
 import 'package:talker_bloc_logger/talker_bloc_logger.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'firebase_options.dart';
 import 'app/app.dart';
 import 'app/di.dart';
@@ -31,6 +32,7 @@ void main() async {
           details.exception,
           details.stack,
         );
+        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
       };
 
       // Initialize Google Mobile Ads SDK
@@ -50,8 +52,13 @@ void main() async {
       await deviceIdService.init();
       getIt.registerSingleton<DeviceIdService>(deviceIdService);
 
-      // Open Hive box for tutorial overlay tracking
+      // Open Hive boxes
       await Hive.openBox('tutorial_box');
+      await Hive.openBox('settings');
+      final feedCacheBox = await Hive.openBox('feed_cache');
+
+      // Register Hive boxes for DI before configureDependencies()
+      getIt.registerSingleton<Box>(feedCacheBox, instanceName: 'feed_cache');
 
       // Initialize dependency injection
       configureDependencies();
@@ -91,6 +98,7 @@ void main() async {
     (error, stack) {
       // Catch async errors that aren't handled anywhere else
       AppLogger.critical('Uncaught async error', error, stack);
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     },
   );
 }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import '../core/services/app_logger.dart';
+import '../core/services/firebase_analytics_service.dart';
 import 'di.dart';
 
 // BLoC imports
@@ -27,6 +28,8 @@ import '../features/candidate_quiz/presentation/bloc/quiz_bloc.dart';
 import '../features/candidate_quiz/presentation/bloc/quiz_list_bloc.dart';
 import '../features/election_day/presentation/bloc/election_day_bloc.dart';
 import '../features/election_day/presentation/pages/election_day_page.dart';
+import '../features/authors/presentation/bloc/authors_bloc.dart';
+import '../features/authors/presentation/pages/authors_page.dart';
 import '../features/community_polls/presentation/bloc/polls_bloc.dart';
 import '../features/community_polls/presentation/pages/polls_page.dart';
 import '../features/campaign_events/presentation/bloc/events_bloc.dart';
@@ -95,6 +98,9 @@ class AppRouter {
 
   static final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// Global route observer for widgets that need to react to route changes.
+  static final routeObserver = RouteObserver<ModalRoute<dynamic>>();
+
   /// Calculates the bottom clearance needed to avoid the floating nav bar.
   static double bottomNavClearance(BuildContext context) {
     return MediaQuery.of(context).padding.bottom + 90;
@@ -103,7 +109,11 @@ class AppRouter {
   static GoRouter createRouter(AuthBloc authBloc) => GoRouter(
     initialLocation: '/',
     debugLogDiagnostics: false, // Replaced by TalkerRouteObserver
-    observers: [TalkerRouteObserver(AppLogger.instance)],
+    observers: [
+      TalkerRouteObserver(AppLogger.instance),
+      getIt<FirebaseAnalyticsService>().observer,
+      AppRouter.routeObserver,
+    ],
     refreshListenable: GoRouterRefreshStream(authBloc.stream),
     redirect: (context, state) {
       final authState = authBloc.state;
@@ -225,6 +235,13 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: '/authors',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<AuthorsBloc>(),
+          child: const AuthorsPage(),
+        ),
+      ),
+      GoRoute(
         path: '/search',
         builder: (context, state) => BlocProvider(
           create: (_) => getIt<SearchBloc>(),
@@ -250,8 +267,8 @@ class AppRouter {
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => BlocProvider(
-          create: (_) => getIt<SettingsBloc>(),
+        builder: (context, state) => BlocProvider.value(
+          value: getIt<SettingsBloc>(),
           child: const SettingsPage(),
         ),
       ),

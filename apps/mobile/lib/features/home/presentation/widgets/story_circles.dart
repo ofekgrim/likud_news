@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/story.dart';
 
@@ -78,9 +79,9 @@ class _StoryCircleItem extends StatelessWidget {
               ),
               child: Container(
                 padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
+                  color: context.colors.surface,
                 ),
                 child: ClipOval(
                   child: AppCachedImage(
@@ -99,11 +100,11 @@ class _StoryCircleItem extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ],

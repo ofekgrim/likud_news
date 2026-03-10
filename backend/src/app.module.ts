@@ -96,6 +96,7 @@ import { CommunityPollsModule } from './modules/community-polls/community-polls.
 import { ArticleAnalyticsModule } from './modules/article-analytics/article-analytics.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -250,6 +251,9 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 
     // Notifications
     NotificationsModule,
+
+    // Health
+    HealthModule,
   ],
   controllers: [],
   providers: [],

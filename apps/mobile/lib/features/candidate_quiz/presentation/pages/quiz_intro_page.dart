@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../bloc/quiz_bloc.dart';
 import '../../../../core/utils/auth_guard.dart';
 
@@ -45,22 +46,22 @@ class _QuizIntroPageState extends State<QuizIntroPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.white,
+        backgroundColor: context.colors.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.white,
+          backgroundColor: context.colors.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_forward, color: AppColors.textPrimary),
+            icon: Icon(Icons.arrow_forward, color: context.colors.textPrimary),
             onPressed: () => context.pop(),
           ),
           centerTitle: true,
           title: Text(
             'quiz_title'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -77,7 +78,7 @@ class _QuizIntroPageState extends State<QuizIntroPage> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('quiz_no_previous_results'.tr()),
-                  backgroundColor: AppColors.textSecondary,
+                  backgroundColor: context.colors.textSecondary,
                   duration: const Duration(seconds: 2),
                 ),
               );
@@ -105,11 +106,11 @@ class _QuizIntroPageState extends State<QuizIntroPage> {
                             Text(
                               'quiz_intro_title'.tr(),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Heebo',
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
+                                color: context.colors.textPrimary,
                                 height: 1.3,
                               ),
                             ),
@@ -118,10 +119,10 @@ class _QuizIntroPageState extends State<QuizIntroPage> {
                             Text(
                               'quiz_intro_description'.tr(),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Heebo',
                                 fontSize: 15,
-                                color: AppColors.textSecondary,
+                                color: context.colors.textSecondary,
                                 height: 1.5,
                               ),
                             ),
@@ -221,9 +222,9 @@ class _QuizIntroPageState extends State<QuizIntroPage> {
         vertical: 10,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.colors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -238,18 +239,18 @@ class _QuizIntroPageState extends State<QuizIntroPage> {
             'quiz_question_count'.tr(
               namedArgs: {'count': '$questionCount'},
             ),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(
+          Icon(
             Icons.timer_outlined,
             size: 18,
-            color: AppColors.textTertiary,
+            color: context.colors.textTertiary,
           ),
           const SizedBox(width: 4),
           Text(
@@ -258,10 +259,10 @@ class _QuizIntroPageState extends State<QuizIntroPage> {
                 'minutes': '${(questionCount * 0.5).ceil()}',
               },
             ),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 13,
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
         ],
@@ -305,10 +306,10 @@ class _QuizIntroPageState extends State<QuizIntroPage> {
         Expanded(
           child: Text(
             textKey.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 14,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),

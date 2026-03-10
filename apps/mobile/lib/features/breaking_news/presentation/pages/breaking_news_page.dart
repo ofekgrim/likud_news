@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../home/domain/entities/article.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -76,7 +77,7 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceLight,
+      backgroundColor: context.colors.surfaceVariant,
       body: SafeArea(
         child: Column(
           children: [
@@ -100,13 +101,21 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
         textDirection: TextDirection.rtl,
         style: const TextStyle(fontFamily: 'Heebo', fontSize: 14),
         decoration: InputDecoration(
-          hintText: (_tabController.index == 0 ? 'search_breaking_hint' : 'search_all_articles_hint').tr(),
+          hintText:
+              (_tabController.index == 0
+                      ? 'search_breaking_hint'
+                      : 'search_all_articles_hint')
+                  .tr(),
           hintStyle: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 14,
-            color: AppColors.textTertiary,
+            color: context.colors.textTertiary,
           ),
-          prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 20),
+          prefixIcon: Icon(
+            Icons.search,
+            color: context.colors.textSecondary,
+            size: 20,
+          ),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, size: 18),
@@ -114,17 +123,22 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
                     _searchController.clear();
                     _debounceTimer?.cancel();
                     setState(() => _searchQuery = '');
-                    context.read<BreakingNewsBloc>().add(const SearchArticlesRequested(''));
+                    context.read<BreakingNewsBloc>().add(
+                      const SearchArticlesRequested(''),
+                    );
                   },
                 )
               : null,
           filled: true,
-          fillColor: AppColors.surfaceMedium,
+          fillColor: context.colors.surfaceMedium,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 10,
+          ),
         ),
       ),
     );
@@ -139,14 +153,13 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () => AppRouter.scaffoldKey.currentState?.openDrawer(),
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 8),
           BlocSelector<BreakingNewsBloc, BreakingNewsState, bool>(
-            selector: (state) =>
-                state is BreakingNewsLoaded && state.isLive,
+            selector: (state) => state is BreakingNewsLoaded && state.isLive,
             builder: (context, isLive) {
               return LiveIndicator(isLive: isLive);
             },
@@ -155,14 +168,15 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
           Text(
             'news_desk'.tr(),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+              fontWeight: FontWeight.w700,
+              color: context.colors.textPrimary,
+            ),
           ),
           const Spacer(),
           // Refresh button
           IconButton(
             icon: const Icon(Icons.refresh, size: 22),
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
             onPressed: () {
               context.read<BreakingNewsBloc>().add(const RefreshBreaking());
             },
@@ -178,7 +192,7 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceMedium,
+        color: context.colors.surfaceMedium,
         borderRadius: BorderRadius.circular(10),
       ),
       child: TabBar(
@@ -190,10 +204,10 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         labelColor: AppColors.white,
-        unselectedLabelColor: AppColors.textSecondary,
-        labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+        unselectedLabelColor: context.colors.textSecondary,
+        labelStyle: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         unselectedLabelStyle: Theme.of(context).textTheme.titleMedium,
         tabs: [
           Tab(text: 'tab_breaking'.tr()),
@@ -236,17 +250,22 @@ class _BreakingList extends StatelessWidget {
           BreakingNewsInitial() => const SizedBox.shrink(),
           BreakingNewsLoading() => _buildShimmer(),
           BreakingNewsError(:final message) => ErrorView(
-              message: message,
-              onRetry: () {
-                context
-                    .read<BreakingNewsBloc>()
-                    .add(const LoadBreakingNews());
-              },
-            ),
-          BreakingNewsLoaded(:final articles, :final searchResults, :final isSearching) => () {
+            message: message,
+            onRetry: () {
+              context.read<BreakingNewsBloc>().add(const LoadBreakingNews());
+            },
+          ),
+          BreakingNewsLoaded(
+            :final articles,
+            :final searchResults,
+            :final isSearching,
+          ) =>
+            () {
               // Use server search results when actively searching and results are available
               List<Article> filtered;
-              if (isSearching && searchQuery.isNotEmpty && searchResults.isNotEmpty) {
+              if (isSearching &&
+                  searchQuery.isNotEmpty &&
+                  searchResults.isNotEmpty) {
                 // Server results — optionally filter to breaking-only if on that tab
                 filtered = breakingOnly
                     ? searchResults.where((a) => a.isBreaking).toList()
@@ -281,13 +300,9 @@ class _BreakingList extends StatelessWidget {
               return RefreshIndicator(
                 color: AppColors.likudBlue,
                 onRefresh: () async {
-                  context
-                      .read<BreakingNewsBloc>()
-                      .add(const RefreshBreaking());
+                  context.read<BreakingNewsBloc>().add(const RefreshBreaking());
                   // Wait a brief moment for the BLoC to process.
-                  await Future<void>.delayed(
-                    const Duration(milliseconds: 500),
-                  );
+                  await Future<void>.delayed(const Duration(milliseconds: 500));
                 },
                 child: ListView.separated(
                   padding: EdgeInsetsDirectional.only(
@@ -346,7 +361,9 @@ class _AllArticlesList extends StatelessWidget {
         List<Article> articles;
         final bool showPagination;
 
-        if (state.isSearching && searchQuery.isNotEmpty && state.searchResults.isNotEmpty) {
+        if (state.isSearching &&
+            searchQuery.isNotEmpty &&
+            state.searchResults.isNotEmpty) {
           articles = state.searchResults;
           showPagination = false; // No pagination for search results
         } else {
@@ -366,7 +383,9 @@ class _AllArticlesList extends StatelessWidget {
           }
         }
 
-        if (articles.isEmpty && state.allArticlesPage == 0 && !state.isSearching) {
+        if (articles.isEmpty &&
+            state.allArticlesPage == 0 &&
+            !state.isSearching) {
           // Not yet loaded — show shimmer
           return _buildShimmer();
         }
@@ -413,7 +432,9 @@ class _AllArticlesList extends StatelessWidget {
                   width: double.infinity,
                   child: OutlinedButton(
                     onPressed: () {
-                      context.read<BreakingNewsBloc>().add(const LoadMoreAllArticles());
+                      context.read<BreakingNewsBloc>().add(
+                        const LoadMoreAllArticles(),
+                      );
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.likudBlue,

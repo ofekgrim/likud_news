@@ -11,8 +11,11 @@ import 'package:metzudat_halikud/features/home/domain/entities/story.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_categories.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_feed_articles.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_hero_article.dart';
+import 'package:metzudat_halikud/core/network/sse_client.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_stories.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_ticker_items.dart';
+import 'package:metzudat_halikud/features/home/domain/usecases/get_trending_articles.dart';
+import 'package:metzudat_halikud/features/breaking_news/domain/usecases/get_breaking_articles.dart';
 import 'package:metzudat_halikud/features/home/presentation/bloc/home_bloc.dart';
 
 // ---------------------------------------------------------------------------
@@ -29,6 +32,12 @@ class MockGetCategories extends Mock implements GetCategories {}
 
 class MockGetStories extends Mock implements GetStories {}
 
+class MockGetTrendingArticles extends Mock implements GetTrendingArticles {}
+
+class MockGetBreakingArticles extends Mock implements GetBreakingArticles {}
+
+class MockSseClient extends Mock implements SseClient {}
+
 void main() {
   late HomeBloc homeBloc;
   late MockGetHeroArticle mockGetHeroArticle;
@@ -36,6 +45,9 @@ void main() {
   late MockGetTickerItems mockGetTickerItems;
   late MockGetCategories mockGetCategories;
   late MockGetStories mockGetStories;
+  late MockGetTrendingArticles mockGetTrendingArticles;
+  late MockGetBreakingArticles mockGetBreakingArticles;
+  late MockSseClient mockSseClient;
 
   // -------------------------------------------------------------------------
   // Test data
@@ -75,6 +87,9 @@ void main() {
     mockGetTickerItems = MockGetTickerItems();
     mockGetCategories = MockGetCategories();
     mockGetStories = MockGetStories();
+    mockGetTrendingArticles = MockGetTrendingArticles();
+    mockGetBreakingArticles = MockGetBreakingArticles();
+    mockSseClient = MockSseClient();
 
     homeBloc = HomeBloc(
       mockGetHeroArticle,
@@ -82,6 +97,9 @@ void main() {
       mockGetTickerItems,
       mockGetCategories,
       mockGetStories,
+      mockGetTrendingArticles,
+      mockGetBreakingArticles,
+      mockSseClient,
     );
   });
 
@@ -115,6 +133,12 @@ void main() {
       () => mockGetCategories(any()),
     ).thenAnswer((_) async => Right(categories));
     when(() => mockGetStories(any())).thenAnswer((_) async => Right(stories));
+    when(
+      () => mockGetTrendingArticles(any()),
+    ).thenAnswer((_) async => const Right(<Article>[]));
+    when(
+      () => mockGetBreakingArticles(any()),
+    ).thenAnswer((_) async => const Right(<Article>[]));
   }
 
   // -------------------------------------------------------------------------
@@ -175,6 +199,12 @@ void main() {
           when(
             () => mockGetStories(any()),
           ).thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetTrendingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
+          when(
+            () => mockGetBreakingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
           return homeBloc;
         },
         act: (bloc) => bloc.add(const LoadHome()),
@@ -202,6 +232,12 @@ void main() {
           when(
             () => mockGetStories(any()),
           ).thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetTrendingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
+          when(
+            () => mockGetBreakingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
           return homeBloc;
         },
         act: (bloc) => bloc.add(const LoadHome()),
@@ -419,6 +455,12 @@ void main() {
           when(
             () => mockGetStories(any()),
           ).thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetTrendingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
+          when(
+            () => mockGetBreakingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
           return homeBloc;
         },
         seed: () => const HomeLoaded(
@@ -451,6 +493,12 @@ void main() {
           when(
             () => mockGetStories(any()),
           ).thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetTrendingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
+          when(
+            () => mockGetBreakingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
           return homeBloc;
         },
         act: (bloc) => bloc.add(const RefreshFeed()),

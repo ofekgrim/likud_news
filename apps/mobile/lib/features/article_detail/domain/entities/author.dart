@@ -10,6 +10,9 @@ class Author extends Equatable {
   final String? bioHe;
   final String? avatarUrl;
   final String? avatarThumbnailUrl;
+  final String? email;
+  final Map<String, String> socialLinks;
+  final bool isActive;
 
   const Author({
     required this.id,
@@ -20,6 +23,9 @@ class Author extends Equatable {
     this.bioHe,
     this.avatarUrl,
     this.avatarThumbnailUrl,
+    this.email,
+    this.socialLinks = const {},
+    this.isActive = true,
   });
 
   @override
@@ -32,5 +38,8 @@ class Author extends Equatable {
         bioHe,
         avatarUrl,
         avatarThumbnailUrl,
+        email,
+        socialLinks,
+        isActive,
       ];
 }

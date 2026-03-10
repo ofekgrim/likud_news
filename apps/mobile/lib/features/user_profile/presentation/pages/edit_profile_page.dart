@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/user_profile_bloc.dart';
 import '../widgets/profile_avatar.dart';
@@ -71,20 +72,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  InputDecoration _fieldDecoration({required String hint}) {
+  InputDecoration _fieldDecoration({required String hint, required BuildContext context}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(
+      hintStyle: TextStyle(
         fontFamily: 'Heebo',
-        color: AppColors.textTertiary,
+        color: context.colors.textTertiary,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -94,7 +95,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
       ),
       filled: true,
-      fillColor: AppColors.white,
+      fillColor: context.colors.cardSurface,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 16,
         vertical: 14,
@@ -107,7 +108,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.surfaceLight,
+        backgroundColor: context.colors.surfaceVariant,
         appBar: AppBar(
           backgroundColor: AppColors.likudBlue,
           title: Text(
@@ -235,11 +236,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     // Display name field.
                     Text(
                       'profile_display_name'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -248,11 +249,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       enabled: !isUpdating,
                       decoration: _fieldDecoration(
                         hint: 'profile_display_name_hint'.tr(),
+                        context: context,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 15,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -267,11 +269,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     // Phone field (read-only + change button).
                     Text(
                       'profile_phone'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -284,11 +286,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             textDirection: TextDirection.ltr,
                             decoration: _fieldDecoration(
                               hint: 'profile_phone_hint'.tr(),
+                              context: context,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Heebo',
                               fontSize: 15,
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                             ),
                           ),
                         ),
@@ -323,11 +326,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     // Email field (read-only + change button).
                     Text(
                       'profile_email'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -340,11 +343,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             textDirection: TextDirection.ltr,
                             decoration: _fieldDecoration(
                               hint: 'profile_email_hint'.tr(),
+                              context: context,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Heebo',
                               fontSize: 15,
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                             ),
                           ),
                         ),
@@ -379,11 +383,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     // Bio field.
                     Text(
                       'profile_bio'.tr(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -394,11 +398,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       maxLength: 300,
                       decoration: _fieldDecoration(
                         hint: 'profile_bio_hint'.tr(),
+                        context: context,
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 15,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                         height: 1.5,
                       ),
                     ),
@@ -530,6 +535,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textDirection: TextDirection.ltr,
                     decoration: _fieldDecoration(
                       hint: 'current_password'.tr(),
+                      context: context,
                     ),
                     style: const TextStyle(
                       fontFamily: 'Heebo',
@@ -549,6 +555,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textDirection: TextDirection.ltr,
                     decoration: _fieldDecoration(
                       hint: 'new_password'.tr(),
+                      context: context,
                     ),
                     style: const TextStyle(
                       fontFamily: 'Heebo',
@@ -568,6 +575,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     textDirection: TextDirection.ltr,
                     decoration: _fieldDecoration(
                       hint: 'confirm_new_password'.tr(),
+                      context: context,
                     ),
                     style: const TextStyle(
                       fontFamily: 'Heebo',
@@ -588,9 +596,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 onPressed: () => Navigator.of(dialogContext).pop(),
                 child: Text(
                   'cancel'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ),
@@ -650,7 +658,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               controller: phoneController,
               textDirection: TextDirection.ltr,
               keyboardType: TextInputType.phone,
-              decoration: _fieldDecoration(hint: 'enter_new_phone'.tr()),
+              decoration: _fieldDecoration(hint: 'enter_new_phone'.tr(), context: context),
               style: const TextStyle(fontFamily: 'Heebo', fontSize: 15),
             ),
             actions: [
@@ -658,7 +666,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 onPressed: () => Navigator.of(dialogContext).pop(),
                 child: Text(
                   'cancel'.tr(),
-                  style: const TextStyle(fontFamily: 'Heebo', color: AppColors.textSecondary),
+                  style: TextStyle(fontFamily: 'Heebo', color: context.colors.textSecondary),
                 ),
               ),
               FilledButton(
@@ -703,7 +711,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   controller: emailCtrl,
                   textDirection: TextDirection.ltr,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: _fieldDecoration(hint: 'enter_new_email'.tr()),
+                  decoration: _fieldDecoration(hint: 'enter_new_email'.tr(), context: context),
                   style: const TextStyle(fontFamily: 'Heebo', fontSize: 15),
                 ),
                 const SizedBox(height: 12),
@@ -711,7 +719,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   controller: passwordCtrl,
                   obscureText: true,
                   textDirection: TextDirection.ltr,
-                  decoration: _fieldDecoration(hint: 'enter_password_to_change_email'.tr()),
+                  decoration: _fieldDecoration(hint: 'enter_password_to_change_email'.tr(), context: context),
                   style: const TextStyle(fontFamily: 'Heebo', fontSize: 15),
                 ),
               ],
@@ -721,7 +729,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 onPressed: () => Navigator.of(dialogContext).pop(),
                 child: Text(
                   'cancel'.tr(),
-                  style: const TextStyle(fontFamily: 'Heebo', color: AppColors.textSecondary),
+                  style: TextStyle(fontFamily: 'Heebo', color: context.colors.textSecondary),
                 ),
               ),
               FilledButton(
@@ -785,6 +793,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   textDirection: TextDirection.ltr,
                   decoration: _fieldDecoration(
                     hint: 'enter_password_to_delete'.tr(),
+                    context: context,
                   ),
                   style: const TextStyle(
                     fontFamily: 'Heebo',
@@ -798,9 +807,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 onPressed: () => Navigator.of(dialogContext).pop(),
                 child: Text(
                   'cancel'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ),

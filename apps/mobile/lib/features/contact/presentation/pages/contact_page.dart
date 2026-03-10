@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../bloc/contact_bloc.dart';
 
@@ -42,9 +43,9 @@ class _ContactPageState extends State<ContactPage> {
       appBar: AppBar(
         title: Text(
           'contact_us'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -226,14 +227,14 @@ class _ContactPageState extends State<ContactPage> {
   }) {
     return InputDecoration(
       labelText: isOptional ? '$label ${'optional'.tr()}' : label,
-      prefixIcon: Icon(icon, color: AppColors.textSecondary),
+      prefixIcon: Icon(icon, color: context.colors.textSecondary),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderSide: BorderSide(color: context.colors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -244,7 +245,7 @@ class _ContactPageState extends State<ContactPage> {
         borderSide: const BorderSide(color: AppColors.breakingRed),
       ),
       filled: true,
-      fillColor: AppColors.surfaceLight,
+      fillColor: context.colors.surfaceVariant,
     );
   }
 

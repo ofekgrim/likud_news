@@ -31,6 +31,9 @@ abstract class HomeRemoteDataSource {
 
   /// Fetches active stories from the API.
   Future<List<StoryModel>> getStories();
+
+  /// Fetches trending articles (most viewed in last 7 days).
+  Future<List<ArticleModel>> getTrendingArticles({int limit = 5});
 }
 
 /// Implementation of [HomeRemoteDataSource] using [ApiClient].
@@ -102,6 +105,22 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
             : data as List<dynamic>;
     return items
         .map((json) => StoryModel.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<List<ArticleModel>> getTrendingArticles({int limit = 5}) async {
+    final response = await _apiClient.get(
+      ApiConstants.articlesTrending,
+      queryParameters: {'limit': limit},
+    );
+    final data = response.data;
+    final List<dynamic> items =
+        data is Map<String, dynamic> && data.containsKey('data')
+            ? data['data'] as List<dynamic>
+            : data as List<dynamic>;
+    return items
+        .map((json) => ArticleModel.fromJson(json as Map<String, dynamic>))
         .toList();
   }
 }

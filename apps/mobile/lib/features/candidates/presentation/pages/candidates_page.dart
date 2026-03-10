@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -73,11 +73,11 @@ class _CandidatesPageState extends State<CandidatesPage> {
         centerTitle: true,
         title: Text(
           'candidates_title'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
       ),
@@ -140,7 +140,7 @@ class _CandidatesPageState extends State<CandidatesPage> {
         isExpanded: true,
         decoration: InputDecoration(
           filled: true,
-          fillColor: AppColors.surfaceMedium,
+          fillColor: context.colors.surfaceMedium,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -150,10 +150,10 @@ class _CandidatesPageState extends State<CandidatesPage> {
             vertical: 12,
           ),
         ),
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Heebo',
           fontSize: 14,
-          color: AppColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
         items: _elections.map((election) {
           return DropdownMenuItem<String>(
@@ -204,10 +204,10 @@ class _CandidatesPageState extends State<CandidatesPage> {
       return Center(
         child: Text(
           'candidates_no_elections'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );
@@ -243,10 +243,10 @@ class _CandidatesPageState extends State<CandidatesPage> {
               ? Center(
                   child: Text(
                     'candidates_no_results'.tr(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                   ),
                 )
@@ -273,9 +273,9 @@ class _CandidatesPageState extends State<CandidatesPage> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: 6,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, __) => Container(
+      itemBuilder: (context, __) => Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.cardSurface,
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.all(14),

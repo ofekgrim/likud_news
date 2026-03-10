@@ -10,6 +10,9 @@ class AppCachedImage extends StatelessWidget {
   final BoxFit fit;
   final double borderRadius;
 
+  /// Accessibility label for screen readers.
+  final String? semanticLabel;
+
   const AppCachedImage({
     super.key,
     required this.imageUrl,
@@ -17,47 +20,58 @@ class AppCachedImage extends StatelessWidget {
     this.height,
     this.fit = BoxFit.cover,
     this.borderRadius = 0,
+    this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
     final uri = Uri.tryParse(imageUrl);
     if (imageUrl.isEmpty || uri == null || !uri.hasScheme) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: Container(
-          width: width,
-          height: height,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Icon(
-            Icons.broken_image_outlined,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            size: 32,
+      return Semantics(
+        image: true,
+        label: semanticLabel ?? '',
+        excludeSemantics: true,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: Container(
+            width: width,
+            height: height,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Icon(
+              Icons.broken_image_outlined,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              size: 32,
+            ),
           ),
         ),
       );
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: CachedNetworkImage(
-        imageUrl: imageUrl,
-        width: width,
-        height: height,
-        fit: fit,
-        placeholder: (context, url) => ShimmerLoading(
-          width: width ?? double.infinity,
-          height: height ?? 100,
-          borderRadius: borderRadius,
-        ),
-        errorWidget: (context, url, error) => Container(
+    return Semantics(
+      image: true,
+      label: semanticLabel ?? '',
+      excludeSemantics: true,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
           width: width,
           height: height,
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: Icon(
-            Icons.broken_image_outlined,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            size: 32,
+          fit: fit,
+          placeholder: (context, url) => ShimmerLoading(
+            width: width ?? double.infinity,
+            height: height ?? 100,
+            borderRadius: borderRadius,
+          ),
+          errorWidget: (context, url, error) => Container(
+            width: width,
+            height: height,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Icon(
+              Icons.broken_image_outlined,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              size: 32,
+            ),
           ),
         ),
       ),

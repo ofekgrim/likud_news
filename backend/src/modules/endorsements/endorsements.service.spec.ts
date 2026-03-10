@@ -5,6 +5,7 @@ import { Repository, DataSource } from 'typeorm';
 import { EndorsementsService } from './endorsements.service';
 import { CandidateEndorsement } from './entities/candidate-endorsement.entity';
 import { Candidate } from '../candidates/entities/candidate.entity';
+import { SseService } from '../sse/sse.service';
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -71,6 +72,7 @@ describe('EndorsementsService', () => {
         { provide: getRepositoryToken(CandidateEndorsement), useFactory: mockRepository },
         { provide: getRepositoryToken(Candidate), useFactory: mockRepository },
         { provide: DataSource, useValue: { transaction: mockTransaction } },
+        { provide: SseService, useValue: { emitPrimaries: jest.fn() } },
       ],
     }).compile();
 

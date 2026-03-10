@@ -6,6 +6,8 @@ import { QuizService } from './quiz.service';
 import { QuizQuestion } from './entities/quiz-question.entity';
 import { QuizResponse } from './entities/quiz-response.entity';
 import { Candidate } from '../candidates/entities/candidate.entity';
+import { PrimaryElection } from '../elections/entities/primary-election.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -32,6 +34,8 @@ describe('QuizService', () => {
         { provide: getRepositoryToken(QuizQuestion), useFactory: mockRepository },
         { provide: getRepositoryToken(QuizResponse), useFactory: mockRepository },
         { provide: getRepositoryToken(Candidate), useFactory: mockRepository },
+        { provide: getRepositoryToken(PrimaryElection), useFactory: mockRepository },
+        { provide: NotificationsService, useValue: { triggerContentNotification: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 
@@ -247,15 +251,19 @@ describe('QuizService', () => {
       expect(responseRepository.save).toHaveBeenCalledWith(existingResponse);
     });
 
-    it('should throw NotFoundException when no candidates found', async () => {
+    it('should return empty array when no candidates found and save answers', async () => {
       candidateRepository.find.mockResolvedValue([]);
+      responseRepository.findOne.mockResolvedValue(null);
+      responseRepository.create.mockImplementation((data) => data as any);
+      responseRepository.save.mockImplementation(async (data) => data as any);
 
-      await expect(
-        service.submitQuiz(userId, {
-          electionId,
-          answers: [{ questionId: 'q1', selectedValue: 1, importance: 1 }],
-        } as any),
-      ).rejects.toThrow(NotFoundException);
+      const result = await service.submitQuiz(userId, {
+        electionId,
+        answers: [{ questionId: 'q1', selectedValue: 1, importance: 1 }],
+      } as any);
+
+      expect(result).toEqual([]);
+      expect(responseRepository.save).toHaveBeenCalled();
     });
 
     // -------------------------------------------------------------------------

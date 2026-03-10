@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -62,11 +63,11 @@ class _GamificationPageState extends State<GamificationPage>
         centerTitle: true,
         title: Text(
           'gamification_title'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
       ),
@@ -103,7 +104,7 @@ class _GamificationPageState extends State<GamificationPage>
         Container(
           height: 100,
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: context.colors.cardSurface,
             borderRadius: BorderRadius.circular(16),
           ),
           child: const Padding(
@@ -134,7 +135,7 @@ class _GamificationPageState extends State<GamificationPage>
             4,
             (_) => Container(
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: context.colors.cardSurface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Center(
@@ -154,7 +155,7 @@ class _GamificationPageState extends State<GamificationPage>
             child: Container(
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: context.colors.cardSurface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Padding(
@@ -286,12 +287,12 @@ class _GamificationPageState extends State<GamificationPage>
   Widget _buildStreakCard(UserStreak streak) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.cardSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: context.colors.border, width: 0.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: context.colors.shadow,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -320,21 +321,21 @@ class _GamificationPageState extends State<GamificationPage>
               children: [
                 Text(
                   '${'gamification_streak'.tr()} — ${'gamification_streak_days'.tr(args: ['${streak.currentStreak}'])}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'gamification_streak_best'.tr(args: ['${streak.longestStreak}']),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ],
@@ -360,11 +361,11 @@ class _GamificationPageState extends State<GamificationPage>
           child: Text(
             'gamification_badges'.tr(),
             // textDirection: TextDirection.rtl,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -395,11 +396,11 @@ class _GamificationPageState extends State<GamificationPage>
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: isEarned ? AppColors.white : AppColors.surfaceLight,
+        color: isEarned ? context.colors.cardSurface : context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(12),
         border: isEarned
             ? Border.all(color: AppColors.likudBlue, width: 1.5)
-            : Border.all(color: AppColors.border, width: 1),
+            : Border.all(color: context.colors.border, width: 1),
         boxShadow: isEarned
             ? [
                 BoxShadow(
@@ -417,7 +418,7 @@ class _GamificationPageState extends State<GamificationPage>
           Icon(
             type.icon,
             size: 32,
-            color: isEarned ? AppColors.likudBlue : AppColors.textTertiary,
+            color: isEarned ? AppColors.likudBlue : context.colors.textTertiary,
           ),
           const SizedBox(height: 6),
           Text(
@@ -429,7 +430,7 @@ class _GamificationPageState extends State<GamificationPage>
               fontFamily: 'Heebo',
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isEarned ? AppColors.textPrimary : AppColors.textTertiary,
+              color: isEarned ? context.colors.textPrimary : context.colors.textTertiary,
             ),
           ),
           const SizedBox(height: 2),
@@ -442,8 +443,8 @@ class _GamificationPageState extends State<GamificationPage>
               fontSize: 10,
               fontWeight: FontWeight.w400,
               color: isEarned
-                  ? AppColors.textSecondary
-                  : AppColors.textTertiary,
+                  ? context.colors.textSecondary
+                  : context.colors.textTertiary,
             ),
           ),
         ],
@@ -464,11 +465,11 @@ class _GamificationPageState extends State<GamificationPage>
           child: Text(
             'gamification_leaderboard'.tr(),
             // textDirection: TextDirection.rtl,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -476,7 +477,7 @@ class _GamificationPageState extends State<GamificationPage>
         // Period tabs
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surfaceMedium,
+            color: context.colors.surfaceMedium,
             borderRadius: BorderRadius.circular(12),
           ),
           child: TabBar(
@@ -488,7 +489,7 @@ class _GamificationPageState extends State<GamificationPage>
               borderRadius: BorderRadius.circular(12),
             ),
             labelColor: Colors.white,
-            unselectedLabelColor: AppColors.textSecondary,
+            unselectedLabelColor: context.colors.textSecondary,
             labelStyle: const TextStyle(
               fontFamily: 'Heebo',
               fontSize: 13,
@@ -514,10 +515,10 @@ class _GamificationPageState extends State<GamificationPage>
             child: Center(
               child: Text(
                 'gamification_no_points'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ),
@@ -551,15 +552,15 @@ class _GamificationPageState extends State<GamificationPage>
         rankColor = const Color(0xFFCD7F32); // Bronze
         break;
       default:
-        rankColor = AppColors.surfaceMedium;
+        rankColor = context.colors.surfaceMedium;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        border: Border.all(color: context.colors.border, width: 0.5),
       ),
       child: Row(
         // textDirection: TextDirection.rtl,
@@ -571,7 +572,7 @@ class _GamificationPageState extends State<GamificationPage>
             decoration: BoxDecoration(
               color: entry.rank <= 3
                   ? rankColor.withValues(alpha: 0.2)
-                  : AppColors.surfaceLight,
+                  : context.colors.surfaceVariant,
               borderRadius: BorderRadius.circular(8),
             ),
             alignment: Alignment.center,
@@ -582,10 +583,10 @@ class _GamificationPageState extends State<GamificationPage>
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: entry.rank <= 3
-                    ? rankColor == AppColors.surfaceMedium
-                          ? AppColors.textPrimary
+                    ? rankColor == context.colors.surfaceMedium
+                          ? context.colors.textPrimary
                           : rankColor
-                    : AppColors.textSecondary,
+                    : context.colors.textSecondary,
               ),
             ),
           ),
@@ -593,7 +594,7 @@ class _GamificationPageState extends State<GamificationPage>
           // Avatar
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppColors.likudLightBlue,
+            backgroundColor: context.colors.likudAccentBg,
             backgroundImage: entry.avatarUrl != null
                 ? NetworkImage(entry.avatarUrl!)
                 : null,
@@ -619,11 +620,11 @@ class _GamificationPageState extends State<GamificationPage>
               // textDirection: TextDirection.ltr,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ),

@@ -4,10 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../article_detail/domain/entities/author.dart';
+import '../../../candidates/presentation/widgets/social_links_row.dart';
 import '../../../home/presentation/widgets/feed_article_card.dart';
 import '../bloc/author_articles_bloc.dart';
 
@@ -77,11 +79,11 @@ class _AuthorArticlesPageState extends State<AuthorArticlesPage> {
           centerTitle: true,
           title: Text(
             'author_articles'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -137,7 +139,7 @@ class _AuthorArticlesPageState extends State<AuthorArticlesPage> {
             ],
           ),
         ),
-        const Divider(height: 1, color: AppColors.border),
+        Divider(height: 1, color: context.colors.border),
         // Article list shimmer
         for (var i = 0; i < 5; i++)
           const Padding(
@@ -165,7 +167,7 @@ class _AuthorArticlesPageState extends State<AuthorArticlesPage> {
     );
   }
 
-  Widget _buildAuthorHeader(Author author) {
+  Widget _buildAuthorHeader(Author author, {int articleCount = 0}) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -182,11 +184,11 @@ class _AuthorArticlesPageState extends State<AuthorArticlesPage> {
                   children: [
                     Text(
                       author.nameHe,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                     ),
                     if (author.roleHe != null && author.roleHe!.isNotEmpty)
@@ -195,7 +197,19 @@ class _AuthorArticlesPageState extends State<AuthorArticlesPage> {
                         style: TextStyle(
                           fontFamily: 'Heebo',
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
+                        ),
+                      ),
+                    if (articleCount > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          '$articleCount ${'author_articles'.tr()}',
+                          style: TextStyle(
+                            fontFamily: 'Heebo',
+                            fontSize: 12,
+                            color: context.colors.textTertiary,
+                          ),
                         ),
                       ),
                   ],
@@ -212,9 +226,14 @@ class _AuthorArticlesPageState extends State<AuthorArticlesPage> {
                 fontFamily: 'Heebo',
                 fontSize: 14,
                 height: 1.5,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
+          ],
+          // Social links
+          if (author.socialLinks.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SocialLinksRow(socialLinks: author.socialLinks),
           ],
         ],
       ),
@@ -254,20 +273,20 @@ class _AuthorArticlesPageState extends State<AuthorArticlesPage> {
     if (state.articles.isEmpty) {
       return Column(
         children: [
-          _buildAuthorHeader(state.author),
-          const Divider(height: 1, color: AppColors.border),
+          _buildAuthorHeader(state.author, articleCount: 0),
+          Divider(height: 1, color: context.colors.border),
           Expanded(
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.article_outlined,
-                      size: 64, color: AppColors.textTertiary),
+                      size: 64, color: context.colors.textTertiary),
                   const SizedBox(height: 16),
                   Text(
                     'no_author_articles'.tr(),
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                       fontSize: 16,
                     ),
                   ),
@@ -288,10 +307,13 @@ class _AuthorArticlesPageState extends State<AuthorArticlesPage> {
         slivers: [
           // Author header
           SliverToBoxAdapter(
-            child: _buildAuthorHeader(state.author),
+            child: _buildAuthorHeader(
+              state.author,
+              articleCount: state.articles.length,
+            ),
           ),
           SliverToBoxAdapter(
-            child: Divider(height: 1, color: AppColors.border),
+            child: Divider(height: 1, color: context.colors.border),
           ),
           // Articles
           SliverList(
@@ -308,11 +330,11 @@ class _AuthorArticlesPageState extends State<AuthorArticlesPage> {
                         },
                       ),
                       if (index < state.articles.length - 1)
-                        const Divider(
+                        Divider(
                           height: 1,
                           indent: 16,
                           endIndent: 16,
-                          color: AppColors.border,
+                          color: context.colors.border,
                         ),
                     ],
                   );

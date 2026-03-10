@@ -399,6 +399,24 @@ export class ArticlesService {
   }
 
   /**
+   * Find trending articles published within the last N days,
+   * sorted by viewCount descending.
+   */
+  async findTrending(limit: number = 5, days: number = 7): Promise<Article[]> {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    return this.articleRepository
+      .createQueryBuilder('article')
+      .leftJoinAndSelect('article.category', 'category')
+      .where('article.status = :status', { status: ArticleStatus.PUBLISHED })
+      .andWhere('article.publishedAt >= :since', { since })
+      .orderBy('article.viewCount', 'DESC')
+      .take(limit)
+      .getMany();
+  }
+
+  /**
    * Find a single article by ID.
    */
   async findOne(id: string): Promise<Article> {

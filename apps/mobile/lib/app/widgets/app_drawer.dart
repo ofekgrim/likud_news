@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/widgets/liquid_glass_container.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 /// App drawer with LiquidGlass styling.
 ///
@@ -21,7 +22,7 @@ class AppDrawer extends StatelessWidget {
       child: LiquidGlassContainer(
         borderRadius: 0,
         blurSigma: 10,
-        backgroundColor: Colors.white,
+        backgroundColor: context.colors.glassBg,
         backgroundOpacity: 0.92,
         child: SafeArea(
           child: ListView(
@@ -29,7 +30,7 @@ class AppDrawer extends StatelessWidget {
             children: [
               // Header
               _buildHeader(context),
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: context.colors.border),
 
               // Navigation tabs
               const SizedBox(height: 8),
@@ -64,7 +65,7 @@ class AppDrawer extends StatelessWidget {
                 route: '/more',
               ),
 
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: context.colors.border),
               const SizedBox(height: 8),
 
               // Menu items
@@ -124,7 +125,7 @@ class AppDrawer extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: context.colors.border),
               const SizedBox(height: 16),
 
               // Social media row
@@ -152,7 +153,7 @@ class AppDrawer extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.likudLightBlue,
+              color: context.colors.likudAccentBg,
               borderRadius: BorderRadius.circular(24),
             ),
             child: const Icon(
@@ -170,13 +171,13 @@ class AppDrawer extends StatelessWidget {
                   'greeting'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 Text(
                   'welcome'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ],
@@ -205,10 +206,10 @@ class AppDrawer extends StatelessWidget {
         title,
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
           fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+      trailing: Icon(Icons.chevron_right, color: context.colors.textTertiary),
       onTap: () {
         Navigator.pop(context);
         // Use go() for bottom nav routes to update tab, push() for others
@@ -231,7 +232,7 @@ class AppDrawer extends StatelessWidget {
             'follow_us'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: 12),
@@ -282,7 +283,7 @@ class AppDrawer extends StatelessWidget {
           Text(
             'app_name'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -291,7 +292,7 @@ class AppDrawer extends StatelessWidget {
             'version'.tr(),
             style: Theme.of(
               context,
-            ).textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+            ).textTheme.bodySmall?.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
@@ -322,7 +323,7 @@ class _SocialButton extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.likudLightBlue,
+            color: context.colors.likudAccentBg,
             borderRadius: BorderRadius.circular(22),
           ),
           child: Icon(icon, color: AppColors.likudBlue, size: 22),

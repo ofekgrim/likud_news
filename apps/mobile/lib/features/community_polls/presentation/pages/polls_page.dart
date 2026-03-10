@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../bloc/polls_bloc.dart';
 import '../widgets/poll_card.dart';
 
@@ -29,12 +30,12 @@ class _PollsPageState extends State<PollsPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.surfaceLight,
+        backgroundColor: context.colors.surfaceVariant,
         appBar: AppBar(
           title: Text('polls_title'.tr()),
           centerTitle: true,
-          backgroundColor: AppColors.white,
-          foregroundColor: AppColors.textPrimary,
+          backgroundColor: context.colors.surface,
+          foregroundColor: context.colors.textPrimary,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
         ),
@@ -136,13 +137,13 @@ class _ErrorView extends StatelessWidget {
             Icon(
               Icons.error_outline,
               size: 64,
-              color: AppColors.textSecondary.withValues(alpha: 0.5),
+              color: context.colors.textSecondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                color: context.colors.textSecondary,
                 fontSize: 16,
               ),
               textAlign: TextAlign.center,
@@ -154,7 +155,7 @@ class _ErrorView extends StatelessWidget {
               label: Text('try_again'.tr()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.likudBlue,
-                foregroundColor: AppColors.white,
+                foregroundColor: context.colors.surface,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -180,13 +181,13 @@ class _EmptyView extends StatelessWidget {
             Icon(
               Icons.poll_outlined,
               size: 80,
-              color: AppColors.textSecondary.withValues(alpha: 0.4),
+              color: context.colors.textSecondary.withValues(alpha: 0.4),
             ),
             const SizedBox(height: 16),
             Text(
               'polls_no_polls'.tr(),
-              style: const TextStyle(
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                color: context.colors.textSecondary,
                 fontSize: 16,
               ),
               textAlign: TextAlign.center,

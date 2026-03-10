@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/app.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -25,9 +26,9 @@ class MorePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'more_title'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -42,7 +43,7 @@ class MorePage extends StatelessWidget {
           // User greeting
           _buildGreeting(context),
           const SizedBox(height: 8),
-          const Divider(height: 1, color: AppColors.border),
+          Divider(height: 1, color: context.colors.border),
 
           // Navigation tiles
           _buildNavTile(
@@ -59,6 +60,12 @@ class MorePage extends StatelessWidget {
           ),
           _buildNavTile(
             context,
+            icon: Icons.edit_note,
+            title: 'authors_title'.tr(),
+            route: '/authors',
+          ),
+          _buildNavTile(
+            context,
             icon: Icons.favorite_outline,
             title: 'favorites'.tr(),
             route: '/favorites',
@@ -70,7 +77,7 @@ class MorePage extends StatelessWidget {
             route: '/search',
           ),
 
-          const Divider(height: 1, color: AppColors.border),
+          Divider(height: 1, color: context.colors.border),
 
           // Elections section header
           Padding(
@@ -126,7 +133,7 @@ class MorePage extends StatelessWidget {
             route: '/gamification',
           ),
 
-          const Divider(height: 1, color: AppColors.border),
+          Divider(height: 1, color: context.colors.border),
           const SizedBox(height: 8),
 
           _buildNavTile(
@@ -161,7 +168,7 @@ class MorePage extends StatelessWidget {
           ),
 
           const SizedBox(height: 16),
-          const Divider(height: 1, color: AppColors.border),
+          Divider(height: 1, color: context.colors.border),
           const SizedBox(height: 16),
 
           // Social media row
@@ -201,7 +208,7 @@ class MorePage extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.likudLightBlue,
+              color: context.colors.likudAccentBg,
               borderRadius: BorderRadius.circular(24),
             ),
             child: const Icon(
@@ -219,13 +226,13 @@ class MorePage extends StatelessWidget {
                   'greeting'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 Text(
                   'welcome'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ],
@@ -290,7 +297,7 @@ class MorePage extends StatelessWidget {
                     displayName,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                     ),
                   ),
                   if (user.role != AppUserRole.guest)
@@ -303,7 +310,7 @@ class MorePage extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: user.isVerifiedMember
                             ? AppColors.success.withValues(alpha: 0.12)
-                            : AppColors.likudLightBlue,
+                            : context.colors.likudAccentBg,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -358,10 +365,10 @@ class MorePage extends StatelessWidget {
         title,
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
           fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+      trailing: Icon(Icons.chevron_right, color: context.colors.textTertiary),
       onTap: () => context.push(route),
     );
   }
@@ -376,7 +383,7 @@ class MorePage extends StatelessWidget {
             'follow_us'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+              color: context.colors.textSecondary,
             ),
           ),
           const SizedBox(height: 12),
@@ -431,7 +438,7 @@ class MorePage extends StatelessWidget {
             Text(
               'app_name'.tr(),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -440,14 +447,14 @@ class MorePage extends StatelessWidget {
               'version'.tr(),
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+              ).textTheme.bodySmall?.copyWith(color: context.colors.textTertiary),
             ),
             if (kDebugMode) ...[
               const SizedBox(height: 4),
               Text(
                 '(Long-press for logs)',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                   fontSize: 10,
                 ),
               ),
@@ -482,7 +489,7 @@ class _SocialButton extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.likudLightBlue,
+            color: context.colors.likudAccentBg,
             borderRadius: BorderRadius.circular(22),
           ),
           child: Icon(icon, color: AppColors.likudBlue, size: 22),

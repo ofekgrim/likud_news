@@ -1,5 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get_it/get_it.dart';
+import 'package:hive/hive.dart';
 import 'package:injectable/injectable.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -11,6 +12,7 @@ import '../core/services/notification_count_service.dart';
 import '../core/services/push_notification_service.dart';
 import '../core/services/secure_storage_service.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
+import '../features/feed/data/datasources/feed_local_datasource.dart';
 import 'di.config.dart';
 
 final getIt = GetIt.instance;
@@ -22,6 +24,13 @@ void configureDependencies() {
 
   // Register external dependencies
   getIt.registerLazySingleton(() => Connectivity());
+
+  // Register FeedLocalDataSource (depends on Hive box registered in main.dart)
+  getIt.registerLazySingleton<FeedLocalDataSource>(
+    () => FeedLocalDataSourceImpl(
+      getIt<Box>(instanceName: 'feed_cache'),
+    ),
+  );
 
   // Initialize all auto-generated registrations
   getIt.init();

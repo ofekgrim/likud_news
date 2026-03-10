@@ -41,7 +41,7 @@ void main() {
     when(() => mockTts.setErrorHandler(any())).thenReturn(null);
     when(() => mockTts.setCancelHandler(any())).thenReturn(null);
 
-    service = TtsService(tts: mockTts);
+    service = TtsService.withTts(mockTts);
   });
 
   // -------------------------------------------------------------------------

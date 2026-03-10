@@ -5,6 +5,12 @@ import { Repository } from 'typeorm';
 import { ArticlesService } from './articles.service';
 import { Article, ArticleStatus } from './entities/article.entity';
 import { Tag } from '../tags/entities/tag.entity';
+import { UserFavorite } from '../favorites/entities/user-favorite.entity';
+import { Comment } from '../comments/entities/comment.entity';
+import { SseService } from '../sse/sse.service';
+import { PushService } from '../push/push.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { FeedService } from '../feed/feed.service';
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -12,15 +18,20 @@ const mockRepository = () => ({
   findOne: jest.fn(),
   find: jest.fn(),
   softRemove: jest.fn(),
+  count: jest.fn(),
   createQueryBuilder: jest.fn(),
+  update: jest.fn(),
 });
 
 const mockQueryBuilder = () => ({
   leftJoinAndSelect: jest.fn().mockReturnThis(),
+  leftJoin: jest.fn().mockReturnThis(),
   innerJoin: jest.fn().mockReturnThis(),
   where: jest.fn().mockReturnThis(),
   andWhere: jest.fn().mockReturnThis(),
+  having: jest.fn().mockReturnThis(),
   orderBy: jest.fn().mockReturnThis(),
+  addOrderBy: jest.fn().mockReturnThis(),
   skip: jest.fn().mockReturnThis(),
   take: jest.fn().mockReturnThis(),
   getOne: jest.fn(),
@@ -29,11 +40,17 @@ const mockQueryBuilder = () => ({
   update: jest.fn().mockReturnThis(),
   set: jest.fn().mockReturnThis(),
   execute: jest.fn(),
+  select: jest.fn().mockReturnThis(),
+  addSelect: jest.fn().mockReturnThis(),
+  groupBy: jest.fn().mockReturnThis(),
+  addGroupBy: jest.fn().mockReturnThis(),
+  getRawMany: jest.fn(),
 });
 
 describe('ArticlesService', () => {
   let service: ArticlesService;
   let repository: jest.Mocked<Repository<Article>>;
+  let commentRepository: jest.Mocked<Repository<Comment>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -41,11 +58,18 @@ describe('ArticlesService', () => {
         ArticlesService,
         { provide: getRepositoryToken(Article), useFactory: mockRepository },
         { provide: getRepositoryToken(Tag), useFactory: mockRepository },
+        { provide: getRepositoryToken(UserFavorite), useFactory: mockRepository },
+        { provide: getRepositoryToken(Comment), useFactory: mockRepository },
+        { provide: SseService, useValue: { emitNewArticle: jest.fn(), emitBreaking: jest.fn() } },
+        { provide: PushService, useValue: { sendToTopic: jest.fn() } },
+        { provide: NotificationsService, useValue: { triggerContentNotification: jest.fn().mockResolvedValue(undefined) } },
+        { provide: FeedService, useValue: { broadcastNewArticle: jest.fn().mockResolvedValue(undefined) } },
       ],
     }).compile();
 
     service = module.get<ArticlesService>(ArticlesService);
     repository = module.get(getRepositoryToken(Article));
+    commentRepository = module.get(getRepositoryToken(Comment));
   });
 
   it('should be defined', () => {
@@ -105,16 +129,21 @@ describe('ArticlesService', () => {
       mockQb.getManyAndCount.mockResolvedValue([articles, 2]);
       repository.createQueryBuilder.mockReturnValue(mockQb as any);
 
+      // Mock comment count query builder
+      const commentQb = mockQueryBuilder();
+      commentQb.getRawMany.mockResolvedValue([]);
+      commentRepository.createQueryBuilder.mockReturnValue(commentQb as any);
+
       const query = { page: 1, limit: 20 } as any;
       const result = await service.findAll(query);
 
-      expect(result).toEqual({
-        data: articles,
-        total: 2,
-        page: 1,
-        limit: 20,
-        totalPages: 1,
-      });
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(20);
+      expect(result.totalPages).toBe(1);
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0]).toEqual(expect.objectContaining({ id: '1', commentCount: 0 }));
+      expect(result.data[1]).toEqual(expect.objectContaining({ id: '2', commentCount: 0 }));
       expect(mockQb.leftJoinAndSelect).toHaveBeenCalledWith(
         'article.category',
         'category',
@@ -150,6 +179,9 @@ describe('ArticlesService', () => {
       jest.spyOn(service as any, 'findLatest').mockResolvedValue([]);
 
       repository.createQueryBuilder.mockReturnValueOnce(mockQbFind as any);
+
+      // Mock comment count and favorite check
+      commentRepository.count.mockResolvedValue(0);
 
       const result = await service.findBySlug('test');
 

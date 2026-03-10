@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/services/tts_service.dart';
 import '../../../../core/widgets/liquid_glass_container.dart';
 
@@ -209,7 +210,7 @@ class _TtsPlayerBarState extends State<TtsPlayerBar>
       child: LiquidGlassContainer(
         borderRadius: 20,
         blurSigma: 18,
-        backgroundColor: Colors.white,
+        backgroundColor: context.colors.glassBg,
         backgroundOpacity: 0.82,
         border: Border.all(
           color: AppColors.likudBlue.withValues(alpha: 0.18),
@@ -253,7 +254,7 @@ class _TtsPlayerBarState extends State<TtsPlayerBar>
                           style: TextStyle(
                             fontFamily: 'Heebo',
                             fontSize: 11,
-                            color: AppColors.textTertiary,
+                            color: context.colors.textTertiary,
                           ),
                         ),
                     ],
@@ -306,7 +307,7 @@ class _TtsPlayerBarState extends State<TtsPlayerBar>
                       onPressed: () => _tts.skipBackward(),
                       icon: Icon(
                         Icons.skip_next_rounded,
-                        color: AppColors.textSecondary,
+                        color: context.colors.textSecondary,
                         size: 22,
                       ),
                       padding: EdgeInsets.zero,
@@ -350,7 +351,7 @@ class _TtsPlayerBarState extends State<TtsPlayerBar>
                       onPressed: () => _tts.skipForward(),
                       icon: Icon(
                         Icons.skip_previous_rounded,
-                        color: AppColors.textSecondary,
+                        color: context.colors.textSecondary,
                         size: 22,
                       ),
                       padding: EdgeInsets.zero,
@@ -369,7 +370,7 @@ class _TtsPlayerBarState extends State<TtsPlayerBar>
                       onPressed: () => _tts.stop(),
                       icon: Icon(
                         Icons.stop_circle_rounded,
-                        color: AppColors.textTertiary,
+                        color: context.colors.textTertiary,
                         size: 24,
                       ),
                       padding: EdgeInsets.zero,

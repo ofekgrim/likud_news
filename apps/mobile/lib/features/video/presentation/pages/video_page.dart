@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/di.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -86,15 +87,15 @@ class _VideoPageState extends State<VideoPage> {
         leading: IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => AppRouter.scaffoldKey.currentState?.openDrawer(),
-          color: AppColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
         title: Text(
           'video'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
       ),
@@ -133,9 +134,9 @@ class _VideoPageState extends State<VideoPage> {
       ),
       itemCount: 6,
       physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (_, __) => Container(
+      itemBuilder: (_, index) => Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.cardSurface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Column(
@@ -162,12 +163,12 @@ class _VideoPageState extends State<VideoPage> {
   Widget _buildLoadedState(BuildContext context, VideoLoaded state) {
     if (state.videos.isEmpty) {
       return Center(
-        child: const Text(
+        child: Text(
           '\u05D0\u05D9\u05DF \u05E1\u05E8\u05D8\u05D5\u05E0\u05D9\u05DD \u05DC\u05D4\u05E6\u05D2\u05D4',
           style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );
@@ -180,16 +181,16 @@ class _VideoPageState extends State<VideoPage> {
         controller: _scrollController,
         slivers: [
           // Section header.
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
                 '\u05D5\u05D9\u05D3\u05D0\u05D5 \u05D4\u05D9\u05D5\u05DD',
                 style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: context.colors.textPrimary,
                 ),
               ),
             ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/router.dart';
-import '../../app/theme/app_colors.dart';
+import '../../app/theme/theme_context.dart';
 import '../services/notification_count_service.dart';
 import 'floating_logo.dart';
 
@@ -35,7 +35,8 @@ class RtlScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appBar ??
+      appBar:
+          appBar ??
           AppBar(
             centerTitle: true,
             leading: showDrawerIcon
@@ -43,15 +44,17 @@ class RtlScaffold extends StatelessWidget {
                     icon: const Icon(Icons.menu),
                     onPressed: () =>
                         AppRouter.scaffoldKey.currentState?.openDrawer(),
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   )
                 : null,
             title: showLogo ? const FloatingLogo() : null,
             actions: [
               if (showNotificationBell)
                 ValueListenableBuilder<int>(
-                  valueListenable: GetIt.I<NotificationCountService>().unreadCount,
+                  valueListenable:
+                      GetIt.I<NotificationCountService>().unreadCount,
                   builder: (context, count, child) => Badge(
+                    alignment: Alignment.topRight,
                     isLabelVisible: count > 0,
                     label: Text(
                       count > 99 ? '99+' : '$count',
@@ -61,14 +64,17 @@ class RtlScaffold extends StatelessWidget {
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    onPressed: onNotificationTap ?? () => context.push('/notifications'),
-                    color: AppColors.textPrimary,
+                    onPressed:
+                        onNotificationTap ??
+                        () => context.push('/notifications'),
+                    color: context.colors.textPrimary,
                   ),
                 ),
             ],
           ),
       body: body,
       floatingActionButton: floatingActionButton,
+      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
       floatingActionButtonLocation: floatingActionButtonLocation,
     );
   }

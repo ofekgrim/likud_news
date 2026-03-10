@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/content_block.dart';
 
 /// Enhanced quote widget that renders a [QuoteBlock] with RTL-first styling.
@@ -40,7 +41,7 @@ class QuoteWidget extends StatelessWidget {
           bottom: 28,
         ),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(8),
           border: BorderDirectional(
             start: BorderSide(
@@ -75,7 +76,7 @@ class QuoteWidget extends StatelessWidget {
                 fontSize: 20 * fontScale,
                 fontStyle: FontStyle.italic,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
                 height: 1.6,
               ),
             ),
@@ -91,7 +92,7 @@ class QuoteWidget extends StatelessWidget {
                   fontFamily: 'Heebo',
                   fontSize: 15 * fontScale,
                   fontWeight: FontWeight.w400,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                   height: 1.5,
                 ),
               ),

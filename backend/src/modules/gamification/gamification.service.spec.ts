@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { GamificationService } from './gamification.service';
 import { UserPoints, PointAction } from './entities/user-points.entity';
 import { UserBadge, BadgeType } from './entities/user-badge.entity';
+import { UserStreak } from './entities/user-streak.entity';
+import { DailyQuizAttempt } from './entities/daily-quiz-attempt.entity';
 import { AppUser } from '../app-users/entities/app-user.entity';
 
 const mockRepository = () => ({
@@ -48,6 +50,8 @@ describe('GamificationService', () => {
   let service: GamificationService;
   let userPointsRepository: jest.Mocked<Repository<UserPoints>>;
   let userBadgeRepository: jest.Mocked<Repository<UserBadge>>;
+  let userStreakRepository: jest.Mocked<Repository<UserStreak>>;
+  let dailyQuizAttemptRepository: jest.Mocked<Repository<DailyQuizAttempt>>;
   let appUserRepository: jest.Mocked<Repository<AppUser>>;
 
   beforeEach(async () => {
@@ -56,6 +60,8 @@ describe('GamificationService', () => {
         GamificationService,
         { provide: getRepositoryToken(UserPoints), useFactory: mockRepository },
         { provide: getRepositoryToken(UserBadge), useFactory: mockRepository },
+        { provide: getRepositoryToken(UserStreak), useFactory: mockRepository },
+        { provide: getRepositoryToken(DailyQuizAttempt), useFactory: mockRepository },
         { provide: getRepositoryToken(AppUser), useFactory: mockRepository },
       ],
     }).compile();
@@ -63,7 +69,21 @@ describe('GamificationService', () => {
     service = module.get<GamificationService>(GamificationService);
     userPointsRepository = module.get(getRepositoryToken(UserPoints));
     userBadgeRepository = module.get(getRepositoryToken(UserBadge));
+    userStreakRepository = module.get(getRepositoryToken(UserStreak));
+    dailyQuizAttemptRepository = module.get(getRepositoryToken(DailyQuizAttempt));
     appUserRepository = module.get(getRepositoryToken(AppUser));
+
+    // Default streak mock — individual tests can override
+    userStreakRepository.findOne.mockResolvedValue({
+      userId: 'user-1',
+      currentStreak: 0,
+      longestStreak: 0,
+      lastActivityDate: null,
+    } as any);
+    userStreakRepository.save.mockImplementation(async (s) => s as UserStreak);
+
+    // Default dailyQuizAttempt count mock
+    dailyQuizAttemptRepository.count.mockResolvedValue(0);
   });
 
   it('should be defined', () => {
@@ -86,6 +106,17 @@ describe('GamificationService', () => {
     const mockQb = mockQueryBuilder();
     mockQb.getRawOne.mockResolvedValue({ totalPoints: '0' });
     userPointsRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+
+    // getStreak — return a default streak object
+    userStreakRepository.findOne.mockResolvedValue({
+      userId: 'user-1',
+      currentStreak: 0,
+      longestStreak: 0,
+      lastActivityDate: null,
+    } as any);
+
+    // dailyQuizAttempt count — 0 by default
+    dailyQuizAttemptRepository.count.mockResolvedValue(0);
 
     // maybeAwardBadge save — no-op
     userBadgeRepository.create.mockReturnValue({} as UserBadge);
@@ -443,15 +474,21 @@ describe('GamificationService', () => {
     it('should award EARLY_BIRD when login streak count >= 7', async () => {
       userBadgeRepository.find.mockResolvedValue([]);
 
-      userPointsRepository.count.mockImplementation(async (opts: any) => {
-        const where = opts.where;
-        if (where.action === PointAction.LOGIN_STREAK) return 7;
-        return 0;
-      });
+      userPointsRepository.count.mockResolvedValue(0);
 
       const mockQb = mockQueryBuilder();
       mockQb.getRawOne.mockResolvedValue({ totalPoints: '70' });
       userPointsRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+
+      // getStreak returns a streak with currentStreak >= 7
+      userStreakRepository.findOne.mockResolvedValue({
+        userId: 'user-1',
+        currentStreak: 7,
+        longestStreak: 7,
+        lastActivityDate: '2026-03-09',
+      } as any);
+
+      dailyQuizAttemptRepository.count.mockResolvedValue(0);
 
       userBadgeRepository.create.mockReturnValue({} as UserBadge);
       userBadgeRepository.save.mockResolvedValue({} as UserBadge);

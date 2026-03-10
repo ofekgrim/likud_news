@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -61,11 +61,11 @@ class _MembersPageState extends State<MembersPage> {
         centerTitle: true,
         title: Text(
           'members'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
       ),
@@ -84,20 +84,20 @@ class _MembersPageState extends State<MembersPage> {
               },
               decoration: InputDecoration(
                 hintText: 'search_members_hint'.tr(),
-                hintStyle: const TextStyle(
+                hintStyle: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 14,
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                 ),
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.search,
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                 ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.clear,
-                          color: AppColors.textTertiary,
+                          color: context.colors.textTertiary,
                         ),
                         onPressed: () {
                           _searchController.clear();
@@ -108,7 +108,7 @@ class _MembersPageState extends State<MembersPage> {
                       )
                     : null,
                 filled: true,
-                fillColor: AppColors.surfaceMedium,
+                fillColor: context.colors.surfaceMedium,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -155,9 +155,9 @@ class _MembersPageState extends State<MembersPage> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: 6,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (_, __) => Container(
+      itemBuilder: (context, __) => Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.cardSurface,
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.all(14),
@@ -193,10 +193,10 @@ class _MembersPageState extends State<MembersPage> {
           _searchQuery.isNotEmpty
               ? 'no_results'.tr()
               : 'no_members'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );

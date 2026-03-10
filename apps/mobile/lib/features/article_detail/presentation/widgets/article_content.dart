@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/ads/ad_banner_widget.dart';
 import '../../../../core/ads/ad_config.dart';
 import '../utils/html_content_parser.dart';
@@ -36,7 +36,7 @@ class ArticleContent extends StatelessWidget {
           child: Text(
             'אין תוכן להצגה',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                 ),
           ),
         ),
@@ -49,7 +49,7 @@ class ArticleContent extends StatelessWidget {
       // Fallback: render the raw HTML as-is when parsing yields no sections.
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: _buildHtmlWidget(htmlContent),
+        child: _buildHtmlWidget(context, htmlContent),
       );
     }
 
@@ -99,34 +99,36 @@ class ArticleContent extends StatelessWidget {
           // First paragraph gets a drop cap.
           return DropCapParagraph(text: _stripHtml(section.htmlContent));
         }
-        return _buildHtmlWidget(section.htmlContent);
+        return _buildHtmlWidget(context, section.htmlContent);
 
       case ContentSectionType.pullQuote:
         return PullQuote(text: _stripHtml(section.htmlContent));
 
       case ContentSectionType.heading:
-        return _buildHtmlWidget(section.htmlContent);
+        return _buildHtmlWidget(context, section.htmlContent);
 
       case ContentSectionType.blockquote:
-        return _buildHtmlWidget(section.htmlContent);
+        return _buildHtmlWidget(context, section.htmlContent);
 
       case ContentSectionType.image:
-        return _buildHtmlWidget(section.htmlContent);
+        return _buildHtmlWidget(context, section.htmlContent);
 
       case ContentSectionType.list:
-        return _buildHtmlWidget(section.htmlContent);
+        return _buildHtmlWidget(context, section.htmlContent);
     }
   }
 
   /// Creates an [HtmlWidget] with the app's article styling.
-  Widget _buildHtmlWidget(String html) {
+  Widget _buildHtmlWidget(BuildContext context, String html) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return HtmlWidget(
       html,
-      textStyle: const TextStyle(
+      textStyle: TextStyle(
         fontFamily: 'Heebo',
         fontSize: 18,
         height: 1.9,
-        color: AppColors.textPrimary,
+        color: context.colors.textPrimary,
       ),
       customStylesBuilder: (element) {
         switch (element.localName) {
@@ -149,9 +151,9 @@ class ArticleContent extends StatelessWidget {
               'border-right': '4px solid #0099DB',
               'padding-right': '16px',
               'margin-right': '0px',
-              'background-color': '#F8FAFC',
+              'background-color': isDark ? '#252525' : '#F8FAFC',
               'font-style': 'italic',
-              'color': '#64748B',
+              'color': isDark ? '#B0B0B0' : '#64748B',
             };
           case 'a':
             return {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
+import '../../../../core/utils/auth_guard.dart';
 import '../../domain/entities/feed_item.dart';
 
 /// Card widget for displaying a quiz prompt in the feed
@@ -134,10 +136,11 @@ class FeedQuizPromptCard extends StatelessWidget {
                           // Title
                           Text(
                             quizPrompt.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               height: 1.3,
+                              color: context.colors.textPrimary,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -150,7 +153,7 @@ class FeedQuizPromptCard extends StatelessWidget {
                               quizPrompt.description!,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Colors.grey[700],
+                                color: context.colors.textSecondary,
                                 height: 1.4,
                               ),
                               maxLines: 2,
@@ -230,7 +233,10 @@ class FeedQuizPromptCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: onTap,
+                    onPressed: () {
+                      if (!requireAuth(context)) return;
+                      onTap?.call();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: quizPrompt.userHasCompleted
                           ? AppColors.likudDarkBlue
@@ -289,19 +295,19 @@ class _StatBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.grey[700]),
+          Icon(icon, size: 14, color: context.colors.textSecondary),
           const SizedBox(width: 4),
           Text(
             text,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey[700],
+              color: context.colors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
+import '../../../../core/utils/auth_guard.dart';
 import '../../domain/entities/feed_item.dart';
 
 /// Card widget for displaying the daily quiz in the feed
@@ -158,10 +160,11 @@ class FeedDailyQuizCard extends StatelessWidget {
                             completed
                                 ? 'daily_quiz_completed'.tr()
                                 : 'daily_quiz_description'.tr(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               height: 1.3,
+                              color: context.colors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -169,7 +172,7 @@ class FeedDailyQuizCard extends StatelessWidget {
                             '${dailyQuiz.questionsCount} ${'questions'.tr()}',
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey[600],
+                              color: context.colors.textTertiary,
                             ),
                           ),
                           if (completed && dailyQuiz.userScore != null) ...[
@@ -196,7 +199,10 @@ class FeedDailyQuizCard extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: onTap,
+                      onPressed: () {
+                        if (!requireAuth(context)) return;
+                        onTap?.call();
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.likudBlue,
                         foregroundColor: Colors.white,

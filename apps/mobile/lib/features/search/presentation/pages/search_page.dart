@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../home/domain/entities/category.dart';
@@ -122,7 +123,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceLight,
+      backgroundColor: context.colors.surfaceVariant,
       body: SafeArea(
         child: Column(
           children: [
@@ -202,13 +203,13 @@ class _SearchPageState extends State<SearchPage> {
                     isAllSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isAllSelected
                     ? AppColors.white
-                    : AppColors.textSecondary,
+                    : context.colors.textSecondary,
               ),
               selectedColor: AppColors.likudBlue,
-              backgroundColor: AppColors.white,
+              backgroundColor: context.colors.surface,
               side: BorderSide(
                 color:
-                    isAllSelected ? AppColors.likudBlue : AppColors.border,
+                    isAllSelected ? AppColors.likudBlue : context.colors.border,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -231,12 +232,12 @@ class _SearchPageState extends State<SearchPage> {
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               color: isSelected
                   ? AppColors.white
-                  : AppColors.textSecondary,
+                  : context.colors.textSecondary,
             ),
             selectedColor: AppColors.likudBlue,
-            backgroundColor: AppColors.white,
+            backgroundColor: context.colors.surface,
             side: BorderSide(
-              color: isSelected ? AppColors.likudBlue : AppColors.border,
+              color: isSelected ? AppColors.likudBlue : context.colors.border,
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
@@ -258,29 +259,29 @@ class _SearchPageState extends State<SearchPage> {
         focusNode: _focusNode,
         onChanged: _onQueryChanged,
         textDirection: TextDirection.rtl,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Heebo',
           fontSize: 16,
-          color: AppColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
         decoration: InputDecoration(
           hintText: 'search_hint'.tr(),
-          hintStyle: const TextStyle(
+          hintStyle: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 16,
-            color: AppColors.textTertiary,
+            color: context.colors.textTertiary,
           ),
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Icons.search,
-            color: AppColors.textTertiary,
+            color: context.colors.textTertiary,
           ),
           suffixIcon: BlocBuilder<SearchBloc, SearchState>(
             builder: (context, state) {
               if (state is! SearchInitial) {
                 return IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.clear,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                   onPressed: _onClear,
                 );
@@ -289,18 +290,18 @@ class _SearchPageState extends State<SearchPage> {
             },
           ),
           filled: true,
-          fillColor: AppColors.white,
+          fillColor: context.colors.surface,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 12,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderSide: BorderSide(color: context.colors.border),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -327,11 +328,11 @@ class _SearchPageState extends State<SearchPage> {
             const SizedBox(height: 16),
             Text(
               'recent_searches'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -339,34 +340,34 @@ class _SearchPageState extends State<SearchPage> {
               (query) => ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(
+                leading: Icon(
                   Icons.history,
                   size: 20,
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                 ),
                 title: Text(
                   query,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
                 onTap: () => _onRecentSearchTap(query),
               ),
             ),
-            const Divider(color: AppColors.border),
+            Divider(color: context.colors.border),
           ],
 
           // Popular hashtag chips.
           const SizedBox(height: 16),
           Text(
             'popular_topics'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -427,11 +428,11 @@ class _SearchPageState extends State<SearchPage> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: state.articles.length + (state.hasMore ? 1 : 0),
-        separatorBuilder: (_, __) => const Divider(
+        separatorBuilder: (_, __) => Divider(
           height: 1,
           indent: 16,
           endIndent: 16,
-          color: AppColors.border,
+          color: context.colors.border,
         ),
         itemBuilder: (context, index) {
           if (index < state.articles.length) {
@@ -470,10 +471,10 @@ class _SearchPageState extends State<SearchPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.search_off,
               size: 64,
-              color: AppColors.textTertiary,
+              color: context.colors.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
@@ -481,17 +482,17 @@ class _SearchPageState extends State<SearchPage> {
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontFamily: 'Heebo',
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'try_different_search'.tr(args: [state.query]),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 14,
-                color: AppColors.textTertiary,
+                color: context.colors.textTertiary,
               ),
               textAlign: TextAlign.center,
             ),

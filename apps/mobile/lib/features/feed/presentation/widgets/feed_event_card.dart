@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
+import '../../../../core/utils/auth_guard.dart';
 import '../../domain/entities/feed_item.dart';
 
 /// Card widget for displaying a campaign event in the feed
@@ -49,7 +51,7 @@ class FeedEventCard extends StatelessWidget {
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
                             Container(
-                          color: Colors.grey[300],
+                          color: context.colors.surfaceMedium,
                           child: const Icon(Icons.event, size: 48),
                         ),
                       ),
@@ -143,10 +145,11 @@ class FeedEventCard extends StatelessWidget {
                   // Title
                   Text(
                     event.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       height: 1.3,
+                      color: context.colors.textPrimary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -159,7 +162,7 @@ class FeedEventCard extends StatelessWidget {
                       event.description!,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[700],
+                        color: context.colors.textSecondary,
                         height: 1.4,
                       ),
                       maxLines: 2,
@@ -199,13 +202,13 @@ class FeedEventCard extends StatelessWidget {
                   Row(
                     children: [
                       // RSVP count
-                      Icon(Icons.people_outline, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.people_outline, size: 16, color: context.colors.textTertiary),
                       const SizedBox(width: 4),
                       Text(
                         '${event.rsvpCount} ${'attending'.tr()}',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[700],
+                          color: context.colors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -216,7 +219,7 @@ class FeedEventCard extends StatelessWidget {
                           ' / ${event.maxAttendees}',
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey[600],
+                            color: context.colors.textTertiary,
                           ),
                         ),
                       ],
@@ -225,7 +228,10 @@ class FeedEventCard extends StatelessWidget {
 
                       // RSVP button
                       ElevatedButton.icon(
-                        onPressed: onTap,
+                        onPressed: () {
+                          if (!requireAuth(context)) return;
+                          onTap?.call();
+                        },
                         icon: Icon(
                           event.userHasRsvped
                               ? Icons.check_circle
@@ -240,10 +246,10 @@ class FeedEventCard extends StatelessWidget {
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: event.userHasRsvped
-                              ? Colors.grey[200]
+                              ? context.colors.surfaceMedium
                               : AppColors.likudBlue,
                           foregroundColor: event.userHasRsvped
-                              ? Colors.grey[700]
+                              ? context.colors.textSecondary
                               : Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(
@@ -301,19 +307,19 @@ class _InfoPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: context.colors.surfaceVariant,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.grey[700]),
+          Icon(icon, size: 14, color: context.colors.textSecondary),
           const SizedBox(width: 4),
           Text(
             text,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey[700],
+              color: context.colors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),

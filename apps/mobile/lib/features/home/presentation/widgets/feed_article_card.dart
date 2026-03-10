@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/article.dart';
 
@@ -30,15 +31,15 @@ class FeedArticleCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: context.colors.cardSurface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.border.withValues(alpha: 0.5),
+                color: context.colors.border.withValues(alpha: 0.5),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: context.colors.shadow,
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -63,12 +64,12 @@ class FeedArticleCard extends StatelessWidget {
                       width: 120,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceMedium,
+                        color: context.colors.surfaceMedium,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.article_outlined,
-                        color: AppColors.textTertiary,
+                        color: context.colors.textTertiary,
                         size: 28,
                       ),
                     ),
@@ -158,11 +159,11 @@ class FeedArticleCard extends StatelessWidget {
                     article.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                       height: 1.3,
                     ),
                   ),
@@ -176,19 +177,19 @@ class FeedArticleCard extends StatelessWidget {
                             _authorDisplay,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Heebo',
                               fontSize: 11,
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Text(
+                        Text(
                           '\u2022',
                           style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textTertiary,
+                            color: context.colors.textTertiary,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -196,10 +197,10 @@ class FeedArticleCard extends StatelessWidget {
                       if (article.publishedAt != null)
                         Text(
                           _formatDate(article.publishedAt!),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Heebo',
                             fontSize: 11,
-                            color: AppColors.textTertiary,
+                            color: context.colors.textTertiary,
                           ),
                         ),
                     ],
@@ -300,7 +301,7 @@ class _StatBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final badgeColor = color ?? AppColors.textTertiary;
+    final badgeColor = color ?? context.colors.textTertiary;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),

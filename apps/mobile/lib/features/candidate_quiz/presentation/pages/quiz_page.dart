@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/quiz_question.dart';
 import '../bloc/quiz_bloc.dart';
 import '../widgets/importance_selector.dart';
@@ -56,22 +57,22 @@ class _QuizPageState extends State<QuizPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.white,
+        backgroundColor: context.colors.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.white,
+          backgroundColor: context.colors.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.close, color: AppColors.textPrimary),
+            icon: Icon(Icons.close, color: context.colors.textPrimary),
             onPressed: () => _showExitConfirmation(context),
           ),
           centerTitle: true,
           title: Text(
             'quiz_title'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
         ),
@@ -123,10 +124,10 @@ class _QuizPageState extends State<QuizPage> {
                       Text(
                         state.message,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Heebo',
                           fontSize: 15,
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -236,11 +237,11 @@ class _QuizPageState extends State<QuizPage> {
           // Question text
           Text(
             question.questionText,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
               height: 1.4,
             ),
           ),
@@ -295,10 +296,10 @@ class _QuizPageState extends State<QuizPage> {
         vertical: 12,
       ),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.surface,
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.06),
+            color: context.colors.shadow,
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -318,8 +319,8 @@ class _QuizPageState extends State<QuizPage> {
                   icon: const Icon(Icons.arrow_forward, size: 18),
                   label: Text('quiz_previous'.tr()),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(color: AppColors.border),
+                    foregroundColor: context.colors.textPrimary,
+                    side: BorderSide(color: context.colors.border),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -440,9 +441,9 @@ class _QuizPageState extends State<QuizPage> {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(
               'quiz_exit_cancel'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ),

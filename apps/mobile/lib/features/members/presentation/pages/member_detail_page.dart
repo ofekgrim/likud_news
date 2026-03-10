@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -178,7 +179,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.white, width: 3),
+                    border: Border.all(color: context.colors.surface, width: 3),
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.black.withValues(alpha: 0.15),
@@ -199,10 +200,10 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                         : Container(
                             width: 100,
                             height: 100,
-                            color: AppColors.surfaceMedium,
-                            child: const Icon(
+                            color: context.colors.surfaceMedium,
+                            child: Icon(
                               Icons.person,
-                              color: AppColors.textTertiary,
+                              color: context.colors.textTertiary,
                               size: 48,
                             ),
                           ),
@@ -213,11 +214,11 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                 // Name.
                 Text(
                   member.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -227,10 +228,10 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                   const SizedBox(height: 4),
                   Text(
                     member.title!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: context.colors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -241,10 +242,10 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                   const SizedBox(height: 2),
                   Text(
                     member.office!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 12,
-                      color: AppColors.textTertiary,
+                      color: context.colors.textTertiary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -266,10 +267,10 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                     ),
                     child: Text(
                       member.bio!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 14,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                         height: 1.6,
                       ),
                       textDirection: TextDirection.rtl,
@@ -307,11 +308,11 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                           padding: const EdgeInsetsDirectional.only(start: 8),
                           child: Text(
                             'member_personal_page'.tr(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Heebo',
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
+                              color: context.colors.textPrimary,
                             ),
                             textDirection: TextDirection.rtl,
                           ),
@@ -322,17 +323,17 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          color: AppColors.white,
+                          color: context.colors.cardSurface,
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Directionality(
                               textDirection: TextDirection.rtl,
                               child: HtmlWidget(
                                 member.personalPageHtml!,
-                                textStyle: const TextStyle(
+                                textStyle: TextStyle(
                                   fontFamily: 'Heebo',
                                   fontSize: 14,
-                                  color: AppColors.textPrimary,
+                                  color: context.colors.textPrimary,
                                   height: 1.6,
                                 ),
                               ),
@@ -355,11 +356,11 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                       alignment: AlignmentDirectional.centerStart,
                       child: Text(
                         'member_articles'.tr(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Heebo',
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: context.colors.textPrimary,
                         ),
                         textDirection: TextDirection.rtl,
                       ),
@@ -375,11 +376,11 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
                             context.push('/article/${article.slug}');
                           },
                         ),
-                        const Divider(
+                        Divider(
                           height: 1,
                           indent: 16,
                           endIndent: 16,
-                          color: AppColors.border,
+                          color: context.colors.border,
                         ),
                       ],
                     ),
@@ -443,9 +444,9 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border, width: 0.5),
+          border: Border.all(color: context.colors.border, width: 0.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -547,10 +548,10 @@ class _ContactIconButton extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 10,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),

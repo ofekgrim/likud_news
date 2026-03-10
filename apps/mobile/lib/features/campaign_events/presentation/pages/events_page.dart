@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -106,10 +107,10 @@ class _EventsPageState extends State<EventsPage> {
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: context.colors.surface,
         border: Border(
           bottom: BorderSide(
-            color: AppColors.border,
+            color: context.colors.border,
             width: 0.5,
           ),
         ),
@@ -132,7 +133,7 @@ class _EventsPageState extends State<EventsPage> {
                 fontSize: 13,
                 color: _showUpcoming
                     ? AppColors.likudBlue
-                    : AppColors.textSecondary,
+                    : context.colors.textSecondary,
                 fontWeight:
                     _showUpcoming ? FontWeight.w600 : FontWeight.w400,
               ),
@@ -141,7 +142,7 @@ class _EventsPageState extends State<EventsPage> {
                 side: BorderSide(
                   color: _showUpcoming
                       ? AppColors.likudBlue
-                      : AppColors.border,
+                      : context.colors.border,
                 ),
               ),
               showCheckmark: false,
@@ -163,7 +164,7 @@ class _EventsPageState extends State<EventsPage> {
                 fontSize: 13,
                 color: _selectedDistrict == null
                     ? AppColors.likudBlue
-                    : AppColors.textSecondary,
+                    : context.colors.textSecondary,
                 fontWeight: _selectedDistrict == null
                     ? FontWeight.w600
                     : FontWeight.w400,
@@ -173,7 +174,7 @@ class _EventsPageState extends State<EventsPage> {
                 side: BorderSide(
                   color: _selectedDistrict == null
                       ? AppColors.likudBlue
-                      : AppColors.border,
+                      : context.colors.border,
                 ),
               ),
               showCheckmark: false,
@@ -181,21 +182,21 @@ class _EventsPageState extends State<EventsPage> {
             const SizedBox(width: 8),
             // Filter icon
             ActionChip(
-              avatar: const Icon(
+              avatar: Icon(
                 Icons.filter_list,
                 size: 18,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
               label: Text('events_filter'.tr()),
               onPressed: () => _showDistrictFilterSheet(context),
-              labelStyle: const TextStyle(
+              labelStyle: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: AppColors.border),
+                side: BorderSide(color: context.colors.border),
               ),
             ),
           ],
@@ -235,7 +236,7 @@ class _EventsPageState extends State<EventsPage> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.border,
+                      color: context.colors.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -243,11 +244,11 @@ class _EventsPageState extends State<EventsPage> {
                 const SizedBox(height: 16),
                 Text(
                   'events_filter'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: context.colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -354,10 +355,10 @@ class _EventCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
-        color: AppColors.white,
+        color: context.colors.cardSurface,
         borderRadius: BorderRadius.circular(12),
         elevation: 1,
-        shadowColor: AppColors.black.withValues(alpha: 0.08),
+        shadowColor: context.colors.shadow,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -384,11 +385,11 @@ class _EventCard extends StatelessWidget {
                     // Title.
                     Text(
                       event.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Heebo',
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: context.colors.textPrimary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -399,19 +400,19 @@ class _EventCard extends StatelessWidget {
                     // Date & time row.
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.calendar_today_outlined,
                           size: 14,
-                          color: AppColors.textSecondary,
+                          color: context.colors.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             '${dateFormat.format(event.startTime)} ${timeFormat.format(event.startTime)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Heebo',
                               fontSize: 12,
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                             ),
                             textDirection: TextDirection.rtl,
                             maxLines: 1,
@@ -427,19 +428,19 @@ class _EventCard extends StatelessWidget {
                         event.location!.isNotEmpty) ...[
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.location_on_outlined,
                             size: 14,
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               event.location!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Heebo',
                                 fontSize: 12,
-                                color: AppColors.textSecondary,
+                                color: context.colors.textSecondary,
                               ),
                               textDirection: TextDirection.rtl,
                               maxLines: 1,
@@ -498,16 +499,16 @@ class _EventCard extends StatelessWidget {
                             padding: const EdgeInsetsDirectional.fromSTEB(
                                 8, 2, 8, 2),
                             decoration: BoxDecoration(
-                              color: AppColors.textSecondary
+                              color: context.colors.textSecondary
                                   .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               'events_past'.tr(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Heebo',
                                 fontSize: 10,
-                                color: AppColors.textSecondary,
+                                color: context.colors.textSecondary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

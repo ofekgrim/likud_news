@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../../app/theme/theme_context.dart';
 import '../../../features/auth/presentation/bloc/auth_bloc.dart';
 
 /// Shows a sign-in bottom sheet if the user is not authenticated.
@@ -18,6 +19,7 @@ bool requireAuth(BuildContext context) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
+    backgroundColor: context.colors.surface,
     builder: (_) => _SignInPromptSheet(parentContext: context),
   );
   return false;
@@ -43,7 +45,7 @@ class _SignInPromptSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: context.colors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -68,11 +70,11 @@ class _SignInPromptSheet extends StatelessWidget {
             // Title
             Text(
               'auth_required_title'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -81,10 +83,10 @@ class _SignInPromptSheet extends StatelessWidget {
             // Subtitle
             Text(
               'auth_required_subtitle'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
@@ -116,6 +118,7 @@ class _SignInPromptSheet extends StatelessWidget {
                 ),
               ),
             ),
+
             const SizedBox(height: 12),
 
             // Continue as guest
@@ -123,13 +126,14 @@ class _SignInPromptSheet extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'auth_continue_guest'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                 ),
               ),
             ),
+            const SizedBox(height: 100),
           ],
         ),
       ),

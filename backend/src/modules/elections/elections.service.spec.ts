@@ -7,6 +7,7 @@ import {
   ElectionStatus,
 } from './entities/primary-election.entity';
 import { SseService } from '../sse/sse.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const mockQueryBuilder = {
   andWhere: jest.fn().mockReturnThis(),
@@ -64,6 +65,10 @@ describe('ElectionsService', () => {
         {
           provide: SseService,
           useFactory: mockSseService,
+        },
+        {
+          provide: NotificationsService,
+          useValue: { triggerContentNotification: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();

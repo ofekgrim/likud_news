@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 
 /// Reusable endorse/un-endorse button widget.
 ///
@@ -31,7 +32,7 @@ class EndorseButton extends StatelessWidget {
         child: OutlinedButton(
           onPressed: null,
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: AppColors.border),
+            side: BorderSide(color: context.colors.border),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -61,11 +62,11 @@ class EndorseButton extends StatelessWidget {
           ),
           label: Text(
             'candidates_remove_endorsement'.tr(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Heebo',
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: context.colors.textPrimary,
             ),
           ),
           style: OutlinedButton.styleFrom(

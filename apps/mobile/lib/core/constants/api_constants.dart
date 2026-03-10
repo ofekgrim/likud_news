@@ -3,21 +3,40 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 /// API endpoint constants.
+///
+/// Environment selection (highest priority wins):
+/// 1. `--dart-define=API_BASE_URL=https://...` — full override
+/// 2. `--dart-define=ENV=production` — uses production URL
+/// 3. Auto-detect: simulator → localhost, physical device → ngrok
 class ApiConstants {
   ApiConstants._();
 
   static const String _localUrl = 'http://localhost:9090/api/v1';
   static const String _ngrokUrl =
       'https://misfashioned-fastidiously-deacon.ngrok-free.dev/api/v1';
+  static const String _productionUrl =
+      'https://api.metzudathalikud.co.il/api/v1';
 
-  /// Auto-detect: simulator → localhost, physical device / release → ngrok.
+  /// Build-time overrides via --dart-define
+  static const String _envOverride =
+      String.fromEnvironment('ENV', defaultValue: '');
+  static const String _urlOverride =
+      String.fromEnvironment('API_BASE_URL', defaultValue: '');
+
+  /// Resolved base URL for all API calls.
   static final String baseUrl = _resolveBaseUrl();
 
   static String _resolveBaseUrl() {
-    // Release builds always use ngrok
+    // 1. Explicit URL override
+    if (_urlOverride.isNotEmpty) return _urlOverride;
+
+    // 2. Environment name override
+    if (_envOverride == 'production') return _productionUrl;
+
+    // 3. Release builds use ngrok (until production is ready)
     if (kReleaseMode) return _ngrokUrl;
 
-    // Debug: detect iOS simulator via executable path (contains CoreSimulator)
+    // 4. Debug: detect iOS simulator via executable path
     if (Platform.isIOS || Platform.isAndroid) {
       final isSimulator =
           Platform.resolvedExecutable.contains('CoreSimulator') ||
@@ -34,6 +53,7 @@ class ApiConstants {
   static const String articlesHero = '/articles/hero';
   static const String articlesBreaking = '/articles/breaking';
   static const String articlesMostRead = '/articles/most-read';
+  static const String articlesTrending = '/articles/trending';
   static const String searchArticles = '/articles/search';
 
   // Feed (unified mixed-content)

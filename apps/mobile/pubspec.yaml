@@ -1,7 +1,7 @@
 name: metzudat_halikud
 description: "Metzudat HaLikud - Hebrew RTL news application for the Likud party"
 publish_to: 'none'
-version: 1.0.0+7
+version: 1.0.0+9
 
 environment:
   sdk: ^3.11.0
@@ -61,6 +61,8 @@ dependencies:
   # Firebase & Push Notifications
   firebase_core: ^3.0.0
   firebase_messaging: ^15.0.0
+  firebase_analytics: ^11.0.0
+  firebase_crashlytics: ^4.0.0
   flutter_local_notifications: ^18.0.0
 
   # Sharing & Utils
@@ -88,6 +90,7 @@ dependencies:
   talker_flutter: ^4.7.0
   talker_dio_logger: ^4.7.0
   talker_bloc_logger: ^4.7.0
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   flutter_test:

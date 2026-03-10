@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme/app_colors.dart';
+import '../../app/theme/theme_context.dart';
 import '../services/permission_service.dart';
 
 /// Shows a bottom sheet prompting the user to log in or upgrade membership.
@@ -18,7 +19,7 @@ Future<void> showAuthPromptDialog(
 }) {
   return showModalBottomSheet<void>(
     context: context,
-    backgroundColor: AppColors.white,
+    backgroundColor: context.colors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
@@ -37,7 +38,7 @@ Future<void> showAuthPromptDialog(
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: ctx.colors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -53,21 +54,21 @@ Future<void> showAuthPromptDialog(
                     : requiredRole == AppUserRole.verifiedMember
                     ? 'verified_member_required'.tr()
                     : 'member_required'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: ctx.colors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 actionDescription,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: ctx.colors.textSecondary,
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
@@ -109,10 +110,10 @@ Future<void> showAuthPromptDialog(
                 onPressed: () => Navigator.pop(ctx),
                 child: Text(
                   'cancel'.tr(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: ctx.colors.textSecondary,
                   ),
                 ),
               ),

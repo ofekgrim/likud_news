@@ -7,6 +7,7 @@ import {
   AppUserRole,
   MembershipStatus,
 } from './entities/app-user.entity';
+import { VotingEligibility } from './entities/voting-eligibility.entity';
 
 const mockQueryBuilder = {
   andWhere: jest.fn().mockReturnThis(),
@@ -57,6 +58,10 @@ describe('AppUsersService', () => {
         AppUsersService,
         {
           provide: getRepositoryToken(AppUser),
+          useFactory: mockRepository,
+        },
+        {
+          provide: getRepositoryToken(VotingEligibility),
           useFactory: mockRepository,
         },
       ],
@@ -399,6 +404,8 @@ describe('AppUsersService', () => {
         membershipVerifiedAt: mockUser.membershipVerifiedAt,
         preferredCategories: mockUser.preferredCategories,
         notificationPrefs: mockUser.notificationPrefs,
+        isActive: mockUser.isActive,
+        lastLoginAt: (mockUser as any).lastLoginAt,
         createdAt: mockUser.createdAt,
       });
     });
