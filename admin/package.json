@@ -6,7 +6,7 @@
     "dev": "next dev --port 6001",
     "build": "next build",
     "start": "next start --port 6001",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
