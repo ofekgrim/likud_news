@@ -1,6 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import '../../app/theme/app_colors.dart';
+import '../../app/theme/theme_context.dart';
 
 /// Reusable error view with retry button.
 class ErrorView extends StatelessWidget {
@@ -23,12 +23,12 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: AppColors.textTertiary),
+            Icon(icon, size: 64, color: context.colors.textTertiary),
             const SizedBox(height: 16),
             Text(
               message,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -66,12 +66,12 @@ class EmptyView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: AppColors.textTertiary),
+            Icon(icon, size: 64, color: context.colors.textTertiary),
             const SizedBox(height: 16),
             Text(
               message,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
               textAlign: TextAlign.center,
             ),

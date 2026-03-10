@@ -8,6 +8,8 @@ class CommentModel {
   final String articleId;
   final String? parentId;
   final String authorName;
+  final String? authorAvatarUrl;
+  final String? authorRole;
   final String body;
   final bool isPinned;
   final int likesCount;
@@ -19,6 +21,8 @@ class CommentModel {
     required this.articleId,
     this.parentId,
     required this.authorName,
+    this.authorAvatarUrl,
+    this.authorRole,
     required this.body,
     this.isPinned = false,
     this.likesCount = 0,
@@ -33,6 +37,8 @@ class CommentModel {
       articleId: json['articleId'] as String? ?? '',
       parentId: json['parentId'] as String?,
       authorName: json['authorName'] as String? ?? '',
+      authorAvatarUrl: json['authorAvatarUrl'] as String?,
+      authorRole: json['authorRole'] as String?,
       body: json['body'] as String? ?? '',
       isPinned: json['isPinned'] as bool? ?? false,
       likesCount: json['likesCount'] as int? ?? 0,
@@ -54,6 +60,8 @@ class CommentModel {
       articleId: articleId,
       parentId: parentId,
       authorName: authorName,
+      authorAvatarUrl: authorAvatarUrl,
+      authorRole: authorRole,
       body: body,
       isPinned: isPinned,
       likesCount: likesCount,

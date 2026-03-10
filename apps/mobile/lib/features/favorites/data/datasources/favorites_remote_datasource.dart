@@ -57,7 +57,14 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
             ? data['data'] as List<dynamic>
             : data as List<dynamic>;
     return items
-        .map((json) => ArticleModel.fromJson(json as Map<String, dynamic>))
+        .map((json) {
+          final map = json as Map<String, dynamic>;
+          // Backend returns UserFavorite with nested article — extract it.
+          final articleJson = map.containsKey('article') && map['article'] is Map<String, dynamic>
+              ? map['article'] as Map<String, dynamic>
+              : map;
+          return ArticleModel.fromJson(articleJson);
+        })
         .toList();
   }
 
@@ -90,7 +97,14 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
             ? data['data'] as List<dynamic>
             : data as List<dynamic>;
     return items
-        .map((json) => ArticleModel.fromJson(json as Map<String, dynamic>))
+        .map((json) {
+          final map = json as Map<String, dynamic>;
+          // Backend returns ReadingHistory with nested article — extract it.
+          final articleJson = map.containsKey('article') && map['article'] is Map<String, dynamic>
+              ? map['article'] as Map<String, dynamic>
+              : map;
+          return ArticleModel.fromJson(articleJson);
+        })
         .toList();
   }
 }

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../article_detail/domain/entities/content_block.dart';
+
 /// Immutable member entity used throughout the domain and presentation layers.
 class Member extends Equatable {
   final String id;
@@ -13,6 +15,14 @@ class Member extends Equatable {
   final String? socialInstagram;
   final bool isActive;
   final int sortOrder;
+  final String? slug;
+  final String? office;
+  final String? phone;
+  final String? email;
+  final String? website;
+  final String? coverImageUrl;
+  final String? personalPageHtml;
+  final List<ContentBlock> bioBlocks;
 
   const Member({
     required this.id,
@@ -26,6 +36,14 @@ class Member extends Equatable {
     this.socialInstagram,
     this.isActive = true,
     this.sortOrder = 0,
+    this.slug,
+    this.office,
+    this.phone,
+    this.email,
+    this.website,
+    this.coverImageUrl,
+    this.personalPageHtml,
+    this.bioBlocks = const [],
   });
 
   @override
@@ -41,5 +59,13 @@ class Member extends Equatable {
         socialInstagram,
         isActive,
         sortOrder,
+        slug,
+        office,
+        phone,
+        email,
+        website,
+        coverImageUrl,
+        personalPageHtml,
+        bioBlocks,
       ];
 }

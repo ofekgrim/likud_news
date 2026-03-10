@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/author.dart';
 
@@ -61,7 +62,7 @@ class ReporterRow extends StatelessWidget {
             child: Row(
               children: [
                 // Author avatar
-                _buildAvatar(),
+                _buildAvatar(context),
                 const SizedBox(width: 10),
 
                 // Author info + meta
@@ -78,7 +79,7 @@ class ReporterRow extends StatelessWidget {
                           author?.nameHe ?? 'reporter'.tr(),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: context.colors.textPrimary,
                             fontSize: 14,
                           ),
                           maxLines: 1,
@@ -92,7 +93,7 @@ class ReporterRow extends StatelessWidget {
                         Text(
                           author!.roleHe!,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
+                            color: context.colors.textSecondary,
                             fontSize: 12,
                           ),
                           maxLines: 1,
@@ -101,7 +102,7 @@ class ReporterRow extends StatelessWidget {
 
                       // Publish time + reading time
                       const SizedBox(height: 2),
-                      _buildMetaRow(theme),
+                      _buildMetaRow(context, theme),
                     ],
                   ),
                 ),
@@ -127,7 +128,7 @@ class ReporterRow extends StatelessWidget {
                           : 'save_article'.tr(),
                       color: isFavorite
                           ? AppColors.likudBlue
-                          : AppColors.textSecondary,
+                          : context.colors.textSecondary,
                       onPressed: onBookmark,
                     ),
 
@@ -144,14 +145,14 @@ class ReporterRow extends StatelessWidget {
           ),
 
           // Divider
-          const Divider(height: 1, color: AppColors.border),
+          Divider(height: 1, color: context.colors.border),
         ],
       ),
     );
   }
 
   /// Builds the circular author avatar, wrapped in a tap target.
-  Widget _buildAvatar() {
+  Widget _buildAvatar(BuildContext context) {
     final hasAvatar = author?.avatarThumbnailUrl != null &&
         author!.avatarThumbnailUrl!.isNotEmpty;
 
@@ -168,11 +169,11 @@ class ReporterRow extends StatelessWidget {
     } else {
       avatar = CircleAvatar(
         radius: 20,
-        backgroundColor: AppColors.surfaceMedium,
+        backgroundColor: context.colors.surfaceMedium,
         child: Icon(
           Icons.person,
           size: 22,
-          color: AppColors.textTertiary,
+          color: context.colors.textTertiary,
         ),
       );
     }
@@ -188,7 +189,7 @@ class ReporterRow extends StatelessWidget {
   }
 
   /// Builds the secondary meta row with relative time and reading estimate.
-  Widget _buildMetaRow(ThemeData theme) {
+  Widget _buildMetaRow(BuildContext context, ThemeData theme) {
     final parts = <String>[];
 
     if (publishedAt != null) {
@@ -204,7 +205,7 @@ class ReporterRow extends StatelessWidget {
     return Text(
       parts.join(' · '),
       style: theme.textTheme.bodySmall?.copyWith(
-        color: AppColors.textTertiary,
+        color: context.colors.textTertiary,
         fontSize: 12,
       ),
       maxLines: 1,
@@ -251,7 +252,7 @@ class _ActionIcon extends StatelessWidget {
       child: IconButton(
         padding: EdgeInsets.zero,
         iconSize: 20,
-        icon: Icon(icon, color: color ?? AppColors.textSecondary),
+        icon: Icon(icon, color: color ?? context.colors.textSecondary),
         tooltip: tooltip,
         onPressed: onPressed,
       ),

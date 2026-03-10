@@ -153,6 +153,8 @@ class _StoryViewerState extends State<StoryViewer>
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+
     // Compute opacity and scale based on vertical drag
     final progress = (_dragOffset.abs() / _dismissThreshold).clamp(0.0, 1.0);
     final opacity = (1.0 - progress * 0.5).clamp(0.0, 1.0);
@@ -199,7 +201,7 @@ class _StoryViewerState extends State<StoryViewer>
                       right: 8,
                       child: AnimatedOpacity(
                         opacity: _isPaused ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 200),
+                        duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 200),
                         child: Row(
                           children:
                               List.generate(widget.stories.length, (index) {
@@ -241,7 +243,7 @@ class _StoryViewerState extends State<StoryViewer>
                       left: 12,
                       child: AnimatedOpacity(
                         opacity: _isPaused ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 200),
+                        duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 200),
                         child: GestureDetector(
                           onTap: () => Navigator.of(context).pop(),
                           child: Container(
@@ -267,7 +269,7 @@ class _StoryViewerState extends State<StoryViewer>
                       right: 12,
                       child: AnimatedOpacity(
                         opacity: _isPaused ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 200),
+                        duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 200),
                         child: GestureDetector(
                           onTap: () => setState(() => _isMuted = !_isMuted),
                           child: Container(
@@ -294,7 +296,7 @@ class _StoryViewerState extends State<StoryViewer>
                       right: 0,
                       child: AnimatedOpacity(
                         opacity: _isPaused ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 200),
+                        duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 200),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/video_article.dart';
 import 'duration_badge.dart';
@@ -22,11 +23,11 @@ class VideoThumbnailCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.cardSurface,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.06),
+              color: context.colors.shadow,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -54,10 +55,10 @@ class VideoThumbnailCard extends StatelessWidget {
                       )
                     else
                       Container(
-                        color: AppColors.surfaceMedium,
-                        child: const Icon(
+                        color: context.colors.surfaceMedium,
+                        child: Icon(
                           Icons.videocam_outlined,
-                          color: AppColors.textTertiary,
+                          color: context.colors.textTertiary,
                           size: 32,
                         ),
                       ),
@@ -120,11 +121,11 @@ class VideoThumbnailCard extends StatelessWidget {
                 video.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: context.colors.textPrimary,
                   height: 1.3,
                 ),
               ),

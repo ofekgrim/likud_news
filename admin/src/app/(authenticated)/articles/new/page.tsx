@@ -31,6 +31,7 @@ export default function NewArticlePage() {
     categoryId: '',
     isHero: false,
     isBreaking: false,
+    isMain: false,
     heroImageUrl: '',
     memberIds: [] as string[],
     bodyBlocks: [] as ContentBlock[],
@@ -42,6 +43,7 @@ export default function NewArticlePage() {
     authorId: '',
     tagIds: [] as string[],
     allowComments: true,
+    sendPushNotification: true,
   });
 
   const { data: categories } = useQuery({
@@ -326,6 +328,17 @@ export default function NewArticlePage() {
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
+                    checked={form.isMain}
+                    onChange={(e) =>
+                      setForm({ ...form, isMain: e.target.checked })
+                    }
+                    className="h-4 w-4 rounded"
+                  />
+                  <span className="text-sm font-medium text-primary">סמן ככתבה מרכזית (רק 1 יכולה להיות מרכזית)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
                     checked={form.allowComments}
                     onChange={(e) =>
                       setForm({ ...form, allowComments: e.target.checked })
@@ -334,6 +347,19 @@ export default function NewArticlePage() {
                   />
                   <span className="text-sm">אפשר תגובות</span>
                 </label>
+                {form.status === 'published' && (
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.sendPushNotification}
+                      onChange={(e) =>
+                        setForm({ ...form, sendPushNotification: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded accent-blue-500"
+                    />
+                    <span className="text-sm">שלח התראה בפרסום</span>
+                  </label>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -8,6 +8,8 @@ import 'package:metzudat_halikud/features/search/domain/entities/search_result.d
 import 'package:metzudat_halikud/features/search/domain/usecases/search_articles.dart';
 import 'package:metzudat_halikud/features/search/presentation/bloc/search_bloc.dart';
 
+import '../../../home/presentation/bloc/home_bloc_test.dart';
+
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
@@ -17,6 +19,7 @@ class MockSearchArticles extends Mock implements SearchArticles {}
 void main() {
   late SearchBloc bloc;
   late MockSearchArticles mockSearchArticles;
+  late MockGetCategories mockGetCategories;
 
   // -------------------------------------------------------------------------
   // Test data
@@ -34,15 +37,9 @@ void main() {
     Article(id: '4', title: 'Article 4'),
   ];
 
-  const tSearchResult = SearchResult(
-    articles: tArticles,
-    totalArticles: 2,
-  );
+  const tSearchResult = SearchResult(articles: tArticles, totalArticles: 2);
 
-  const tEmptySearchResult = SearchResult(
-    articles: [],
-    totalArticles: 0,
-  );
+  const tEmptySearchResult = SearchResult(articles: [], totalArticles: 0);
 
   const tSearchResultMore = SearchResult(
     articles: tMoreArticles,
@@ -61,7 +58,8 @@ void main() {
 
   setUp(() {
     mockSearchArticles = MockSearchArticles();
-    bloc = SearchBloc(mockSearchArticles);
+    mockGetCategories = MockGetCategories();
+    bloc = SearchBloc(mockSearchArticles, mockGetCategories);
   });
 
   tearDown(() {
@@ -75,10 +73,7 @@ void main() {
   group('SearchBloc', () {
     test('initial state is SearchInitial with empty recentSearches', () {
       expect(bloc.state, const SearchInitial());
-      expect(
-        (bloc.state as SearchInitial).recentSearches,
-        isEmpty,
-      );
+      expect((bloc.state as SearchInitial).recentSearches, isEmpty);
     });
 
     // -----------------------------------------------------------------------
@@ -89,8 +84,9 @@ void main() {
       blocTest<SearchBloc, SearchState>(
         'emits [SearchLoading, SearchLoaded] on success with non-empty query',
         build: () {
-          when(() => mockSearchArticles(any()))
-              .thenAnswer((_) async => const Right(tSearchResult));
+          when(
+            () => mockSearchArticles(any()),
+          ).thenAnswer((_) async => const Right(tSearchResult));
           return bloc;
         },
         act: (bloc) => bloc.add(const SearchQueryChanged(tQuery)),
@@ -113,9 +109,7 @@ void main() {
         build: () => bloc,
         act: (bloc) => bloc.add(const SearchQueryChanged('')),
         wait: const Duration(milliseconds: 400),
-        expect: () => [
-          isA<SearchInitial>(),
-        ],
+        expect: () => [isA<SearchInitial>()],
       );
 
       blocTest<SearchBloc, SearchState>(
@@ -123,31 +117,28 @@ void main() {
         build: () => bloc,
         act: (bloc) => bloc.add(const SearchQueryChanged('   ')),
         wait: const Duration(milliseconds: 400),
-        expect: () => [
-          isA<SearchInitial>(),
-        ],
+        expect: () => [isA<SearchInitial>()],
       );
 
       blocTest<SearchBloc, SearchState>(
         'emits [SearchLoading, SearchEmpty] when no results found',
         build: () {
-          when(() => mockSearchArticles(any()))
-              .thenAnswer((_) async => const Right(tEmptySearchResult));
+          when(
+            () => mockSearchArticles(any()),
+          ).thenAnswer((_) async => const Right(tEmptySearchResult));
           return bloc;
         },
         act: (bloc) => bloc.add(const SearchQueryChanged(tQuery)),
         wait: const Duration(milliseconds: 400),
-        expect: () => [
-          const SearchLoading(),
-          SearchEmpty(query: tQuery),
-        ],
+        expect: () => [const SearchLoading(), SearchEmpty(query: tQuery)],
       );
 
       blocTest<SearchBloc, SearchState>(
         'emits [SearchLoading, SearchError] on failure',
         build: () {
-          when(() => mockSearchArticles(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockSearchArticles(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
           return bloc;
         },
         act: (bloc) => bloc.add(const SearchQueryChanged(tQuery)),
@@ -169,8 +160,9 @@ void main() {
             articles: fullPage,
             totalArticles: 50,
           );
-          when(() => mockSearchArticles(any()))
-              .thenAnswer((_) async => Right(fullResult));
+          when(
+            () => mockSearchArticles(any()),
+          ).thenAnswer((_) async => Right(fullResult));
           return bloc;
         },
         act: (bloc) => bloc.add(const SearchQueryChanged(tQuery)),
@@ -198,8 +190,9 @@ void main() {
           hasMore: true,
         ),
         build: () {
-          when(() => mockSearchArticles(any()))
-              .thenAnswer((_) async => const Right(tSearchResultMore));
+          when(
+            () => mockSearchArticles(any()),
+          ).thenAnswer((_) async => const Right(tSearchResultMore));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadMoreSearchResults()),
@@ -211,9 +204,8 @@ void main() {
         ],
         verify: (_) {
           verify(
-            () => mockSearchArticles(
-              const SearchParams(query: tQuery, page: 2),
-            ),
+            () =>
+                mockSearchArticles(const SearchParams(query: tQuery, page: 2)),
           ).called(1);
         },
       );
@@ -253,8 +245,9 @@ void main() {
           hasMore: true,
         ),
         build: () {
-          when(() => mockSearchArticles(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockSearchArticles(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadMoreSearchResults()),
@@ -282,8 +275,9 @@ void main() {
             articles: fullPage,
             totalArticles: 100,
           );
-          when(() => mockSearchArticles(any()))
-              .thenAnswer((_) async => Right(fullResult));
+          when(
+            () => mockSearchArticles(any()),
+          ).thenAnswer((_) async => Right(fullResult));
           return bloc;
         },
         act: (bloc) => bloc.add(const LoadMoreSearchResults()),
@@ -310,9 +304,7 @@ void main() {
         ),
         build: () => bloc,
         act: (bloc) => bloc.add(const ClearSearch()),
-        expect: () => [
-          isA<SearchInitial>(),
-        ],
+        expect: () => [isA<SearchInitial>()],
       );
 
       blocTest<SearchBloc, SearchState>(
@@ -320,9 +312,7 @@ void main() {
         seed: () => const SearchError(message: 'Server error'),
         build: () => bloc,
         act: (bloc) => bloc.add(const ClearSearch()),
-        expect: () => [
-          isA<SearchInitial>(),
-        ],
+        expect: () => [isA<SearchInitial>()],
       );
     });
   });

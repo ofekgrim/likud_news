@@ -74,6 +74,9 @@ export class Article {
   @Column({ type: 'boolean', default: false })
   isBreaking: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  isMain: boolean;
+
   @Column({ type: 'int', default: 0 })
   viewCount: number;
 

@@ -91,6 +91,18 @@ class ContentBlockModel {
           credit: json['credit'] as String?,
           mimeType: json['mimeType'] as String?,
         );
+      case 'instagram':
+        return InstagramEmbedBlock(
+          id: id,
+          postUrl: json['postUrl'] as String? ?? json['url'] as String? ?? '',
+          caption: json['caption'] as String?,
+        );
+      case 'facebook':
+        return FacebookEmbedBlock(
+          id: id,
+          postUrl: json['postUrl'] as String? ?? json['url'] as String? ?? '',
+          caption: json['caption'] as String?,
+        );
       default:
         return null; // Skip unknown block types
     }

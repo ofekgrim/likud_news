@@ -98,6 +98,14 @@ export class CreateArticleDto {
   @IsBoolean()
   isBreaking?: boolean;
 
+  @ApiPropertyOptional({
+    description: 'Whether this is the main/featured article (only one can be main)',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isMain?: boolean;
+
   @ApiProperty({
     description: 'URL-friendly slug (must be unique)',
     maxLength: 500,
@@ -182,4 +190,12 @@ export class CreateArticleDto {
   @IsOptional()
   @IsBoolean()
   allowComments?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Send push notification on publish',
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  sendPushNotification?: boolean;
 }

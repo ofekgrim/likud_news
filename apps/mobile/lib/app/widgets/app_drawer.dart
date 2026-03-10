@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/widgets/liquid_glass_container.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 /// App drawer with LiquidGlass styling.
 ///
@@ -16,10 +17,12 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.transparent,
+      width: MediaQuery.of(context).size.width * 0.9,
       child: LiquidGlassContainer(
         borderRadius: 0,
-        blurSigma: 20,
-        backgroundColor: Colors.white,
+        blurSigma: 10,
+        backgroundColor: context.colors.glassBg,
         backgroundOpacity: 0.92,
         child: SafeArea(
           child: ListView(
@@ -27,7 +30,7 @@ class AppDrawer extends StatelessWidget {
             children: [
               // Header
               _buildHeader(context),
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: context.colors.border),
 
               // Navigation tabs
               const SizedBox(height: 8),
@@ -62,7 +65,7 @@ class AppDrawer extends StatelessWidget {
                 route: '/more',
               ),
 
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: context.colors.border),
               const SizedBox(height: 8),
 
               // Menu items
@@ -122,7 +125,7 @@ class AppDrawer extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: context.colors.border),
               const SizedBox(height: 16),
 
               // Social media row
@@ -150,7 +153,7 @@ class AppDrawer extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppColors.likudLightBlue,
+              color: context.colors.likudAccentBg,
               borderRadius: BorderRadius.circular(24),
             ),
             child: const Icon(
@@ -167,15 +170,15 @@ class AppDrawer extends StatelessWidget {
                 Text(
                   'greeting'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
+                    fontWeight: FontWeight.w700,
+                    color: context.colors.textPrimary,
+                  ),
                 ),
                 Text(
                   'welcome'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    color: context.colors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -192,23 +195,29 @@ class AppDrawer extends StatelessWidget {
     required String title,
     required String route,
   }) {
+    // Bottom nav routes that should use go() instead of push()
+    final bottomNavRoutes = ['/', '/breaking', '/video', '/stories', '/more'];
+    final isBottomNavRoute = bottomNavRoutes.contains(route);
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
       leading: Icon(icon, color: AppColors.likudBlue),
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
+          fontWeight: FontWeight.w500,
+          color: context.colors.textPrimary,
+        ),
       ),
-      trailing: const Icon(
-        Icons.chevron_left,
-        color: AppColors.textTertiary,
-      ),
+      trailing: Icon(Icons.chevron_right, color: context.colors.textTertiary),
       onTap: () {
         Navigator.pop(context);
-        context.push(route);
+        // Use go() for bottom nav routes to update tab, push() for others
+        if (isBottomNavRoute) {
+          context.go(route);
+        } else {
+          context.push(route);
+        }
       },
     );
   }
@@ -222,9 +231,9 @@ class AppDrawer extends StatelessWidget {
           Text(
             'follow_us'.tr(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
+              fontWeight: FontWeight.w600,
+              color: context.colors.textSecondary,
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -274,16 +283,16 @@ class AppDrawer extends StatelessWidget {
           Text(
             'app_name'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: context.colors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             'version'.tr(),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textTertiary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: context.colors.textTertiary),
           ),
         ],
       ),
@@ -314,14 +323,10 @@ class _SocialButton extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.likudLightBlue,
+            color: context.colors.likudAccentBg,
             borderRadius: BorderRadius.circular(22),
           ),
-          child: Icon(
-            icon,
-            color: AppColors.likudBlue,
-            size: 22,
-          ),
+          child: Icon(icon, color: AppColors.likudBlue, size: 22),
         ),
       ),
     );

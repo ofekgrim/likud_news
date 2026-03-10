@@ -33,6 +33,9 @@ export class Member {
   @Column({ type: 'text', nullable: true })
   bioEn: string;
 
+  @Column({ type: 'jsonb', default: [] })
+  bioBlocks: any[];
+
   @Column({ type: 'varchar', length: 2000, nullable: true })
   photoUrl: string;
 
@@ -44,6 +47,27 @@ export class Member {
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   socialInstagram: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: true, unique: true })
+  slug: string;
+
+  @Column({ type: 'varchar', length: 300, nullable: true })
+  office: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  phone: string;
+
+  @Column({ type: 'varchar', length: 300, nullable: true })
+  email: string;
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  website: string;
+
+  @Column({ type: 'varchar', length: 2000, nullable: true })
+  coverImageUrl: string;
+
+  @Column({ type: 'text', nullable: true })
+  personalPageHtml: string;
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;

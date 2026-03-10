@@ -2,6 +2,9 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -10,14 +13,31 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { QueryArticlesDto } from './dto/query-articles.dto';
 import { Tag } from '../tags/entities/tag.entity';
+import { UserFavorite } from '../favorites/entities/user-favorite.entity';
+import { Comment } from '../comments/entities/comment.entity';
+import { SseService } from '../sse/sse.service';
+import { PushService } from '../push/push.service';
+import { FeedService } from '../feed/feed.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ArticlesService {
+  private readonly logger = new Logger(ArticlesService.name);
+
   constructor(
     @InjectRepository(Article)
     private readonly articleRepository: Repository<Article>,
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
+    @InjectRepository(UserFavorite)
+    private readonly favoriteRepository: Repository<UserFavorite>,
+    @InjectRepository(Comment)
+    private readonly commentRepository: Repository<Comment>,
+    private readonly sseService: SseService,
+    private readonly pushService: PushService,
+    private readonly notificationsService: NotificationsService,
+    @Inject(forwardRef(() => FeedService))
+    private readonly feedService: FeedService,
   ) {}
 
   /**
@@ -54,6 +74,15 @@ export class ArticlesService {
       );
     }
 
+    // If setting this article as main, unset all other main articles first
+    if (articleData.isMain === true) {
+      await this.articleRepository.update(
+        { isMain: true },
+        { isMain: false },
+      );
+      this.logger.log('Unset previous main article(s)');
+    }
+
     const article = this.articleRepository.create(articleData);
 
     // Auto-calculate reading time from body blocks
@@ -73,7 +102,66 @@ export class ArticlesService {
       article.tags = tagIds.map((id) => ({ id }) as Tag);
     }
 
-    return this.articleRepository.save(article);
+    const saved = await this.articleRepository.save(article);
+
+    // Fire-and-forget: notify if article is published
+    void this.notifyIfPublished(saved, createArticleDto.sendPushNotification);
+
+    return saved;
+  }
+
+  /**
+   * Emit SSE new_article event and optionally send push notification.
+   */
+  private async notifyIfPublished(
+    article: Article,
+    sendPush?: boolean,
+  ): Promise<void> {
+    if (article.status !== ArticleStatus.PUBLISHED) return;
+
+    const payload = {
+      id: article.id,
+      title: article.title,
+      slug: article.slug,
+      heroImageUrl: article.heroImageUrl,
+      isBreaking: article.isBreaking,
+      categoryId: article.categoryId,
+    };
+
+    // Always emit SSE for new/updated published articles
+    this.sseService.emitNewArticle(payload);
+
+    // Also emit on breaking stream if it's breaking news
+    if (article.isBreaking) {
+      this.sseService.emitBreaking(payload);
+    }
+
+    // Broadcast to feed and invalidate feed cache
+    try {
+      await this.feedService.broadcastNewArticle(article);
+    } catch (error) {
+      this.logger.error(`Failed to broadcast article to feed: ${article.slug}`, error);
+    }
+
+    // Send push notification via NotificationsService if requested
+    if (sendPush) {
+      try {
+        await this.notificationsService.triggerContentNotification(
+          article.isBreaking ? 'article.breaking_published' : 'article.published',
+          'article',
+          article.id,
+          {
+            article_title: article.title,
+            article_slug: article.slug,
+            category_name: article.category?.name || '',
+            hero_image_url: article.heroImageUrl || '',
+          },
+        );
+        this.logger.log(`Push notification sent for article: ${article.slug}`);
+      } catch (error) {
+        this.logger.error(`Failed to send push for article ${article.slug}:`, error);
+      }
+    }
   }
 
   /**
@@ -95,13 +183,16 @@ export class ArticlesService {
       isBreaking,
       isHero,
       search,
+      sortBy = 'publishedAt',
+      sortOrder = 'DESC',
+      engagementFilter,
     } = query;
     const skip = (page - 1) * limit;
 
     const qb = this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
-      .orderBy('article.publishedAt', 'DESC')
+      .leftJoinAndSelect('article.authorEntity', 'authorEntity')
       .skip(skip)
       .take(limit);
 
@@ -132,10 +223,66 @@ export class ArticlesService {
       );
     }
 
+    // Apply engagement filters
+    if (engagementFilter === 'high_views') {
+      qb.andWhere('article.viewCount >= :minViews', { minViews: 1000 });
+    }
+
+    // Apply high_comments filter (requires comment join and grouping)
+    const needsCommentJoin = engagementFilter === 'high_comments' || sortBy === 'commentCount';
+
+    if (needsCommentJoin) {
+      qb.leftJoin('comments', 'c', 'c.articleId = article.id AND c.isApproved = true')
+        .groupBy('article.id')
+        .addGroupBy('category.id')
+        .addGroupBy('authorEntity.id');
+
+      if (engagementFilter === 'high_comments') {
+        qb.having('COUNT(c.id) >= :minComments', { minComments: 10 });
+      }
+    }
+
+    // Apply sorting
+    if (sortBy === 'commentCount') {
+      qb.addSelect('COUNT(c.id)', 'comment_count')
+        .orderBy('comment_count', sortOrder);
+    } else {
+      qb.orderBy(`article.${sortBy}`, sortOrder);
+    }
+
     const [data, total] = await qb.getManyAndCount();
 
+    // Batch-count comments for returned articles
+    const articleIds = data.map((a) => a.id);
+    let commentCountMap: Record<string, number> = {};
+    if (articleIds.length > 0) {
+      const counts = await this.commentRepository
+        .createQueryBuilder('c')
+        .select('c.articleId', 'articleId')
+        .addSelect('COUNT(*)::int', 'count')
+        .where('c.articleId IN (:...articleIds)', { articleIds })
+        .andWhere('c.isApproved = true')
+        .groupBy('c.articleId')
+        .getRawMany();
+      commentCountMap = Object.fromEntries(
+        counts.map((r) => [r.articleId, r.count]),
+      );
+    }
+
+    // Enrich articles with comment count and author name
+    const enriched = data.map((article) => {
+      const plain = JSON.parse(JSON.stringify(article));
+      return {
+        ...plain,
+        commentCount: commentCountMap[article.id] || 0,
+        authorEntityName: article.authorEntity?.nameHe || article.authorEntity?.nameEn || null,
+        categoryName: article.category?.name,
+        categoryColor: article.category?.color,
+      };
+    });
+
     return {
-      data,
+      data: enriched,
       total,
       page,
       limit,
@@ -146,7 +293,11 @@ export class ArticlesService {
   /**
    * Find a single article by its slug. Also increments the view count.
    */
-  async findBySlug(slug: string): Promise<any> {
+  async findBySlug(
+    slug: string,
+    deviceId?: string,
+    userId?: string,
+  ): Promise<any> {
     const article = await this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
@@ -164,6 +315,23 @@ export class ArticlesService {
     // Fire-and-forget view count increment
     void this.incrementViewCount(article.id);
 
+    // Count comments for this article
+    const commentCount = await this.commentRepository.count({
+      where: { articleId: article.id, isApproved: true },
+    });
+
+    // Check favorite status for this device/user
+    let isFavorite = false;
+    if (userId || deviceId) {
+      const whereClause = userId
+        ? { userId, articleId: article.id }
+        : { deviceId, articleId: article.id };
+      const fav = await this.favoriteRepository.findOne({
+        where: whereClause,
+      });
+      isFavorite = !!fav;
+    }
+
     // Fetch related, same-category, recommended, and latest articles in parallel
     const [relatedArticles, sameCategoryArticles, recommendedArticles, latestArticles] = await Promise.all([
       this.findRelated(article.id, 5),
@@ -178,6 +346,8 @@ export class ArticlesService {
 
     return {
       ...plain,
+      isFavorite,
+      commentCount,
       relatedArticles,
       sameCategoryArticles,
       recommendedArticles,
@@ -229,6 +399,24 @@ export class ArticlesService {
   }
 
   /**
+   * Find trending articles published within the last N days,
+   * sorted by viewCount descending.
+   */
+  async findTrending(limit: number = 5, days: number = 7): Promise<Article[]> {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    return this.articleRepository
+      .createQueryBuilder('article')
+      .leftJoinAndSelect('article.category', 'category')
+      .where('article.status = :status', { status: ArticleStatus.PUBLISHED })
+      .andWhere('article.publishedAt >= :since', { since })
+      .orderBy('article.viewCount', 'DESC')
+      .take(limit)
+      .getMany();
+  }
+
+  /**
    * Find a single article by ID.
    */
   async findOne(id: string): Promise<Article> {
@@ -252,8 +440,9 @@ export class ArticlesService {
     updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
     const article = await this.findOne(id);
+    const wasDraft = article.status !== ArticleStatus.PUBLISHED;
 
-    const { memberIds, tagIds, ...updateData } = updateArticleDto;
+    const { memberIds, tagIds, sendPushNotification, ...updateData } = updateArticleDto as UpdateArticleDto & { sendPushNotification?: boolean };
 
     // If slug is being changed, check uniqueness
     if (updateData.slug && updateData.slug !== article.slug) {
@@ -266,6 +455,18 @@ export class ArticlesService {
           `An article with slug "${updateData.slug}" already exists`,
         );
       }
+    }
+
+    // If setting this article as main, unset all other main articles first
+    if (updateData.isMain === true && !article.isMain) {
+      await this.articleRepository
+        .createQueryBuilder()
+        .update(Article)
+        .set({ isMain: false })
+        .where('id != :id', { id })
+        .andWhere('isMain = :isMain', { isMain: true })
+        .execute();
+      this.logger.log(`Unset previous main article(s) before setting ${id} as main`);
     }
 
     Object.assign(article, updateData);
@@ -287,7 +488,14 @@ export class ArticlesService {
       article.tags = tagIds.map((id) => ({ id }) as Tag);
     }
 
-    return this.articleRepository.save(article);
+    const saved = await this.articleRepository.save(article);
+
+    // Notify only when transitioning from non-published → published
+    if (wasDraft && saved.status === ArticleStatus.PUBLISHED) {
+      void this.notifyIfPublished(saved, sendPushNotification);
+    }
+
+    return saved;
   }
 
   /**
@@ -311,28 +519,54 @@ export class ArticlesService {
   }
 
   /**
-   * Full-text search across articles.
-   * Searches title, titleEn, subtitle, content, slug, category name/slug, and tag names.
+   * Full-text search across articles with pagination.
+   * Searches title, titleEn, subtitle, content, slug, hashtags, category name/slug, and tag names.
    */
-  async search(searchQuery: string, limit: number = 20): Promise<Article[]> {
-    return this.articleRepository
+  async search(
+    searchQuery: string,
+    page: number = 1,
+    limit: number = 20,
+    categoryId?: string,
+  ): Promise<{
+    data: Article[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const qb = this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
       .leftJoin('article.tags', 'tag')
       .where('article.status = :status', { status: ArticleStatus.PUBLISHED })
       .andWhere(
-        '(article.title ILIKE :q OR article.titleEn ILIKE :q OR article.subtitle ILIKE :q OR article.content ILIKE :q OR article.slug ILIKE :q OR category.name ILIKE :q OR category.slug ILIKE :q OR tag.name ILIKE :q)',
+        '(article.title ILIKE :q OR article.titleEn ILIKE :q OR article.subtitle ILIKE :q OR article.content ILIKE :q OR article.slug ILIKE :q OR article.hashtags ILIKE :q OR category.name ILIKE :q OR category.slug ILIKE :q OR tag."nameHe" ILIKE :q OR tag."nameEn" ILIKE :q)',
         { q: `%${searchQuery}%` },
-      )
-      .orderBy('article.publishedAt', 'DESC')
-      .take(limit)
-      .getMany();
+      );
+
+    if (categoryId) {
+      qb.andWhere('article.categoryId = :categoryId', { categoryId });
+    }
+
+    qb.orderBy('article.publishedAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   /**
    * Find related articles by shared tags, excluding the current article.
    */
-  async findRelated(articleId: string, limit: number = 5): Promise<Article[]> {
+  async findRelated(articleId: string, limit: number = 5): Promise<any[]> {
     const article = await this.articleRepository.findOne({
       where: { id: articleId },
       relations: ['tags'],
@@ -344,7 +578,7 @@ export class ArticlesService {
 
     const tagIds = article.tags.map((t) => t.id);
 
-    return this.articleRepository
+    const articles = await this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
       .innerJoin('article.tags', 'tag', 'tag.id IN (:...tagIds)', { tagIds })
@@ -353,12 +587,14 @@ export class ArticlesService {
       .orderBy('article.publishedAt', 'DESC')
       .take(limit)
       .getMany();
+
+    return this.enrichArticlesWithCommentCount(articles);
   }
 
   /**
    * Find articles from the same category, excluding the current article.
    */
-  async findSameCategory(articleId: string, limit: number = 5): Promise<Article[]> {
+  async findSameCategory(articleId: string, limit: number = 5): Promise<any[]> {
     const article = await this.articleRepository.findOne({
       where: { id: articleId },
     });
@@ -367,7 +603,7 @@ export class ArticlesService {
       return [];
     }
 
-    return this.articleRepository
+    const articles = await this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
       .where('article.categoryId = :categoryId', { categoryId: article.categoryId })
@@ -376,13 +612,15 @@ export class ArticlesService {
       .orderBy('article.publishedAt', 'DESC')
       .take(limit)
       .getMany();
+
+    return this.enrichArticlesWithCommentCount(articles);
   }
 
   /**
    * Find recommended articles from different categories (most read).
    * Excludes the current article and articles from the same category.
    */
-  async findRecommendations(articleId: string, limit: number = 5): Promise<Article[]> {
+  async findRecommendations(articleId: string, limit: number = 5): Promise<any[]> {
     const article = await this.articleRepository.findOne({
       where: { id: articleId },
     });
@@ -398,17 +636,19 @@ export class ArticlesService {
       qb.andWhere('article.categoryId != :categoryId', { categoryId: article.categoryId });
     }
 
-    return qb
+    const articles = await qb
       .orderBy('article.viewCount', 'DESC')
       .take(limit)
       .getMany();
+
+    return this.enrichArticlesWithCommentCount(articles);
   }
 
   /**
    * Find latest published articles, excluding the current article.
    */
-  async findLatest(articleId: string, limit: number = 10): Promise<Article[]> {
-    return this.articleRepository
+  async findLatest(articleId: string, limit: number = 10): Promise<any[]> {
+    const articles = await this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
       .where('article.id != :articleId', { articleId })
@@ -416,6 +656,8 @@ export class ArticlesService {
       .orderBy('article.publishedAt', 'DESC')
       .take(limit)
       .getMany();
+
+    return this.enrichArticlesWithCommentCount(articles);
   }
 
   /**
@@ -435,5 +677,37 @@ export class ArticlesService {
     }
 
     return { shareCount: article.shareCount };
+  }
+
+  /**
+   * Enrich articles with comment counts via single batch query.
+   */
+  private async enrichArticlesWithCommentCount(articles: Article[]): Promise<any[]> {
+    if (articles.length === 0) return [];
+
+    const articleIds = articles.map((a) => a.id);
+
+    const counts = await this.commentRepository
+      .createQueryBuilder('c')
+      .select('c.articleId', 'articleId')
+      .addSelect('COUNT(*)::int', 'count')
+      .where('c.articleId IN (:...articleIds)', { articleIds })
+      .andWhere('c.isApproved = true')
+      .groupBy('c.articleId')
+      .getRawMany();
+
+    const commentCountMap: Record<string, number> = Object.fromEntries(
+      counts.map((r) => [r.articleId, r.count]),
+    );
+
+    return articles.map((article) => {
+      const plain = JSON.parse(JSON.stringify(article));
+      return {
+        ...plain,
+        commentCount: commentCountMap[article.id] || 0,
+        categoryName: article.category?.name,
+        categoryColor: article.category?.color,
+      };
+    });
   }
 }

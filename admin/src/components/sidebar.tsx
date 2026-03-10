@@ -18,6 +18,18 @@ import {
   Tag as TagIcon,
   CircleDot,
   PlayCircle,
+  Smartphone,
+  Vote,
+  Trophy,
+  MapPin,
+  BarChart3,
+  Calendar,
+  HelpCircle,
+  Target,
+  Send,
+  FileText,
+  Clock,
+  History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +39,7 @@ const navGroups = [
     items: [
       { href: '/dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
       { href: '/articles', label: 'כתבות', icon: Newspaper },
+      { href: '/articles/analytics', label: 'אנליטיקס', icon: BarChart3 },
       { href: '/media', label: 'מדיה', icon: Image },
       { href: '/categories', label: 'קטגוריות', icon: FolderOpen },
       { href: '/stories', label: 'סטוריז', icon: CircleDot },
@@ -42,8 +55,40 @@ const navGroups = [
       { href: '/tags', label: 'תגיות', icon: TagIcon },
       { href: '/ticker', label: 'טיקר', icon: Radio },
       { href: '/contact', label: 'הודעות', icon: Mail },
-      { href: '/push', label: 'התראות', icon: Bell },
       { href: '/users', label: 'משתמשים', icon: UserCog },
+    ],
+  },
+  {
+    label: 'התראות',
+    items: [
+      { href: '/notifications', label: 'לוח בקרה', icon: Bell },
+      { href: '/notifications/send', label: 'שלח התראה', icon: Send },
+      { href: '/notifications/templates', label: 'תבניות', icon: FileText },
+      { href: '/notifications/schedules', label: 'תזמון', icon: Clock },
+      { href: '/notifications/history', label: 'היסטוריה', icon: History },
+    ],
+  },
+  {
+    label: 'משתמשים',
+    items: [
+      { href: '/app-users', label: 'משתמשי אפליקציה', icon: Smartphone },
+    ],
+  },
+  {
+    label: 'בחירות',
+    items: [
+      { href: '/primaries', label: 'לוח בקרה', icon: LayoutDashboard },
+      { href: '/primaries/elections', label: 'בחירות', icon: Vote },
+      { href: '/primaries/candidates', label: 'מועמדים', icon: Users },
+      { href: '/primaries/endorsements', label: 'תמיכות', icon: Target },
+      { href: '/primaries/quiz', label: 'שאלון התאמה', icon: HelpCircle },
+      { href: '/primaries/stations', label: 'קלפיות', icon: MapPin },
+      { href: '/primaries/results', label: 'תוצאות', icon: BarChart3 },
+      { href: '/primaries/polls', label: 'סקרים', icon: BarChart3 },
+      { href: '/primaries/events', label: 'אירועים', icon: Calendar },
+      { href: '/primaries/gamification', label: 'גיימיפיקציה', icon: Trophy },
+      { href: '/daily-quiz', label: 'חידון יומי', icon: HelpCircle },
+      { href: '/primaries/turnout', label: 'אחוזי הצבעה', icon: BarChart3 },
     ],
   },
 ];

@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/content_block.dart';
 
@@ -62,7 +63,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           playedColor: AppColors.likudBlue,
           handleColor: AppColors.likudBlue,
           bufferedColor: AppColors.likudBlue.withValues(alpha: 0.3),
-          backgroundColor: AppColors.border,
+          backgroundColor: context.colors.border,
         ),
       );
       setState(() {
@@ -123,7 +124,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   fontFamily: 'Heebo',
                   fontSize: 14 * widget.fontScale,
                   fontStyle: FontStyle.italic,
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -139,7 +140,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 style: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 12 * widget.fontScale,
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                   height: 1.4,
                 ),
               ),

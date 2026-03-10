@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/tag.dart';
 
 /// Tags display section showing article classification tags as chips.
@@ -41,7 +42,7 @@ class TagsSection extends StatelessWidget {
               'tags'.tr(),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
             const SizedBox(height: 10),
@@ -67,7 +68,7 @@ class TagsSection extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
       ),
-      backgroundColor: AppColors.likudLightBlue,
+      backgroundColor: context.colors.likudAccentBg,
       side: BorderSide.none,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),

@@ -1,6 +1,8 @@
 name: Deploy
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
@@ -14,9 +16,9 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to ${{ github.event.inputs.environment }}
+    name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event.inputs.environment || 'staging' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -39,6 +41,8 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            echo "Running database migrations..."
+            docker compose -f docker-compose.prod.yml exec -T backend node -e "require('./dist/database/data-source').default.initialize().then(ds => ds.runMigrations().then(() => { console.log('Migrations complete'); ds.destroy(); }))"
             echo "Waiting for backend to be healthy..."
             sleep 15
             curl -sf http://localhost:6000/api/v1/health || exit 1

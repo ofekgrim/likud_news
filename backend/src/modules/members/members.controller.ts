@@ -23,6 +23,19 @@ export class MembersController {
     return this.membersService.findAllActive();
   }
 
+  @Get('slug/:slug')
+  @ApiOperation({ summary: 'Get a member by slug with related articles' })
+  findBySlug(@Param('slug') slug: string) {
+    return this.membersService.findBySlug(slug);
+  }
+
+  @Get(':id/articles')
+  @ApiOperation({ summary: 'Get articles related to a member' })
+  async findMemberArticles(@Param('id', ParseUUIDPipe) id: string) {
+    const member = await this.membersService.findWithArticles(id);
+    return member.articles ?? [];
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a member with related articles' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {

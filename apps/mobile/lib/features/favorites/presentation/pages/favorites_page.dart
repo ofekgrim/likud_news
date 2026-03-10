@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -101,11 +102,11 @@ class _FavoritesPageState extends State<FavoritesPage>
         centerTitle: true,
         title: Text(
           'favorites'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         bottom: TabBar(
@@ -113,7 +114,7 @@ class _FavoritesPageState extends State<FavoritesPage>
           indicatorColor: AppColors.likudBlue,
           indicatorWeight: 3,
           labelColor: AppColors.likudBlue,
-          unselectedLabelColor: AppColors.textSecondary,
+          unselectedLabelColor: context.colors.textSecondary,
           labelStyle: const TextStyle(
             fontFamily: 'Heebo',
             fontSize: 14,
@@ -234,11 +235,11 @@ class _FavoritesPageState extends State<FavoritesPage>
                 },
               ),
               if (index < state.articles.length - 1)
-                const Divider(
+                Divider(
                   height: 1,
                   indent: 16,
                   endIndent: 16,
-                  color: AppColors.border,
+                  color: context.colors.border,
                 ),
             ],
           );

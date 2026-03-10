@@ -16,6 +16,10 @@ class ArticleModel {
   final bool isHero;
   final bool isBreaking;
   final int viewCount;
+  final int shareCount;
+  final int commentCount;
+  final int readingTimeMinutes;
+  final String? authorEntityName;
   final String? slug;
   final DateTime? publishedAt;
   final String? categoryId;
@@ -35,6 +39,10 @@ class ArticleModel {
     this.isHero = false,
     this.isBreaking = false,
     this.viewCount = 0,
+    this.shareCount = 0,
+    this.commentCount = 0,
+    this.readingTimeMinutes = 0,
+    this.authorEntityName,
     this.slug,
     this.publishedAt,
     this.categoryId,
@@ -45,20 +53,25 @@ class ArticleModel {
   factory ArticleModel.fromJson(Map<String, dynamic> json) {
     return ArticleModel(
       id: json['id'] as String,
-      title: json['title'] as String,
+      title: json['title'] as String? ?? '',
       titleEn: json['titleEn'] as String?,
       subtitle: json['subtitle'] as String?,
       content: json['content'] as String?,
       heroImageUrl: json['heroImageUrl'] as String?,
       heroImageCaption: json['heroImageCaption'] as String?,
       author: json['author'] as String?,
-      hashtags: (json['hashtags'] as List<dynamic>?)
+      hashtags:
+          (json['hashtags'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
       isHero: json['isHero'] as bool? ?? false,
       isBreaking: json['isBreaking'] as bool? ?? false,
       viewCount: json['viewCount'] as int? ?? 0,
+      shareCount: json['shareCount'] as int? ?? 0,
+      commentCount: json['commentCount'] as int? ?? 0,
+      readingTimeMinutes: json['readingTimeMinutes'] as int? ?? 0,
+      authorEntityName: json['authorEntityName'] as String?,
       slug: json['slug'] as String?,
       publishedAt: json['publishedAt'] != null
           ? DateTime.tryParse(json['publishedAt'] as String)
@@ -83,6 +96,10 @@ class ArticleModel {
       'isHero': isHero,
       'isBreaking': isBreaking,
       'viewCount': viewCount,
+      'shareCount': shareCount,
+      'commentCount': commentCount,
+      'readingTimeMinutes': readingTimeMinutes,
+      'authorEntityName': authorEntityName,
       'slug': slug,
       'publishedAt': publishedAt?.toIso8601String(),
       'categoryId': categoryId,
@@ -105,6 +122,10 @@ class ArticleModel {
       isHero: isHero,
       isBreaking: isBreaking,
       viewCount: viewCount,
+      shareCount: shareCount,
+      commentCount: commentCount,
+      readingTimeMinutes: readingTimeMinutes,
+      authorEntityName: authorEntityName,
       slug: slug,
       publishedAt: publishedAt,
       categoryId: categoryId,

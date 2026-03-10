@@ -16,16 +16,17 @@ class GetArticleDetail implements UseCase<ArticleDetail, GetArticleDetailParams>
 
   @override
   Future<Either<Failure, ArticleDetail>> call(GetArticleDetailParams params) {
-    return repository.getArticleBySlug(params.slug);
+    return repository.getArticleBySlug(params.slug, deviceId: params.deviceId);
   }
 }
 
 /// Parameters for [GetArticleDetail].
 class GetArticleDetailParams extends Equatable {
   final String slug;
+  final String? deviceId;
 
-  const GetArticleDetailParams({required this.slug});
+  const GetArticleDetailParams({required this.slug, this.deviceId});
 
   @override
-  List<Object?> get props => [slug];
+  List<Object?> get props => [slug, deviceId];
 }

@@ -7,9 +7,14 @@ import helmet from 'helmet';
 import compression from 'compression';
 import * as path from 'path';
 import { AppModule } from './app.module';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    // Use NestJS built-in logger (timestamps + context labels)
+    logger: ['log', 'error', 'warn', 'debug'],
+  });
   const config = app.get(ConfigService);
 
   // Global prefix
@@ -26,7 +31,7 @@ async function bootstrap() {
   } else {
     const corsOrigins = config.get<string[]>('cors.origins', [
       'http://localhost:3001',
-      'http://localhost:3001',
+      'https://admin.metzudathalikud.co.il',
     ]);
     app.enableCors({
       origin: corsOrigins,
@@ -52,6 +57,12 @@ async function bootstrap() {
     }),
   );
 
+  // ── Logging & error handling ─────────────────────────────
+  // HTTP request logger (all environments — light overhead)
+  app.useGlobalInterceptors(new LoggingInterceptor());
+  // Global exception filter (readable errors + consistent response shape)
+  app.useGlobalFilters(new GlobalExceptionFilter());
+
   // Swagger API Docs
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Metzudat HaLikud API')
@@ -70,7 +81,19 @@ async function bootstrap() {
   // Start server
   const port = config.get<number>('port', 9090);
   await app.listen(port);
-  console.log(`Server running on http://localhost:${port}/${apiPrefix}`);
-  console.log(`Swagger docs at http://localhost:${port}/${apiPrefix}/docs`);
+
+  // ── Startup banner ───────────────────────────────────────
+  const b = '\x1b[36m'; // cyan
+  const r = '\x1b[0m';  // reset
+  const d = '\x1b[2m';  // dim
+  console.log('');
+  console.log(`${b}  ╔══════════════════════════════════════════╗${r}`);
+  console.log(`${b}  ║${r}  ${b}Metzudat HaLikud API${r}                    ${b}║${r}`);
+  console.log(`${b}  ╠══════════════════════════════════════════╣${r}`);
+  console.log(`${b}  ║${r}  Server   ${d}http://localhost:${port}/${apiPrefix}${r}  ${b}║${r}`);
+  console.log(`${b}  ║${r}  Swagger  ${d}http://localhost:${port}/${apiPrefix}/docs${r} ${b}║${r}`);
+  console.log(`${b}  ║${r}  Mode     ${d}${nodeEnv}${r}                     ${b}║${r}`);
+  console.log(`${b}  ╚══════════════════════════════════════════╝${r}`);
+  console.log('');
 }
 void bootstrap();

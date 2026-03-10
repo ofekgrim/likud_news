@@ -1,27 +1,69 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get_it/get_it.dart';
+import 'package:hive/hive.dart';
 import 'package:injectable/injectable.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 import '../core/network/api_client.dart';
+import '../core/network/auth_interceptor.dart';
+import '../core/services/app_logger.dart';
 import '../core/services/device_id_service.dart';
+import '../core/services/notification_count_service.dart';
 import '../core/services/push_notification_service.dart';
+import '../core/services/secure_storage_service.dart';
+import '../features/auth/domain/repositories/auth_repository.dart';
+import '../features/feed/data/datasources/feed_local_datasource.dart';
 import 'di.config.dart';
 
 final getIt = GetIt.instance;
 
 @InjectableInit(preferRelativeImports: true)
 void configureDependencies() {
+  // Register Talker logger instance for DI access
+  getIt.registerSingleton<Talker>(AppLogger.instance);
+
   // Register external dependencies
   getIt.registerLazySingleton(() => Connectivity());
+
+  // Register FeedLocalDataSource (depends on Hive box registered in main.dart)
+  getIt.registerLazySingleton<FeedLocalDataSource>(
+    () => FeedLocalDataSourceImpl(
+      getIt<Box>(instanceName: 'feed_cache'),
+    ),
+  );
 
   // Initialize all auto-generated registrations
   getIt.init();
 
-  // Register PushNotificationService (depends on ApiClient + DeviceIdService)
-  getIt.registerLazySingleton<PushNotificationService>(
-    () => PushNotificationService(
+  // Wire AuthInterceptor into ApiClient's Dio instance.
+  // Done here (after init) to avoid circular dependency:
+  // ApiClient → AuthInterceptor → AuthRepository → ApiClient
+  final apiClient = getIt<ApiClient>();
+  apiClient.dio.interceptors.insert(
+    0,
+    AuthInterceptor(
+      secureStorage: getIt<SecureStorageService>(),
+      authRepository: getIt<AuthRepository>(),
+      dio: apiClient.dio,
+      deviceId: getIt<DeviceIdService>().deviceId,
+    ),
+  );
+
+  // Register NotificationCountService for bell icon badge
+  getIt.registerLazySingleton<NotificationCountService>(
+    () => NotificationCountService(
       getIt<ApiClient>(),
       getIt<DeviceIdService>(),
     ),
   );
+
+  // Register PushNotificationService (depends on ApiClient + DeviceIdService + NotificationCountService)
+  getIt.registerLazySingleton<PushNotificationService>(
+    () => PushNotificationService(
+      getIt<ApiClient>(),
+      getIt<DeviceIdService>(),
+      getIt<NotificationCountService>(),
+    ),
+  );
+
 }

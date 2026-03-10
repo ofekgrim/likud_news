@@ -26,4 +26,7 @@ abstract class HomeRepository {
 
   /// Fetches active stories for the home screen story circles.
   Future<Either<Failure, List<Story>>> getStories();
+
+  /// Fetches trending articles (most viewed in last 7 days).
+  Future<Either<Failure, List<Article>>> getTrendingArticles({int limit = 5});
 }

@@ -9,6 +9,7 @@ import 'package:metzudat_halikud/core/usecases/usecase.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/article.dart';
 import 'package:metzudat_halikud/features/breaking_news/domain/usecases/get_all_articles.dart';
 import 'package:metzudat_halikud/features/breaking_news/domain/usecases/get_breaking_articles.dart';
+import 'package:metzudat_halikud/features/breaking_news/domain/usecases/search_articles.dart';
 import 'package:metzudat_halikud/features/breaking_news/domain/usecases/watch_breaking_news.dart';
 import 'package:metzudat_halikud/features/breaking_news/presentation/bloc/breaking_news_bloc.dart';
 
@@ -22,11 +23,14 @@ class MockWatchBreakingNews extends Mock implements WatchBreakingNews {}
 
 class MockGetAllArticles extends Mock implements GetAllArticles {}
 
+class MockSearchArticles extends Mock implements SearchArticles {}
+
 void main() {
   late BreakingNewsBloc bloc;
   late MockGetBreakingArticles mockGetBreakingArticles;
   late MockWatchBreakingNews mockWatchBreakingNews;
   late MockGetAllArticles mockGetAllArticles;
+  late MockSearchArticles mockSearchArticles;
 
   // -------------------------------------------------------------------------
   // Test data
@@ -61,12 +65,14 @@ void main() {
   setUpAll(() {
     registerFallbackValue(const NoParams());
     registerFallbackValue(const AllArticlesParams());
+    registerFallbackValue(const SearchArticlesParams(query: ''));
   });
 
   setUp(() {
     mockGetBreakingArticles = MockGetBreakingArticles();
     mockWatchBreakingNews = MockWatchBreakingNews();
     mockGetAllArticles = MockGetAllArticles();
+    mockSearchArticles = MockSearchArticles();
 
     // Default: SSE stream returns empty stream to prevent hanging tests
     when(() => mockWatchBreakingNews()).thenAnswer(
@@ -77,6 +83,7 @@ void main() {
       mockGetBreakingArticles,
       mockWatchBreakingNews,
       mockGetAllArticles,
+      mockSearchArticles,
     );
   });
 

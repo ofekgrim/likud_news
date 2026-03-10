@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -43,11 +44,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
         centerTitle: true,
         title: Text(
           'categories'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
       ),

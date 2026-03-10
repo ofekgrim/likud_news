@@ -42,21 +42,19 @@ class LoadMoreComments extends CommentsEvent {
 /// Submits a new comment (or reply) on the current article or story.
 class SubmitCommentEvent extends CommentsEvent {
   final String articleId;
-  final String authorName;
   final String body;
   final String? parentId;
   final String targetType; // 'article' or 'story'
 
   const SubmitCommentEvent({
     required this.articleId,
-    required this.authorName,
     required this.body,
     this.parentId,
     this.targetType = 'article',
   });
 
   @override
-  List<Object?> get props => [articleId, authorName, body, parentId, targetType];
+  List<Object?> get props => [articleId, body, parentId, targetType];
 }
 
 /// Likes a comment (optimistic local update + API call).
@@ -315,7 +313,6 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
 
     final result = await _submitComment(SubmitCommentParams(
       articleId: event.articleId,
-      authorName: event.authorName,
       body: event.body,
       parentId: event.parentId,
       targetType: event.targetType,

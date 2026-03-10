@@ -8,6 +8,7 @@ import {
   Min,
   Max,
   IsBoolean,
+  IsIn,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ArticleStatus } from '../entities/article.entity';
@@ -73,4 +74,30 @@ export class QueryArticlesDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({
+    description: 'Sort field',
+    enum: ['publishedAt', 'viewCount', 'commentCount'],
+    default: 'publishedAt',
+  })
+  @IsOptional()
+  @IsIn(['publishedAt', 'viewCount', 'commentCount'])
+  sortBy?: 'publishedAt' | 'viewCount' | 'commentCount';
+
+  @ApiPropertyOptional({
+    description: 'Sort order',
+    enum: ['ASC', 'DESC'],
+    default: 'DESC',
+  })
+  @IsOptional()
+  @IsIn(['ASC', 'DESC'])
+  sortOrder?: 'ASC' | 'DESC';
+
+  @ApiPropertyOptional({
+    description: 'Engagement filter',
+    enum: ['high_comments', 'high_views', 'trending'],
+  })
+  @IsOptional()
+  @IsIn(['high_comments', 'high_views', 'trending'])
+  engagementFilter?: string;
 }

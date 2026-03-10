@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, BarChart3, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { api } from '@/lib/api';
 import type { Article, PaginatedResponse } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -31,13 +31,33 @@ export default function ArticlesPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'publishedAt' | 'viewCount' | 'commentCount'>('publishedAt');
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
+  const [engagementFilter, setEngagementFilter] = useState<string>('');
+
+  const handleSort = (field: 'publishedAt' | 'viewCount' | 'commentCount') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'DESC' ? 'ASC' : 'DESC');
+    } else {
+      setSortBy(field);
+      setSortOrder('DESC');
+    }
+    setPage(1);
+  };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['articles', page, search],
-    queryFn: () =>
-      api.get<PaginatedResponse<Article>>(
-        `/articles?page=${page}&limit=20${search ? `&search=${encodeURIComponent(search)}` : ''}`
-      ),
+    queryKey: ['articles', page, search, sortBy, sortOrder, engagementFilter],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '20',
+        sortBy,
+        sortOrder,
+      });
+      if (search) params.append('search', search);
+      if (engagementFilter) params.append('engagementFilter', engagementFilter);
+      return api.get<PaginatedResponse<Article>>(`/articles?${params.toString()}`);
+    },
   });
 
   const deleteMutation = useMutation({
@@ -49,20 +69,39 @@ export default function ArticlesPage() {
     },
   });
 
+  const setAsMainMutation = useMutation({
+    mutationFn: (id: string) => api.put(`/articles/${id}`, { isMain: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+      toast.success('הכתבה הוגדרה ככתבה מרכזית');
+    },
+    onError: () => {
+      toast.error('שגיאה בהגדרת כתבה מרכזית');
+    },
+  });
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">כתבות</h1>
-        <Link href="/articles/new">
-          <Button>
-            <Plus className="h-4 w-4 ml-1" />
-            כתבה חדשה
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/articles/analytics">
+            <Button variant="outline">
+              <BarChart3 className="h-4 w-4 ml-1" />
+              אנליטיקס
+            </Button>
+          </Link>
+          <Link href="/articles/new">
+            <Button>
+              <Plus className="h-4 w-4 ml-1" />
+              כתבה חדשה
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="mb-4">
-        <div className="relative max-w-sm">
+      <div className="mb-4 flex items-center gap-3">
+        <div className="relative max-w-sm flex-1">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="חיפוש כתבות..."
@@ -74,6 +113,19 @@ export default function ArticlesPage() {
             className="pr-9"
           />
         </div>
+        <select
+          value={engagementFilter}
+          onChange={(e) => {
+            setEngagementFilter(e.target.value);
+            setPage(1);
+          }}
+          className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">כל הכתבות</option>
+          <option value="high_comments">תגובות רבות (10+)</option>
+          <option value="high_views">צפיות רבות (1000+)</option>
+          <option value="trending">טרנדינג</option>
+        </select>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
@@ -83,19 +135,50 @@ export default function ArticlesPage() {
               <th className="text-right px-4 py-3 font-medium text-gray-500">כותרת</th>
               <th className="text-right px-4 py-3 font-medium text-gray-500">סטטוס</th>
               <th className="text-right px-4 py-3 font-medium text-gray-500 hidden md:table-cell">קטגוריה</th>
-              <th className="text-right px-4 py-3 font-medium text-gray-500 hidden lg:table-cell">צפיות</th>
-              <th className="text-right px-4 py-3 font-medium text-gray-500 hidden md:table-cell">תאריך</th>
+              <th className="text-right px-4 py-3 font-medium text-gray-500 hidden lg:table-cell">
+                <button
+                  onClick={() => handleSort('viewCount')}
+                  className="flex items-center gap-1 hover:text-gray-700"
+                >
+                  צפיות
+                  {sortBy === 'viewCount' && (
+                    sortOrder === 'DESC' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
+                  )}
+                </button>
+              </th>
+              <th className="text-right px-4 py-3 font-medium text-gray-500 hidden lg:table-cell">
+                <button
+                  onClick={() => handleSort('commentCount')}
+                  className="flex items-center gap-1 hover:text-gray-700"
+                >
+                  תגובות
+                  {sortBy === 'commentCount' && (
+                    sortOrder === 'DESC' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
+                  )}
+                </button>
+              </th>
+              <th className="text-right px-4 py-3 font-medium text-gray-500 hidden md:table-cell">
+                <button
+                  onClick={() => handleSort('publishedAt')}
+                  className="flex items-center gap-1 hover:text-gray-700"
+                >
+                  תאריך
+                  {sortBy === 'publishedAt' && (
+                    sortOrder === 'DESC' ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />
+                  )}
+                </button>
+              </th>
               <th className="text-right px-4 py-3 font-medium text-gray-500 w-24">פעולות</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {isLoading ? (
               Array.from({ length: 6 }).map((_, i) => (
-                <TableRowSkeleton key={i} columns={6} />
+                <TableRowSkeleton key={i} columns={7} />
               ))
             ) : data?.data.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-gray-400">
+                <td colSpan={7} className="text-center py-12 text-gray-400">
                   <p className="text-lg mb-1">אין כתבות</p>
                   <p className="text-sm">צור כתבה חדשה כדי להתחיל</p>
                 </td>
@@ -114,6 +197,10 @@ export default function ArticlesPage() {
                       </Badge>
                       {article.isHero && <Badge variant="secondary">ראשי</Badge>}
                       {article.isBreaking && <Badge variant="destructive">מבזק</Badge>}
+                      {article.isMain && <Badge variant="default" className="bg-[#0099DB] hover:bg-[#0099DB]/90">
+                        <Star className="h-3 w-3 ml-1" />
+                        מרכזית
+                      </Badge>}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
@@ -121,6 +208,14 @@ export default function ArticlesPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden lg:table-cell">
                     {article.viewCount.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 hidden lg:table-cell">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2 w-2 rounded-full bg-blue-500" />
+                      <span className="font-medium text-gray-700">
+                        {article.commentCount || 0}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
                     {article.publishedAt ? formatDate(article.publishedAt) : '-'}
@@ -132,6 +227,23 @@ export default function ArticlesPage() {
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                       </Link>
+                      <Link href={`/articles/${article.id}/analytics`}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <BarChart3 className="h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
+                      {!article.isMain && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-[#0099DB] hover:text-[#0099DB] hover:bg-blue-50"
+                          onClick={() => setAsMainMutation.mutate(article.id)}
+                          disabled={setAsMainMutation.isPending}
+                          title="סמן ככתבה מרכזית"
+                        >
+                          <Star className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"

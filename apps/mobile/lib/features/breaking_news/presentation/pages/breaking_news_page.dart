@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +7,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
+import '../../../home/domain/entities/article.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../bloc/breaking_news_bloc.dart';
@@ -29,6 +33,9 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
   late final TabController _tabController;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _debounceTimer;
+
+  static const _debounceDuration = Duration(milliseconds: 400);
 
   @override
   void initState() {
@@ -40,6 +47,7 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _searchController.dispose();
@@ -55,10 +63,21 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
     }
   }
 
+  void _onSearchChanged(String value) {
+    final query = value.toLowerCase();
+    setState(() => _searchQuery = query);
+
+    // Debounce the server-side search
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(_debounceDuration, () {
+      context.read<BreakingNewsBloc>().add(SearchArticlesRequested(query));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surfaceLight,
+      backgroundColor: context.colors.surfaceVariant,
       body: SafeArea(
         child: Column(
           children: [
@@ -78,33 +97,48 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: TextField(
         controller: _searchController,
-        onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+        onChanged: _onSearchChanged,
         textDirection: TextDirection.rtl,
         style: const TextStyle(fontFamily: 'Heebo', fontSize: 14),
         decoration: InputDecoration(
-          hintText: (_tabController.index == 0 ? 'search_breaking_hint' : 'search_all_articles_hint').tr(),
+          hintText:
+              (_tabController.index == 0
+                      ? 'search_breaking_hint'
+                      : 'search_all_articles_hint')
+                  .tr(),
           hintStyle: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 14,
-            color: AppColors.textTertiary,
+            color: context.colors.textTertiary,
           ),
-          prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 20),
+          prefixIcon: Icon(
+            Icons.search,
+            color: context.colors.textSecondary,
+            size: 20,
+          ),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, size: 18),
                   onPressed: () {
                     _searchController.clear();
+                    _debounceTimer?.cancel();
                     setState(() => _searchQuery = '');
+                    context.read<BreakingNewsBloc>().add(
+                      const SearchArticlesRequested(''),
+                    );
                   },
                 )
               : null,
           filled: true,
-          fillColor: AppColors.surfaceMedium,
+          fillColor: context.colors.surfaceMedium,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 10,
+          ),
         ),
       ),
     );
@@ -119,14 +153,13 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () => AppRouter.scaffoldKey.currentState?.openDrawer(),
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 8),
           BlocSelector<BreakingNewsBloc, BreakingNewsState, bool>(
-            selector: (state) =>
-                state is BreakingNewsLoaded && state.isLive,
+            selector: (state) => state is BreakingNewsLoaded && state.isLive,
             builder: (context, isLive) {
               return LiveIndicator(isLive: isLive);
             },
@@ -135,14 +168,15 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
           Text(
             'news_desk'.tr(),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+              fontWeight: FontWeight.w700,
+              color: context.colors.textPrimary,
+            ),
           ),
           const Spacer(),
           // Refresh button
           IconButton(
             icon: const Icon(Icons.refresh, size: 22),
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
             onPressed: () {
               context.read<BreakingNewsBloc>().add(const RefreshBreaking());
             },
@@ -158,7 +192,7 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceMedium,
+        color: context.colors.surfaceMedium,
         borderRadius: BorderRadius.circular(10),
       ),
       child: TabBar(
@@ -170,10 +204,10 @@ class _BreakingNewsPageState extends State<BreakingNewsPage>
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         labelColor: AppColors.white,
-        unselectedLabelColor: AppColors.textSecondary,
-        labelStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+        unselectedLabelColor: context.colors.textSecondary,
+        labelStyle: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         unselectedLabelStyle: Theme.of(context).textTheme.titleMedium,
         tabs: [
           Tab(text: 'tab_breaking'.tr()),
@@ -216,32 +250,49 @@ class _BreakingList extends StatelessWidget {
           BreakingNewsInitial() => const SizedBox.shrink(),
           BreakingNewsLoading() => _buildShimmer(),
           BreakingNewsError(:final message) => ErrorView(
-              message: message,
-              onRetry: () {
-                context
-                    .read<BreakingNewsBloc>()
-                    .add(const LoadBreakingNews());
-              },
-            ),
-          BreakingNewsLoaded(:final articles) => () {
-              var filtered = breakingOnly
-                  ? articles.where((a) => a.isBreaking).toList()
-                  : articles;
+            message: message,
+            onRetry: () {
+              context.read<BreakingNewsBloc>().add(const LoadBreakingNews());
+            },
+          ),
+          BreakingNewsLoaded(
+            :final articles,
+            :final searchResults,
+            :final isSearching,
+          ) =>
+            () {
+              // Use server search results when actively searching and results are available
+              List<Article> filtered;
+              if (isSearching &&
+                  searchQuery.isNotEmpty &&
+                  searchResults.isNotEmpty) {
+                // Server results — optionally filter to breaking-only if on that tab
+                filtered = breakingOnly
+                    ? searchResults.where((a) => a.isBreaking).toList()
+                    : searchResults;
+              } else {
+                // Default: local data with local filter as fallback
+                filtered = breakingOnly
+                    ? articles.where((a) => a.isBreaking).toList()
+                    : articles;
 
-              if (searchQuery.isNotEmpty) {
-                final q = searchQuery;
-                filtered = filtered.where((a) {
-                  return a.title.toLowerCase().contains(q) ||
-                      (a.subtitle?.toLowerCase().contains(q) ?? false) ||
-                      (a.slug?.toLowerCase().contains(q) ?? false) ||
-                      (a.categoryName?.toLowerCase().contains(q) ?? false) ||
-                      a.hashtags.any((tag) => tag.toLowerCase().contains(q));
-                }).toList();
+                if (searchQuery.isNotEmpty) {
+                  final q = searchQuery;
+                  filtered = filtered.where((a) {
+                    return a.title.toLowerCase().contains(q) ||
+                        (a.subtitle?.toLowerCase().contains(q) ?? false) ||
+                        (a.slug?.toLowerCase().contains(q) ?? false) ||
+                        (a.categoryName?.toLowerCase().contains(q) ?? false) ||
+                        a.hashtags.any((tag) => tag.toLowerCase().contains(q));
+                  }).toList();
+                }
               }
 
               if (filtered.isEmpty) {
                 return EmptyView(
-                  message: 'no_breaking'.tr(),
+                  message: searchQuery.isNotEmpty
+                      ? 'no_results'.tr()
+                      : 'no_breaking'.tr(),
                   icon: Icons.newspaper_outlined,
                 );
               }
@@ -249,13 +300,9 @@ class _BreakingList extends StatelessWidget {
               return RefreshIndicator(
                 color: AppColors.likudBlue,
                 onRefresh: () async {
-                  context
-                      .read<BreakingNewsBloc>()
-                      .add(const RefreshBreaking());
+                  context.read<BreakingNewsBloc>().add(const RefreshBreaking());
                   // Wait a brief moment for the BLoC to process.
-                  await Future<void>.delayed(
-                    const Duration(milliseconds: 500),
-                  );
+                  await Future<void>.delayed(const Duration(milliseconds: 500));
                 },
                 child: ListView.separated(
                   padding: EdgeInsetsDirectional.only(
@@ -310,27 +357,44 @@ class _AllArticlesList extends StatelessWidget {
           return _buildShimmer();
         }
 
-        var articles = state.allArticles;
+        // Use server search results when actively searching
+        List<Article> articles;
+        final bool showPagination;
 
-        if (searchQuery.isNotEmpty) {
-          final q = searchQuery;
-          articles = articles.where((a) {
-            return a.title.toLowerCase().contains(q) ||
-                (a.subtitle?.toLowerCase().contains(q) ?? false) ||
-                (a.slug?.toLowerCase().contains(q) ?? false) ||
-                (a.categoryName?.toLowerCase().contains(q) ?? false) ||
-                a.hashtags.any((tag) => tag.toLowerCase().contains(q));
-          }).toList();
+        if (state.isSearching &&
+            searchQuery.isNotEmpty &&
+            state.searchResults.isNotEmpty) {
+          articles = state.searchResults;
+          showPagination = false; // No pagination for search results
+        } else {
+          articles = state.allArticles;
+          showPagination = state.allArticlesHasMore;
+
+          // Local filter as fallback while server results are loading
+          if (searchQuery.isNotEmpty) {
+            final q = searchQuery;
+            articles = articles.where((a) {
+              return a.title.toLowerCase().contains(q) ||
+                  (a.subtitle?.toLowerCase().contains(q) ?? false) ||
+                  (a.slug?.toLowerCase().contains(q) ?? false) ||
+                  (a.categoryName?.toLowerCase().contains(q) ?? false) ||
+                  a.hashtags.any((tag) => tag.toLowerCase().contains(q));
+            }).toList();
+          }
         }
 
-        if (articles.isEmpty && state.allArticlesPage == 0) {
+        if (articles.isEmpty &&
+            state.allArticlesPage == 0 &&
+            !state.isSearching) {
           // Not yet loaded — show shimmer
           return _buildShimmer();
         }
 
         if (articles.isEmpty) {
           return EmptyView(
-            message: 'no_all_articles'.tr(),
+            message: searchQuery.isNotEmpty
+                ? 'no_results'.tr()
+                : 'no_all_articles'.tr(),
             icon: Icons.article_outlined,
           );
         }
@@ -349,7 +413,7 @@ class _AllArticlesList extends StatelessWidget {
               bottom: AppRouter.bottomNavClearance(context),
             ),
             physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: articles.length + (state.allArticlesHasMore ? 1 : 0),
+            itemCount: articles.length + (showPagination ? 1 : 0),
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               if (index < articles.length) {
@@ -368,7 +432,9 @@ class _AllArticlesList extends StatelessWidget {
                   width: double.infinity,
                   child: OutlinedButton(
                     onPressed: () {
-                      context.read<BreakingNewsBloc>().add(const LoadMoreAllArticles());
+                      context.read<BreakingNewsBloc>().add(
+                        const LoadMoreAllArticles(),
+                      );
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.likudBlue,

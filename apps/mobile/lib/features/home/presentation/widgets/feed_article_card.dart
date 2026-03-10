@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/article.dart';
 
@@ -21,13 +22,33 @@ class FeedArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: context.colors.cardSurface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: context.colors.border.withValues(alpha: 0.5),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: context.colors.shadow,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             // Thumbnail.
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
@@ -43,12 +64,12 @@ class FeedArticleCard extends StatelessWidget {
                       width: 120,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceMedium,
+                        color: context.colors.surfaceMedium,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.article_outlined,
-                        color: AppColors.textTertiary,
+                        color: context.colors.textTertiary,
                         size: 28,
                       ),
                     ),
@@ -88,21 +109,45 @@ class FeedArticleCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                            horizontal: 8,
+                            vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.breakingRed,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'מבזק',
-                            style: TextStyle(
-                              fontFamily: 'Heebo',
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.white,
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.breakingRed,
+                                AppColors.breakingRed.withValues(alpha: 0.8),
+                              ],
                             ),
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.breakingRed.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bolt,
+                                size: 11,
+                                color: AppColors.white,
+                              ),
+                              const SizedBox(width: 3),
+                              const Text(
+                                'מבזק',
+                                style: TextStyle(
+                                  fontFamily: 'Heebo',
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.white,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -114,11 +159,11 @@ class FeedArticleCard extends StatelessWidget {
                     article.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                       height: 1.3,
                     ),
                   ),
@@ -126,26 +171,25 @@ class FeedArticleCard extends StatelessWidget {
                   // Author + date.
                   Row(
                     children: [
-                      if (article.author != null &&
-                          article.author!.isNotEmpty) ...[
+                      if (_authorDisplay.isNotEmpty) ...[
                         Flexible(
                           child: Text(
-                            article.author!,
+                            _authorDisplay,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Heebo',
                               fontSize: 11,
-                              color: AppColors.textSecondary,
+                              color: context.colors.textSecondary,
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Text(
+                        Text(
                           '\u2022',
                           style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textTertiary,
+                            color: context.colors.textTertiary,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -153,36 +197,49 @@ class FeedArticleCard extends StatelessWidget {
                       if (article.publishedAt != null)
                         Text(
                           _formatDate(article.publishedAt!),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Heebo',
                             fontSize: 11,
-                            color: AppColors.textTertiary,
+                            color: context.colors.textTertiary,
                           ),
                         ),
-                      const Spacer(),
-                      // View count.
-                      if (article.viewCount > 0) ...[
-                        const Icon(
-                          Icons.visibility_outlined,
-                          size: 13,
-                          color: AppColors.textTertiary,
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  // Engagement stats row with badges.
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      if (article.readingTimeMinutes > 0)
+                        _StatBadge(
+                          icon: Icons.schedule_outlined,
+                          label: '${article.readingTimeMinutes} דק\'',
                         ),
-                        const SizedBox(width: 3),
-                        Text(
-                          _formatViewCount(article.viewCount),
-                          style: const TextStyle(
-                            fontFamily: 'Heebo',
-                            fontSize: 11,
-                            color: AppColors.textTertiary,
-                          ),
+                      if (article.viewCount > 0)
+                        _StatBadge(
+                          icon: Icons.visibility_outlined,
+                          label: _formatCount(article.viewCount),
                         ),
-                      ],
+                      if (article.commentCount > 0)
+                        _StatBadge(
+                          icon: Icons.chat_bubble_outline,
+                          label: _formatCount(article.commentCount),
+                          color: AppColors.likudBlue,
+                        ),
+                      if (article.shareCount > 0)
+                        _StatBadge(
+                          icon: Icons.share_outlined,
+                          label: _formatCount(article.shareCount),
+                        ),
                     ],
                   ),
                 ],
               ),
             ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -202,7 +259,17 @@ class FeedArticleCard extends StatelessWidget {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
-  String _formatViewCount(int count) {
+  String get _authorDisplay {
+    if (article.authorEntityName != null && article.authorEntityName!.isNotEmpty) {
+      return article.authorEntityName!;
+    }
+    if (article.author != null && article.author!.isNotEmpty) {
+      return article.author!;
+    }
+    return '';
+  }
+
+  String _formatCount(int count) {
     if (count >= 1000) {
       return '${(count / 1000).toStringAsFixed(1)}K';
     }
@@ -217,5 +284,51 @@ class FeedArticleCard extends StatelessWidget {
     } catch (_) {
       return AppColors.likudBlue;
     }
+  }
+}
+
+/// Engagement stat badge with icon and label.
+class _StatBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color? color;
+
+  const _StatBadge({
+    required this.icon,
+    required this.label,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final badgeColor = color ?? context.colors.textTertiary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 13,
+            color: badgeColor,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Heebo',
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: badgeColor,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

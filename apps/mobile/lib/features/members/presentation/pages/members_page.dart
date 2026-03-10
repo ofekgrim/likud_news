@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -13,8 +13,9 @@ import '../widgets/member_card.dart';
 
 /// Members directory page.
 ///
-/// Displays a searchable grid of all Likud members. The search
-/// bar at the top filters members locally by name or title.
+/// Displays a searchable list of all Likud members using business card
+/// style cards. The search bar at the top filters members locally by
+/// name, title, or office.
 class MembersPage extends StatefulWidget {
   const MembersPage({super.key});
 
@@ -44,7 +45,8 @@ class _MembersPageState extends State<MembersPage> {
     return members.where((member) {
       return member.name.toLowerCase().contains(query) ||
           (member.nameEn?.toLowerCase().contains(query) ?? false) ||
-          (member.title?.toLowerCase().contains(query) ?? false);
+          (member.title?.toLowerCase().contains(query) ?? false) ||
+          (member.office?.toLowerCase().contains(query) ?? false);
     }).toList();
   }
 
@@ -59,11 +61,11 @@ class _MembersPageState extends State<MembersPage> {
         centerTitle: true,
         title: Text(
           'members'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
       ),
@@ -82,20 +84,20 @@ class _MembersPageState extends State<MembersPage> {
               },
               decoration: InputDecoration(
                 hintText: 'search_members_hint'.tr(),
-                hintStyle: const TextStyle(
+                hintStyle: TextStyle(
                   fontFamily: 'Heebo',
                   fontSize: 14,
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                 ),
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.search,
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                 ),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.clear,
-                          color: AppColors.textTertiary,
+                          color: context.colors.textTertiary,
                         ),
                         onPressed: () {
                           _searchController.clear();
@@ -106,7 +108,7 @@ class _MembersPageState extends State<MembersPage> {
                       )
                     : null,
                 filled: true,
-                fillColor: AppColors.surfaceMedium,
+                fillColor: context.colors.surfaceMedium,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -118,7 +120,7 @@ class _MembersPageState extends State<MembersPage> {
               ),
             ),
           ),
-          // Members grid.
+          // Members list.
           Expanded(
             child: BlocBuilder<MembersBloc, MembersState>(
               builder: (context, state) {
@@ -148,30 +150,34 @@ class _MembersPageState extends State<MembersPage> {
   }
 
   Widget _buildLoadingState() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.85,
-      ),
-      itemCount: 6,
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
       physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (_, __) => Container(
+      itemCount: 6,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (context, __) => Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: context.colors.cardSurface,
           borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.all(16),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          textDirection: TextDirection.rtl,
           children: [
-            ShimmerLoading(width: 72, height: 72, borderRadius: 36),
-            SizedBox(height: 10),
-            ShimmerLoading(width: 80, height: 14, borderRadius: 4),
-            SizedBox(height: 6),
-            ShimmerLoading(width: 60, height: 10, borderRadius: 4),
+            const ShimmerLoading(width: 56, height: 56, borderRadius: 28),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  ShimmerLoading(width: 120, height: 16, borderRadius: 4),
+                  SizedBox(height: 6),
+                  ShimmerLoading(width: 90, height: 14, borderRadius: 4),
+                  SizedBox(height: 6),
+                  ShimmerLoading(width: 70, height: 12, borderRadius: 4),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -187,24 +193,19 @@ class _MembersPageState extends State<MembersPage> {
           _searchQuery.isNotEmpty
               ? 'no_results'.tr()
               : 'no_members'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Heebo',
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: context.colors.textSecondary,
           ),
         ),
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.85,
-      ),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
       itemCount: filtered.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final member = filtered[index];
         return MemberCard(

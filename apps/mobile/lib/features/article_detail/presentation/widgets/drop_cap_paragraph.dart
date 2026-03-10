@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../../../app/theme/app_colors.dart';
+import 'package:metzudat_halikud/app/theme/theme_context.dart';
 
 /// Renders the opening paragraph of an article with a decorative drop cap.
 ///
@@ -34,11 +33,11 @@ class DropCapParagraph extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(top: 4),
                 child: Text(
                   firstChar,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Heebo',
                     fontSize: 56,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.likudBlue,
+                    color: context.colors.textPrimary,
                     height: 1,
                   ),
                 ),
@@ -46,12 +45,12 @@ class DropCapParagraph extends StatelessWidget {
             ),
             TextSpan(
               text: remainingText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 18,
                 fontWeight: FontWeight.w400,
                 height: 1.9,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
               ),
             ),
           ],

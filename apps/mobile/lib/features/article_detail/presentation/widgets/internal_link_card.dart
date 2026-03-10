@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/content_block.dart';
 
@@ -46,12 +47,12 @@ class InternalLinkCard extends StatelessWidget {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: context.colors.cardSurface,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: context.colors.border),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.03),
+                color: context.colors.shadow,
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -65,7 +66,7 @@ class InternalLinkCard extends StatelessWidget {
                   topStart: Radius.circular(10),
                   bottomStart: Radius.circular(10),
                 ),
-                child: _buildImage(),
+                child: _buildImage(context),
               ),
 
               // Title + icon
@@ -77,11 +78,11 @@ class InternalLinkCard extends StatelessWidget {
                   ),
                   child: Text(
                     block.linkedArticleTitle!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Heebo',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: context.colors.textPrimary,
                       height: 1.4,
                     ),
                     maxLines: 3,
@@ -107,7 +108,7 @@ class InternalLinkCard extends StatelessWidget {
   }
 
   /// Builds the 80x80 image thumbnail or a fallback icon placeholder.
-  Widget _buildImage() {
+  Widget _buildImage(BuildContext context) {
     if (block.linkedArticleImageUrl != null &&
         block.linkedArticleImageUrl!.isNotEmpty) {
       return AppCachedImage(
@@ -121,11 +122,11 @@ class InternalLinkCard extends StatelessWidget {
     return Container(
       width: 80,
       height: 80,
-      color: AppColors.surfaceMedium,
-      child: const Icon(
+      color: context.colors.surfaceMedium,
+      child: Icon(
         Icons.article_outlined,
         size: 28,
-        color: AppColors.textTertiary,
+        color: context.colors.textTertiary,
       ),
     );
   }

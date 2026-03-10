@@ -45,6 +45,14 @@ class _BreakingTickerState extends State<BreakingTicker>
     WidgetsBinding.instance.addPostFrameCallback((_) => _startScrolling());
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.of(context).disableAnimations) {
+      _animationController.stop();
+    }
+  }
+
   void _startScrolling() {
     if (!_scrollController.hasClients) return;
     final maxExtent = _scrollController.position.maxScrollExtent;

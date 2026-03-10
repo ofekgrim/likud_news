@@ -62,6 +62,7 @@ class FullImageDialog extends StatelessWidget {
                         imageUrl: imageUrl,
                         fit: BoxFit.contain,
                         width: double.infinity,
+                        semanticLabel: caption ?? credit ?? 'Image',
                       ),
                     ),
                   ),
@@ -71,19 +72,23 @@ class FullImageDialog extends StatelessWidget {
                 Positioned(
                   top: 16,
                   right: 16,
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.black.withValues(alpha: 0.5),
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        color: AppColors.white,
-                        size: 24,
+                  child: Semantics(
+                    button: true,
+                    label: 'Close',
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.black.withValues(alpha: 0.5),
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: AppColors.white,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),

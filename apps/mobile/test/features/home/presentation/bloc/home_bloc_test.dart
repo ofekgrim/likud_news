@@ -11,8 +11,11 @@ import 'package:metzudat_halikud/features/home/domain/entities/story.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_categories.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_feed_articles.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_hero_article.dart';
+import 'package:metzudat_halikud/core/network/sse_client.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_stories.dart';
 import 'package:metzudat_halikud/features/home/domain/usecases/get_ticker_items.dart';
+import 'package:metzudat_halikud/features/home/domain/usecases/get_trending_articles.dart';
+import 'package:metzudat_halikud/features/breaking_news/domain/usecases/get_breaking_articles.dart';
 import 'package:metzudat_halikud/features/home/presentation/bloc/home_bloc.dart';
 
 // ---------------------------------------------------------------------------
@@ -29,6 +32,12 @@ class MockGetCategories extends Mock implements GetCategories {}
 
 class MockGetStories extends Mock implements GetStories {}
 
+class MockGetTrendingArticles extends Mock implements GetTrendingArticles {}
+
+class MockGetBreakingArticles extends Mock implements GetBreakingArticles {}
+
+class MockSseClient extends Mock implements SseClient {}
+
 void main() {
   late HomeBloc homeBloc;
   late MockGetHeroArticle mockGetHeroArticle;
@@ -36,16 +45,15 @@ void main() {
   late MockGetTickerItems mockGetTickerItems;
   late MockGetCategories mockGetCategories;
   late MockGetStories mockGetStories;
+  late MockGetTrendingArticles mockGetTrendingArticles;
+  late MockGetBreakingArticles mockGetBreakingArticles;
+  late MockSseClient mockSseClient;
 
   // -------------------------------------------------------------------------
   // Test data
   // -------------------------------------------------------------------------
 
-  const tHeroArticle = Article(
-    id: '1',
-    title: 'Hero Article',
-    isHero: true,
-  );
+  const tHeroArticle = Article(id: '1', title: 'Hero Article', isHero: true);
 
   const tArticles = [
     Article(id: '2', title: 'Feed Article 1'),
@@ -79,6 +87,9 @@ void main() {
     mockGetTickerItems = MockGetTickerItems();
     mockGetCategories = MockGetCategories();
     mockGetStories = MockGetStories();
+    mockGetTrendingArticles = MockGetTrendingArticles();
+    mockGetBreakingArticles = MockGetBreakingArticles();
+    mockSseClient = MockSseClient();
 
     homeBloc = HomeBloc(
       mockGetHeroArticle,
@@ -86,6 +97,9 @@ void main() {
       mockGetTickerItems,
       mockGetCategories,
       mockGetStories,
+      mockGetTrendingArticles,
+      mockGetBreakingArticles,
+      mockSseClient,
     );
   });
 
@@ -106,16 +120,25 @@ void main() {
     List<Category> categories = tCategories,
     List<Story> stories = tStories,
   }) {
-    when(() => mockGetHeroArticle(any()))
-        .thenAnswer((_) async => Right(heroArticle));
-    when(() => mockGetFeedArticles(any()))
-        .thenAnswer((_) async => Right(articles));
-    when(() => mockGetTickerItems(any()))
-        .thenAnswer((_) async => Right(tickerItems));
-    when(() => mockGetCategories(any()))
-        .thenAnswer((_) async => Right(categories));
-    when(() => mockGetStories(any()))
-        .thenAnswer((_) async => Right(stories));
+    when(
+      () => mockGetHeroArticle(any()),
+    ).thenAnswer((_) async => Right(heroArticle));
+    when(
+      () => mockGetFeedArticles(any()),
+    ).thenAnswer((_) async => Right(articles));
+    when(
+      () => mockGetTickerItems(any()),
+    ).thenAnswer((_) async => Right(tickerItems));
+    when(
+      () => mockGetCategories(any()),
+    ).thenAnswer((_) async => Right(categories));
+    when(() => mockGetStories(any())).thenAnswer((_) async => Right(stories));
+    when(
+      () => mockGetTrendingArticles(any()),
+    ).thenAnswer((_) async => const Right(<Article>[]));
+    when(
+      () => mockGetBreakingArticles(any()),
+    ).thenAnswer((_) async => const Right(<Article>[]));
   }
 
   // -------------------------------------------------------------------------
@@ -161,16 +184,27 @@ void main() {
       blocTest<HomeBloc, HomeState>(
         'emits [HomeLoading, HomeError] when feed fails',
         build: () {
-          when(() => mockGetHeroArticle(any()))
-              .thenAnswer((_) async => const Right(tHeroArticle));
-          when(() => mockGetFeedArticles(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
-          when(() => mockGetTickerItems(any()))
-              .thenAnswer((_) async => const Right(tTickerItems));
-          when(() => mockGetCategories(any()))
-              .thenAnswer((_) async => const Right(tCategories));
-          when(() => mockGetStories(any()))
-              .thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetHeroArticle(any()),
+          ).thenAnswer((_) async => const Right(tHeroArticle));
+          when(
+            () => mockGetFeedArticles(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockGetTickerItems(any()),
+          ).thenAnswer((_) async => const Right(tTickerItems));
+          when(
+            () => mockGetCategories(any()),
+          ).thenAnswer((_) async => const Right(tCategories));
+          when(
+            () => mockGetStories(any()),
+          ).thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetTrendingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
+          when(
+            () => mockGetBreakingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
           return homeBloc;
         },
         act: (bloc) => bloc.add(const LoadHome()),
@@ -183,16 +217,27 @@ void main() {
       blocTest<HomeBloc, HomeState>(
         'emits [HomeLoading, HomeLoaded] with null hero when hero fails',
         build: () {
-          when(() => mockGetHeroArticle(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
-          when(() => mockGetFeedArticles(any()))
-              .thenAnswer((_) async => const Right(tArticles));
-          when(() => mockGetTickerItems(any()))
-              .thenAnswer((_) async => const Right(tTickerItems));
-          when(() => mockGetCategories(any()))
-              .thenAnswer((_) async => const Right(tCategories));
-          when(() => mockGetStories(any()))
-              .thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetHeroArticle(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockGetFeedArticles(any()),
+          ).thenAnswer((_) async => const Right(tArticles));
+          when(
+            () => mockGetTickerItems(any()),
+          ).thenAnswer((_) async => const Right(tTickerItems));
+          when(
+            () => mockGetCategories(any()),
+          ).thenAnswer((_) async => const Right(tCategories));
+          when(
+            () => mockGetStories(any()),
+          ).thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetTrendingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
+          when(
+            () => mockGetBreakingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
           return homeBloc;
         },
         act: (bloc) => bloc.add(const LoadHome()),
@@ -223,8 +268,9 @@ void main() {
       blocTest<HomeBloc, HomeState>(
         'appends articles to existing list',
         build: () {
-          when(() => mockGetFeedArticles(any()))
-              .thenAnswer((_) async => const Right(tNewArticles));
+          when(
+            () => mockGetFeedArticles(any()),
+          ).thenAnswer((_) async => const Right(tNewArticles));
           return homeBloc;
         },
         seed: () => const HomeLoaded(
@@ -257,11 +303,10 @@ void main() {
         'sets hasMore false when less than page size returned',
         build: () {
           // Return fewer than _pageSize (10) articles
-          const fewArticles = [
-            Article(id: '10', title: 'Only One'),
-          ];
-          when(() => mockGetFeedArticles(any()))
-              .thenAnswer((_) async => const Right(fewArticles));
+          const fewArticles = [Article(id: '10', title: 'Only One')];
+          when(
+            () => mockGetFeedArticles(any()),
+          ).thenAnswer((_) async => const Right(fewArticles));
           return homeBloc;
         },
         seed: () => const HomeLoaded(
@@ -286,8 +331,9 @@ void main() {
             10,
             (i) => Article(id: '${100 + i}', title: 'Article $i'),
           );
-          when(() => mockGetFeedArticles(any()))
-              .thenAnswer((_) async => Right(fullPage));
+          when(
+            () => mockGetFeedArticles(any()),
+          ).thenAnswer((_) async => Right(fullPage));
           return homeBloc;
         },
         seed: () => const HomeLoaded(
@@ -349,13 +395,9 @@ void main() {
         Article(id: '101', title: 'Refreshed Article 2'),
       ];
 
-      const tRefreshedTicker = [
-        TickerItem(id: '10', text: 'New ticker'),
-      ];
+      const tRefreshedTicker = [TickerItem(id: '10', text: 'New ticker')];
 
-      const tRefreshedCategories = [
-        Category(id: '10', name: 'New Category'),
-      ];
+      const tRefreshedCategories = [Category(id: '10', name: 'New Category')];
 
       blocTest<HomeBloc, HomeState>(
         'reloads all data and replaces old state',
@@ -398,16 +440,27 @@ void main() {
       blocTest<HomeBloc, HomeState>(
         'keeps existing state when refresh feed fails and state is HomeLoaded',
         build: () {
-          when(() => mockGetHeroArticle(any()))
-              .thenAnswer((_) async => const Right(tHeroArticle));
-          when(() => mockGetFeedArticles(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
-          when(() => mockGetTickerItems(any()))
-              .thenAnswer((_) async => const Right(tTickerItems));
-          when(() => mockGetCategories(any()))
-              .thenAnswer((_) async => const Right(tCategories));
-          when(() => mockGetStories(any()))
-              .thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetHeroArticle(any()),
+          ).thenAnswer((_) async => const Right(tHeroArticle));
+          when(
+            () => mockGetFeedArticles(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockGetTickerItems(any()),
+          ).thenAnswer((_) async => const Right(tTickerItems));
+          when(
+            () => mockGetCategories(any()),
+          ).thenAnswer((_) async => const Right(tCategories));
+          when(
+            () => mockGetStories(any()),
+          ).thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetTrendingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
+          when(
+            () => mockGetBreakingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
           return homeBloc;
         },
         seed: () => const HomeLoaded(
@@ -425,22 +478,31 @@ void main() {
       blocTest<HomeBloc, HomeState>(
         'emits HomeError when refresh fails and state is not HomeLoaded',
         build: () {
-          when(() => mockGetHeroArticle(any()))
-              .thenAnswer((_) async => const Right(tHeroArticle));
-          when(() => mockGetFeedArticles(any()))
-              .thenAnswer((_) async => const Left(tServerFailure));
-          when(() => mockGetTickerItems(any()))
-              .thenAnswer((_) async => const Right(tTickerItems));
-          when(() => mockGetCategories(any()))
-              .thenAnswer((_) async => const Right(tCategories));
-          when(() => mockGetStories(any()))
-              .thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetHeroArticle(any()),
+          ).thenAnswer((_) async => const Right(tHeroArticle));
+          when(
+            () => mockGetFeedArticles(any()),
+          ).thenAnswer((_) async => const Left(tServerFailure));
+          when(
+            () => mockGetTickerItems(any()),
+          ).thenAnswer((_) async => const Right(tTickerItems));
+          when(
+            () => mockGetCategories(any()),
+          ).thenAnswer((_) async => const Right(tCategories));
+          when(
+            () => mockGetStories(any()),
+          ).thenAnswer((_) async => const Right(tStories));
+          when(
+            () => mockGetTrendingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
+          when(
+            () => mockGetBreakingArticles(any()),
+          ).thenAnswer((_) async => const Right(<Article>[]));
           return homeBloc;
         },
         act: (bloc) => bloc.add(const RefreshFeed()),
-        expect: () => [
-          const HomeError(message: 'Server error'),
-        ],
+        expect: () => [const HomeError(message: 'Server error')],
       );
     });
   });

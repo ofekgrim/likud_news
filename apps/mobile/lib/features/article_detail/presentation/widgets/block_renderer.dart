@@ -3,6 +3,7 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/ads/ad_banner_widget.dart';
 import '../../../../core/ads/ad_config.dart';
 import '../../domain/entities/content_block.dart';
@@ -11,6 +12,8 @@ import 'drop_cap_paragraph.dart';
 import 'inline_image_widget.dart';
 import 'internal_link_card.dart';
 import 'quote_widget.dart';
+import 'facebook_embed_widget.dart';
+import 'instagram_embed_widget.dart';
 import 'tweet_embed_widget.dart';
 import 'video_player_widget.dart';
 import 'youtube_embed_widget.dart';
@@ -51,10 +54,7 @@ class BlockRenderer extends StatelessWidget {
     // Fallback: render HTML content if no structured blocks are available.
     if (blocks.isEmpty) {
       if (htmlFallback != null && htmlFallback!.isNotEmpty) {
-        return ArticleContent(
-          htmlContent: htmlFallback!,
-          showAds: showAds,
-        );
+        return ArticleContent(htmlContent: htmlFallback!, showAds: showAds);
       }
       return const SizedBox.shrink();
     }
@@ -106,14 +106,16 @@ class BlockRenderer extends StatelessWidget {
     int paragraphIndex,
   ) {
     return switch (block) {
-      ParagraphBlock b => _buildParagraph(b, paragraphIndex),
-      HeadingBlock b => _buildHeading(b),
+      ParagraphBlock b => _buildParagraph(context, b, paragraphIndex),
+      HeadingBlock b => _buildHeading(context, b),
       ImageBlock b => InlineImageWidget(block: b, fontScale: fontScale),
       YouTubeEmbedBlock b => YouTubeEmbedWidget(block: b),
       TweetEmbedBlock b => TweetEmbedWidget(block: b),
+      InstagramEmbedBlock b => InstagramEmbedWidget(block: b),
+      FacebookEmbedBlock b => FacebookEmbedWidget(block: b),
       QuoteBlock b => QuoteWidget(block: b, fontScale: fontScale),
-      DividerBlock _ => const Divider(color: AppColors.border),
-      BulletListBlock b => _buildBulletList(b),
+      DividerBlock _ => Divider(color: context.colors.border),
+      BulletListBlock b => _buildBulletList(context, b),
       ArticleLinkBlock b => InternalLinkCard(block: b),
       VideoBlock b => VideoPlayerWidget(block: b, fontScale: fontScale),
     };
@@ -121,7 +123,7 @@ class BlockRenderer extends StatelessWidget {
 
   /// Renders a paragraph block. The first paragraph gets a drop-cap treatment;
   /// subsequent paragraphs render inline HTML (supporting bold, italic, links).
-  Widget _buildParagraph(ParagraphBlock block, int paragraphIndex) {
+  Widget _buildParagraph(BuildContext context, ParagraphBlock block, int paragraphIndex) {
     if (paragraphIndex == 0 && _stripHtml(block.text).length > 1) {
       return DropCapParagraph(text: _stripHtml(block.text));
     }
@@ -132,15 +134,12 @@ class BlockRenderer extends StatelessWidget {
         fontFamily: 'Heebo',
         fontSize: 18 * fontScale,
         height: 1.9,
-        color: AppColors.textPrimary,
+        color: context.colors.textPrimary,
       ),
       customStylesBuilder: (element) {
         switch (element.localName) {
           case 'a':
-            return {
-              'color': '#0099DB',
-              'text-decoration': 'underline',
-            };
+            return {'color': '#0099DB', 'text-decoration': 'underline'};
           case 'strong':
           case 'b':
             return {'font-weight': '700'};
@@ -149,17 +148,14 @@ class BlockRenderer extends StatelessWidget {
         }
       },
       onTapUrl: (url) {
-        launchUrl(
-          Uri.parse(url),
-          mode: LaunchMode.externalApplication,
-        );
+        launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
         return true;
       },
     );
   }
 
   /// Renders a heading block with size determined by [HeadingBlock.level].
-  Widget _buildHeading(HeadingBlock block) {
+  Widget _buildHeading(BuildContext context, HeadingBlock block) {
     final double fontSize;
     switch (block.level) {
       case 2:
@@ -180,7 +176,7 @@ class BlockRenderer extends StatelessWidget {
           fontFamily: 'Heebo',
           fontSize: fontSize,
           fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
+          color: context.colors.textPrimary,
           height: 1.4,
         ),
       ),
@@ -188,7 +184,7 @@ class BlockRenderer extends StatelessWidget {
   }
 
   /// Renders a bulleted list as a Column of RTL rows with bullet dots.
-  Widget _buildBulletList(BulletListBlock block) {
+  Widget _buildBulletList(BuildContext context, BulletListBlock block) {
     if (block.items.isEmpty) return const SizedBox.shrink();
 
     return Directionality(
@@ -196,13 +192,13 @@ class BlockRenderer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
-        children: block.items.map((item) => _buildBulletItem(item)).toList(),
+        children: block.items.map((item) => _buildBulletItem(context, item)).toList(),
       ),
     );
   }
 
   /// Builds a single bullet list item row.
-  Widget _buildBulletItem(String text) {
+  Widget _buildBulletItem(BuildContext context, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -227,7 +223,7 @@ class BlockRenderer extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 16 * fontScale,
-                color: AppColors.textPrimary,
+                color: context.colors.textPrimary,
                 height: 1.7,
               ),
             ),

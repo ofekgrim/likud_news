@@ -1,4 +1,6 @@
 import 'package:metzudat_halikud/features/article_detail/domain/entities/article_detail.dart';
+import 'package:metzudat_halikud/features/feed/domain/entities/feed_item.dart';
+import 'package:metzudat_halikud/features/feed/domain/entities/feed_response.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/article.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/category.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/ticker_item.dart';
@@ -240,5 +242,284 @@ VideoArticle createTestVideoArticle({
     categoryColor: categoryColor,
     slug: slug,
     publishedAt: publishedAt ?? DateTime(2024, 1, 15, 10, 30),
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FEED ITEM FIXTURES
+// ═══════════════════════════════════════════════════════════════════
+
+FeedMeta createTestFeedMeta({
+  int page = 1,
+  int limit = 20,
+  int total = 10,
+  int totalPages = 1,
+  int articlesCount = 5,
+  int pollsCount = 2,
+  int eventsCount = 1,
+  int electionsCount = 1,
+  int quizzesCount = 1,
+}) {
+  return FeedMeta(
+    page: page,
+    limit: limit,
+    total: total,
+    totalPages: totalPages,
+    articlesCount: articlesCount,
+    pollsCount: pollsCount,
+    eventsCount: eventsCount,
+    electionsCount: electionsCount,
+    quizzesCount: quizzesCount,
+  );
+}
+
+FeedArticleContent createTestFeedArticleContent({
+  String id = 'fa-1',
+  String title = 'Test Feed Article',
+  String? titleEn = 'Test Feed Article EN',
+  String? subtitle = 'Test feed subtitle',
+  String? heroImageUrl = 'https://example.com/image.jpg',
+  String? categoryName = 'Test Category',
+  String? categoryColor = '#0099DB',
+  bool isBreaking = false,
+  int viewCount = 150,
+  int commentCount = 5,
+  int shareCount = 10,
+  int readingTimeMinutes = 3,
+  DateTime? publishedAt,
+  String slug = 'test-feed-article',
+  String? author = 'Test Author',
+  String? authorEntityName,
+}) {
+  return FeedArticleContent(
+    id: id,
+    title: title,
+    titleEn: titleEn,
+    subtitle: subtitle,
+    heroImageUrl: heroImageUrl,
+    categoryName: categoryName,
+    categoryColor: categoryColor,
+    isBreaking: isBreaking,
+    viewCount: viewCount,
+    commentCount: commentCount,
+    shareCount: shareCount,
+    readingTimeMinutes: readingTimeMinutes,
+    publishedAt: publishedAt ?? DateTime(2024, 1, 15, 10, 30),
+    slug: slug,
+    author: author,
+    authorEntityName: authorEntityName,
+  );
+}
+
+ArticleFeedItem createTestArticleFeedItem({
+  String id = 'fi-article-1',
+  DateTime? publishedAt,
+  bool isPinned = false,
+  int sortPriority = 0,
+  FeedArticleContent? article,
+}) {
+  return ArticleFeedItem(
+    id: id,
+    publishedAt: publishedAt ?? DateTime(2024, 1, 15, 10, 30),
+    isPinned: isPinned,
+    sortPriority: sortPriority,
+    article: article ?? createTestFeedArticleContent(),
+  );
+}
+
+FeedPollOption createTestFeedPollOption({
+  String id = 'opt-1',
+  String text = 'Option 1',
+  String? textEn,
+  int votesCount = 50,
+  double percentage = 50.0,
+}) {
+  return FeedPollOption(
+    id: id,
+    text: text,
+    textEn: textEn,
+    votesCount: votesCount,
+    percentage: percentage,
+  );
+}
+
+FeedPollContent createTestFeedPollContent({
+  String id = 'fp-1',
+  String question = 'Test Poll Question?',
+  String? questionEn,
+  List<FeedPollOption>? options,
+  int totalVotes = 100,
+  DateTime? endsAt,
+  bool isActive = true,
+  bool allowMultipleVotes = false,
+  bool userHasVoted = false,
+  int? votedOptionIndex,
+}) {
+  return FeedPollContent(
+    id: id,
+    question: question,
+    questionEn: questionEn,
+    options: options ??
+        [
+          createTestFeedPollOption(id: 'opt-1', text: 'Option A', votesCount: 60, percentage: 60.0),
+          createTestFeedPollOption(id: 'opt-2', text: 'Option B', votesCount: 40, percentage: 40.0),
+        ],
+    totalVotes: totalVotes,
+    endsAt: endsAt,
+    isActive: isActive,
+    allowMultipleVotes: allowMultipleVotes,
+    userHasVoted: userHasVoted,
+    votedOptionIndex: votedOptionIndex,
+  );
+}
+
+PollFeedItem createTestPollFeedItem({
+  String id = 'fi-poll-1',
+  DateTime? publishedAt,
+  bool isPinned = false,
+  int sortPriority = 0,
+  FeedPollContent? poll,
+}) {
+  return PollFeedItem(
+    id: id,
+    publishedAt: publishedAt ?? DateTime(2024, 1, 15, 10, 30),
+    isPinned: isPinned,
+    sortPriority: sortPriority,
+    poll: poll ?? createTestFeedPollContent(),
+  );
+}
+
+FeedEventContent createTestFeedEventContent({
+  String id = 'fe-1',
+  String title = 'Test Event',
+  String? titleEn,
+  String? description = 'Test event description',
+  String? imageUrl,
+  String? location = 'Tel Aviv',
+  String? locationEn,
+  DateTime? startTime,
+  DateTime? endTime,
+  int rsvpCount = 25,
+  int? maxAttendees = 100,
+  bool userHasRsvped = false,
+  String? eventType = 'rally',
+}) {
+  return FeedEventContent(
+    id: id,
+    title: title,
+    titleEn: titleEn,
+    description: description,
+    imageUrl: imageUrl,
+    location: location,
+    locationEn: locationEn,
+    startTime: startTime ?? DateTime(2024, 3, 1, 18, 0),
+    endTime: endTime,
+    rsvpCount: rsvpCount,
+    maxAttendees: maxAttendees,
+    userHasRsvped: userHasRsvped,
+    eventType: eventType,
+  );
+}
+
+EventFeedItem createTestEventFeedItem({
+  String id = 'fi-event-1',
+  DateTime? publishedAt,
+  bool isPinned = false,
+  int sortPriority = 0,
+  FeedEventContent? event,
+}) {
+  return EventFeedItem(
+    id: id,
+    publishedAt: publishedAt ?? DateTime(2024, 1, 15, 10, 30),
+    isPinned: isPinned,
+    sortPriority: sortPriority,
+    event: event ?? createTestFeedEventContent(),
+  );
+}
+
+FeedElectionContent createTestFeedElectionContent({
+  String id = 'fel-1',
+  String electionId = 'el-1',
+  String electionName = 'פריימריז הליכוד 2026',
+  String? electionNameEn,
+  double? turnoutPercentage = 67.5,
+  int? eligibleVoters = 125000,
+  int? actualVoters = 84375,
+  bool isLive = true,
+  List<FeedCandidateResult>? topCandidates,
+  DateTime? lastUpdated,
+}) {
+  return FeedElectionContent(
+    id: id,
+    electionId: electionId,
+    electionName: electionName,
+    electionNameEn: electionNameEn,
+    turnoutPercentage: turnoutPercentage,
+    eligibleVoters: eligibleVoters,
+    actualVoters: actualVoters,
+    isLive: isLive,
+    topCandidates: topCandidates ??
+        [
+          const FeedCandidateResult(id: 'c1', name: 'דוד כהן', votesCount: 15000, percentage: 35.5),
+          const FeedCandidateResult(id: 'c2', name: 'שרה לוי', votesCount: 12000, percentage: 28.4),
+          const FeedCandidateResult(id: 'c3', name: 'משה אברהם', votesCount: 8000, percentage: 18.9),
+        ],
+    lastUpdated: lastUpdated ?? DateTime(2024, 1, 15, 14, 30),
+  );
+}
+
+ElectionUpdateFeedItem createTestElectionFeedItem({
+  String id = 'fi-election-1',
+  DateTime? publishedAt,
+  bool isPinned = false,
+  int sortPriority = 0,
+  FeedElectionContent? electionUpdate,
+}) {
+  return ElectionUpdateFeedItem(
+    id: id,
+    publishedAt: publishedAt ?? DateTime(2024, 1, 15, 10, 30),
+    isPinned: isPinned,
+    sortPriority: sortPriority,
+    electionUpdate: electionUpdate ?? createTestFeedElectionContent(),
+  );
+}
+
+FeedQuizContent createTestFeedQuizContent({
+  String id = 'fq-1',
+  String title = 'Test Quiz',
+  String? titleEn,
+  String? description = 'Find your best match',
+  String? imageUrl,
+  int questionsCount = 10,
+  double? completionRate = 45.0,
+  bool userHasCompleted = false,
+  double? userMatchPercentage,
+}) {
+  return FeedQuizContent(
+    id: id,
+    title: title,
+    titleEn: titleEn,
+    description: description,
+    imageUrl: imageUrl,
+    questionsCount: questionsCount,
+    completionRate: completionRate,
+    userHasCompleted: userHasCompleted,
+    userMatchPercentage: userMatchPercentage,
+  );
+}
+
+QuizPromptFeedItem createTestQuizFeedItem({
+  String id = 'fi-quiz-1',
+  DateTime? publishedAt,
+  bool isPinned = false,
+  int sortPriority = 0,
+  FeedQuizContent? quizPrompt,
+}) {
+  return QuizPromptFeedItem(
+    id: id,
+    publishedAt: publishedAt ?? DateTime(2024, 1, 15, 10, 30),
+    isPinned: isPinned,
+    sortPriority: sortPriority,
+    quizPrompt: quizPrompt ?? createTestFeedQuizContent(),
   );
 }

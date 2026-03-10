@@ -83,6 +83,18 @@ class HomeRepositoryImpl implements HomeRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, List<Article>>> getTrendingArticles({int limit = 5}) async {
+    try {
+      final models = await _remoteDataSource.getTrendingArticles(limit: limit);
+      return Right(models.map((m) => m.toEntity()).toList());
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
   /// Maps Dio exceptions to domain [Failure] types.
   Failure _mapDioException(DioException e) {
     switch (e.type) {

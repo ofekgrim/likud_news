@@ -56,7 +56,6 @@ void main() {
     registerFallbackValue(const GetCommentsParams(articleId: ''));
     registerFallbackValue(const SubmitCommentParams(
       articleId: '',
-      authorName: '',
       body: '',
     ));
     registerFallbackValue(const LikeCommentParams(
@@ -336,7 +335,6 @@ void main() {
           await Future<void>.delayed(const Duration(milliseconds: 50));
           bloc.add(const SubmitCommentEvent(
             articleId: tArticleId,
-            authorName: 'Test Author',
             body: 'Great article!',
           ));
         },
@@ -385,7 +383,6 @@ void main() {
           await Future<void>.delayed(const Duration(milliseconds: 50));
           bloc.add(const SubmitCommentEvent(
             articleId: tArticleId,
-            authorName: 'Test Author',
             body: 'This will fail',
           ));
         },
@@ -425,7 +422,6 @@ void main() {
         },
         act: (bloc) => bloc.add(const SubmitCommentEvent(
           articleId: tArticleId,
-          authorName: 'Test Author',
           body: 'No previous loaded state',
         )),
         wait: const Duration(milliseconds: 100),
@@ -450,7 +446,6 @@ void main() {
           await Future<void>.delayed(const Duration(milliseconds: 50));
           bloc.add(const SubmitCommentEvent(
             articleId: tArticleId,
-            authorName: 'Reply Author',
             body: 'This is a reply',
             parentId: 'parent-comment-1',
           ));
@@ -461,7 +456,6 @@ void main() {
               .captured
               .first as SubmitCommentParams;
           expect(captured.parentId, 'parent-comment-1');
-          expect(captured.authorName, 'Reply Author');
           expect(captured.body, 'This is a reply');
           expect(captured.articleId, tArticleId);
         },
@@ -476,7 +470,6 @@ void main() {
         },
         act: (bloc) => bloc.add(const SubmitCommentEvent(
           articleId: tArticleId,
-          authorName: 'Test Author',
           body: 'Will fail with null message',
         )),
         wait: const Duration(milliseconds: 100),

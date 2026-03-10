@@ -21,11 +21,13 @@ class SearchRepositoryImpl implements SearchRepository {
   Future<Either<Failure, SearchResult>> search({
     required String query,
     required int page,
+    String? categoryId,
   }) async {
     try {
       final model = await _remoteDataSource.search(
         query: query,
         page: page,
+        categoryId: categoryId,
       );
       return Right(model.toEntity());
     } on DioException catch (e) {

@@ -39,6 +39,15 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.of(context).disableAnimations) {
+      _controller.stop();
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();

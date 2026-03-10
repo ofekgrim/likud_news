@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/cached_image.dart';
 import '../../../home/domain/entities/story.dart';
 import '../../../home/presentation/widgets/story_circles.dart';
@@ -52,13 +53,13 @@ class _StoriesPageState extends State<StoriesPage> {
         leading: IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => AppRouter.scaffoldKey.currentState?.openDrawer(),
-          color: AppColors.textPrimary,
+          color: context.colors.textPrimary,
         ),
         title: Text(
           'stories'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -127,7 +128,7 @@ class _StoriesPageState extends State<StoriesPage> {
             height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.surfaceMedium,
+              color: context.colors.surfaceMedium,
             ),
           ),
           const SizedBox(height: 6),
@@ -135,7 +136,7 @@ class _StoriesPageState extends State<StoriesPage> {
             width: 48,
             height: 10,
             decoration: BoxDecoration(
-              color: AppColors.surfaceMedium,
+              color: context.colors.surfaceMedium,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -150,7 +151,7 @@ class _StoriesPageState extends State<StoriesPage> {
       child: Container(
         height: 200,
         decoration: BoxDecoration(
-          color: AppColors.surfaceMedium,
+          color: context.colors.surfaceMedium,
           borderRadius: BorderRadius.circular(16),
         ),
       ),
@@ -165,19 +166,19 @@ class _StoriesPageState extends State<StoriesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline,
               size: 64,
-              color: AppColors.textTertiary,
+              color: context.colors.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 16,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
@@ -208,18 +209,18 @@ class _StoriesPageState extends State<StoriesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.auto_awesome_outlined,
               size: 64,
-              color: AppColors.textTertiary,
+              color: context.colors.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
               'no_stories'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Heebo',
                 fontSize: 16,
-                color: AppColors.textSecondary,
+                color: context.colors.textSecondary,
               ),
             ),
           ],

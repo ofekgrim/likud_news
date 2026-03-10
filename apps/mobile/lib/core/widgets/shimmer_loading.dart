@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../app/theme/app_colors.dart';
+import '../../app/theme/theme_context.dart';
 
 /// Shimmer placeholder widget for loading states.
 class ShimmerLoading extends StatelessWidget {
@@ -18,13 +18,13 @@ class ShimmerLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: AppColors.surfaceMedium,
-      highlightColor: AppColors.white,
+      baseColor: context.colors.surfaceVariant,
+      highlightColor: context.colors.surface,
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.surfaceMedium,
+          color: context.colors.surfaceVariant,
           borderRadius: BorderRadius.circular(borderRadius),
         ),
       ),
@@ -41,8 +41,8 @@ class ShimmerArticleCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Shimmer.fromColors(
-        baseColor: AppColors.surfaceMedium,
-        highlightColor: AppColors.white,
+        baseColor: context.colors.surfaceVariant,
+        highlightColor: context.colors.surface,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -50,7 +50,7 @@ class ShimmerArticleCard extends StatelessWidget {
               width: 120,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.surfaceMedium,
+                color: context.colors.surfaceVariant,
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
@@ -62,7 +62,7 @@ class ShimmerArticleCard extends StatelessWidget {
                   Container(
                     height: 14,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceMedium,
+                      color: context.colors.surfaceVariant,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -71,7 +71,7 @@ class ShimmerArticleCard extends StatelessWidget {
                     height: 14,
                     width: 180,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceMedium,
+                      color: context.colors.surfaceVariant,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -80,7 +80,7 @@ class ShimmerArticleCard extends StatelessWidget {
                     height: 10,
                     width: 100,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceMedium,
+                      color: context.colors.surfaceVariant,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),

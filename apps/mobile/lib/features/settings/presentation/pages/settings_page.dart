@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../bloc/settings_bloc.dart';
 
@@ -19,9 +20,9 @@ class SettingsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'settings'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: context.colors.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -47,13 +48,13 @@ class SettingsPage extends StatelessWidget {
             children: [
               _buildSectionHeader(context, 'language'.tr()),
               _buildLanguageTile(context, state),
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: context.colors.border),
               _buildSectionHeader(context, 'theme'.tr()),
               _buildThemeSelector(context, state),
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: context.colors.border),
               _buildSectionHeader(context, 'font_size'.tr()),
               _buildFontSizeSelector(context, state),
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: context.colors.border),
               _buildClearCacheTile(context),
               const SizedBox(height: 32),
               _buildVersionInfo(context),
@@ -108,13 +109,13 @@ class SettingsPage extends StatelessWidget {
             if (states.contains(WidgetState.selected)) {
               return AppColors.likudBlue;
             }
-            return AppColors.surfaceLight;
+            return context.colors.surfaceVariant;
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return AppColors.white;
             }
-            return AppColors.textPrimary;
+            return context.colors.textPrimary;
           }),
         ),
       ),
@@ -154,13 +155,13 @@ class SettingsPage extends StatelessWidget {
             if (states.contains(WidgetState.selected)) {
               return AppColors.likudBlue;
             }
-            return AppColors.surfaceLight;
+            return context.colors.surfaceVariant;
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return AppColors.white;
             }
-            return AppColors.textPrimary;
+            return context.colors.textPrimary;
           }),
         ),
       ),
@@ -191,13 +192,13 @@ class SettingsPage extends StatelessWidget {
             if (states.contains(WidgetState.selected)) {
               return AppColors.likudBlue;
             }
-            return AppColors.surfaceLight;
+            return context.colors.surfaceVariant;
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return AppColors.white;
             }
-            return AppColors.textPrimary;
+            return context.colors.textPrimary;
           }),
         ),
       ),
@@ -208,14 +209,14 @@ class SettingsPage extends StatelessWidget {
   Widget _buildClearCacheTile(BuildContext context) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: const Icon(
+      leading: Icon(
         Icons.cleaning_services_outlined,
-        color: AppColors.textSecondary,
+        color: context.colors.textSecondary,
       ),
       title: Text('clear_cache'.tr()),
       subtitle: Text(
         'clear_cache_subtitle'.tr(),
-        style: TextStyle(color: AppColors.textSecondary),
+        style: TextStyle(color: context.colors.textSecondary),
       ),
       trailing: FilledButton(
         onPressed: () => _showClearCacheDialog(context),
@@ -264,7 +265,7 @@ class SettingsPage extends StatelessWidget {
           Text(
             'app_name'.tr(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.colors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
           ),
@@ -272,7 +273,7 @@ class SettingsPage extends StatelessWidget {
           Text(
             'version'.tr(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textTertiary,
+                  color: context.colors.textTertiary,
                 ),
           ),
         ],

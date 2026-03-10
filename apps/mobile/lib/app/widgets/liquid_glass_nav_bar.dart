@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/widgets/liquid_glass_container.dart';
 import '../theme/app_colors.dart';
+import '../theme/theme_context.dart';
 
 class LiquidGlassNavItem {
   final IconData icon;
@@ -28,18 +29,20 @@ class LiquidGlassNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+
     return LiquidGlassContainer(
       borderRadius: 30,
-      blurSigma: 20,
-      backgroundColor: Colors.white,
+      blurSigma: 1,
+      backgroundColor: context.colors.glassBg,
       backgroundOpacity: 0.85,
       border: Border.all(
-        color: Colors.white.withValues(alpha: 0.3),
+        color: context.colors.glassBorder,
         width: 0.5,
       ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.08),
+          color: context.colors.shadow,
           blurRadius: 20,
           offset: const Offset(0, 4),
         ),
@@ -51,11 +54,15 @@ class LiquidGlassNavBar extends StatelessWidget {
           final item = items[index];
           final isSelected = index == selectedIndex;
           return Expanded(
-            child: GestureDetector(
-              onTap: () => onTap(index),
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+            child: Semantics(
+              selected: isSelected,
+              label: item.label,
+              button: true,
+              child: InkWell(
+                onTap: () => onTap(index),
+                borderRadius: BorderRadius.circular(20),
+                child: AnimatedContainer(
+                duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 decoration: BoxDecoration(
                   color: isSelected
@@ -68,13 +75,13 @@ class LiquidGlassNavBar extends StatelessWidget {
                   children: [
                     AnimatedScale(
                       scale: isSelected ? 1.15 : 1.0,
-                      duration: const Duration(milliseconds: 200),
+                      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 200),
                       child: Icon(
                         isSelected ? item.selectedIcon : item.icon,
                         size: 24,
                         color: isSelected
                             ? AppColors.likudBlue
-                            : AppColors.textSecondary,
+                            : context.colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -90,12 +97,13 @@ class LiquidGlassNavBar extends StatelessWidget {
                             : FontWeight.w400,
                         color: isSelected
                             ? AppColors.likudBlue
-                            : AppColors.textSecondary,
+                            : context.colors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
+            ),
             ),
           );
         }),

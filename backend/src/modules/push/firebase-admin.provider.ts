@@ -29,7 +29,8 @@ export const FirebaseAdminProvider = {
       credential: admin.credential.cert({ projectId, privateKey, clientEmail }),
     });
 
-    logger.log('Firebase Admin SDK initialized');
+    // SDK uses HTTP v1 API by default (legacy API was deprecated July 2024)
+    logger.log('Firebase Admin SDK initialized (v1 API)');
     return app;
   },
 };

@@ -72,5 +72,32 @@
 	<string>This identifier will be used to deliver personalized ads to you.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to select a profile picture.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to take a profile picture.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app may require microphone access for audio and video features.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to show nearby events and relevant content.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app uses your location to show nearby events and relevant content.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>metzudathalikud</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.metzudathalikud.app</string>
+		</dict>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
 </dict>
 </plist>

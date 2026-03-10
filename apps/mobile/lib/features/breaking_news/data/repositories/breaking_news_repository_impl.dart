@@ -48,6 +48,21 @@ class BreakingNewsRepositoryImpl implements BreakingNewsRepository {
   }
 
   @override
+  Future<Either<Failure, Map<String, dynamic>>> searchArticles(String query, {int page = 1, int limit = 20}) async {
+    try {
+      final result = await _remoteDatasource.searchArticles(query, page: page, limit: limit);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(
+        message: e.message,
+        statusCode: e.statusCode,
+      ));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Stream<Article> watchBreakingNews() {
     return _remoteDatasource.watchBreakingNews();
   }

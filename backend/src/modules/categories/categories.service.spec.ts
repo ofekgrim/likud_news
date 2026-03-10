@@ -4,6 +4,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CategoriesService } from './categories.service';
 import { Category } from './entities/category.entity';
+import { Article } from '../articles/entities/article.entity';
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -11,6 +12,7 @@ const mockRepository = () => ({
   findOne: jest.fn(),
   find: jest.fn(),
   remove: jest.fn(),
+  findAndCount: jest.fn(),
   createQueryBuilder: jest.fn(),
 });
 
@@ -23,6 +25,7 @@ describe('CategoriesService', () => {
       providers: [
         CategoriesService,
         { provide: getRepositoryToken(Category), useFactory: mockRepository },
+        { provide: getRepositoryToken(Article), useFactory: mockRepository },
       ],
     }).compile();
 

@@ -18,9 +18,9 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
   const ArticleDetailRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<Failure, ArticleDetail>> getArticleBySlug(String slug) async {
+  Future<Either<Failure, ArticleDetail>> getArticleBySlug(String slug, {String? deviceId}) async {
     try {
-      final model = await _remoteDataSource.getArticleBySlug(slug);
+      final model = await _remoteDataSource.getArticleBySlug(slug, deviceId: deviceId);
       return Right(model.toEntity());
     } on Exception catch (e) {
       return Left(ServerFailure(message: e.toString()));
@@ -82,7 +82,6 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
   @override
   Future<Either<Failure, void>> submitComment({
     required String articleId,
-    required String authorName,
     required String body,
     String? parentId,
     String targetType = 'article',
@@ -90,7 +89,6 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
     try {
       await _remoteDataSource.submitComment(
         articleId: articleId,
-        authorName: authorName,
         body: body,
         parentId: parentId,
         targetType: targetType,

@@ -55,7 +55,7 @@ services:
       DATABASE_NAME: ${DATABASE_NAME}
       DATABASE_USER: ${DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-      DATABASE_SSL: ${DATABASE_SSL:-false}
+      DATABASE_SSL: ${DATABASE_SSL:-true}
       DATABASE_SYNCHRONIZE: "false"
       DATABASE_LOGGING: "false"
       REDIS_HOST: redis
@@ -98,6 +98,12 @@ services:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:6000/api/v1}
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   nginx:
     build:
@@ -109,10 +115,13 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
-      - backend
-      - admin
+      backend:
+        condition: service_healthy
+      admin:
+        condition: service_healthy
     volumes:
       - ./nginx/ssl:/etc/nginx/ssl:ro
+      - certbot-webroot:/var/www/certbot:ro
     networks:
       - app-network
 
@@ -120,6 +129,8 @@ volumes:
   pgdata:
     driver: local
   redis-data:
+    driver: local
+  certbot-webroot:
     driver: local
 
 networks:

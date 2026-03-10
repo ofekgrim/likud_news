@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import '../../app/theme/theme_context.dart';
 
 /// A reusable widget that provides the Liquid Glass effect.
 ///
@@ -18,8 +19,8 @@ class LiquidGlassContainer extends StatelessWidget {
   final double blurSigma;
 
   /// The background color of the container.
-  /// Default is white.
-  final Color backgroundColor;
+  /// Default is null — resolved to `context.colors.surface` in build.
+  final Color? backgroundColor;
 
   /// The opacity of the background color.
   /// Default is 0.25 for a subtle glass effect.
@@ -48,7 +49,7 @@ class LiquidGlassContainer extends StatelessWidget {
     required this.child,
     this.borderRadius = 20,
     this.blurSigma = 15,
-    this.backgroundColor = Colors.white,
+    this.backgroundColor,
     this.backgroundOpacity = 0.25,
     this.border,
     this.padding,
@@ -114,6 +115,7 @@ class LiquidGlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedBg = backgroundColor ?? context.colors.surface;
     return Container(
       margin: margin,
       height: height,
@@ -129,7 +131,7 @@ class LiquidGlassContainer extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: backgroundColor.withValues(alpha: backgroundOpacity),
+              color: resolvedBg.withValues(alpha: backgroundOpacity),
               borderRadius: BorderRadius.circular(borderRadius),
               border: border,
             ),

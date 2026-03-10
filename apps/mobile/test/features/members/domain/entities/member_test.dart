@@ -57,6 +57,13 @@ void main() {
           'netanyahu',
           true,
           1,
+          null, // slug
+          null, // office
+          null, // phone
+          null, // email
+          null, // website
+          null, // coverImageUrl
+          null, // personalPageHtml
         ]);
       });
     });

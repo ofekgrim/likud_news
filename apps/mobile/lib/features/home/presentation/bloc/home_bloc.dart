@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
+import '../../../../core/network/sse_client.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/article.dart';
 import '../../domain/entities/category.dart';
@@ -12,6 +15,8 @@ import '../../domain/usecases/get_feed_articles.dart';
 import '../../domain/usecases/get_hero_article.dart';
 import '../../domain/usecases/get_stories.dart';
 import '../../domain/usecases/get_ticker_items.dart';
+import '../../domain/usecases/get_trending_articles.dart';
+import '../../../breaking_news/domain/usecases/get_breaking_articles.dart';
 
 // ---------------------------------------------------------------------------
 // Events
@@ -40,6 +45,16 @@ class RefreshFeed extends HomeEvent {
   const RefreshFeed();
 }
 
+/// Subscribes to the article SSE stream for new-content notifications.
+class SubscribeToArticleSse extends HomeEvent {
+  const SubscribeToArticleSse();
+}
+
+/// Internal event fired when a new article SSE message arrives.
+class _SseNewArticle extends HomeEvent {
+  const _SseNewArticle();
+}
+
 // ---------------------------------------------------------------------------
 // States
 // ---------------------------------------------------------------------------
@@ -66,40 +81,52 @@ class HomeLoading extends HomeState {
 class HomeLoaded extends HomeState {
   final Article? heroArticle;
   final List<Article> articles;
+  final List<Article> trendingArticles;
+  final List<Article> breakingArticles;
   final List<TickerItem> tickerItems;
   final List<Category> categories;
   final List<Story> stories;
   final bool hasMore;
   final int currentPage;
+  final bool hasNewContent;
 
   const HomeLoaded({
     this.heroArticle,
     this.articles = const [],
+    this.trendingArticles = const [],
+    this.breakingArticles = const [],
     this.tickerItems = const [],
     this.categories = const [],
     this.stories = const [],
     this.hasMore = true,
     this.currentPage = 1,
+    this.hasNewContent = false,
   });
 
   /// Creates a copy with optional overrides.
   HomeLoaded copyWith({
     Article? heroArticle,
     List<Article>? articles,
+    List<Article>? trendingArticles,
+    List<Article>? breakingArticles,
     List<TickerItem>? tickerItems,
     List<Category>? categories,
     List<Story>? stories,
     bool? hasMore,
     int? currentPage,
+    bool? hasNewContent,
   }) {
     return HomeLoaded(
       heroArticle: heroArticle ?? this.heroArticle,
       articles: articles ?? this.articles,
+      trendingArticles: trendingArticles ?? this.trendingArticles,
+      breakingArticles: breakingArticles ?? this.breakingArticles,
       tickerItems: tickerItems ?? this.tickerItems,
       categories: categories ?? this.categories,
       stories: stories ?? this.stories,
       hasMore: hasMore ?? this.hasMore,
       currentPage: currentPage ?? this.currentPage,
+      hasNewContent: hasNewContent ?? this.hasNewContent,
     );
   }
 
@@ -107,11 +134,14 @@ class HomeLoaded extends HomeState {
   List<Object?> get props => [
     heroArticle,
     articles,
+    trendingArticles,
+    breakingArticles,
     tickerItems,
     categories,
     stories,
     hasMore,
     currentPage,
+    hasNewContent,
   ];
 }
 
@@ -140,6 +170,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetTickerItems _getTickerItems;
   final GetCategories _getCategories;
   final GetStories _getStories;
+  final GetTrendingArticles _getTrendingArticles;
+  final GetBreakingArticles _getBreakingArticles;
+  final SseClient _sseClient;
+
+  StreamSubscription<SseEvent>? _articlesSseSubscription;
 
   /// Number of articles per page. When a page returns fewer items,
   /// [HomeLoaded.hasMore] is set to false.
@@ -151,10 +186,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     this._getTickerItems,
     this._getCategories,
     this._getStories,
+    this._getTrendingArticles,
+    this._getBreakingArticles,
+    this._sseClient,
   ) : super(const HomeInitial()) {
     on<LoadHome>(_onLoadHome);
     on<LoadMoreArticles>(_onLoadMoreArticles);
     on<RefreshFeed>(_onRefreshFeed);
+    on<SubscribeToArticleSse>(_onSubscribeToArticleSse);
+    on<_SseNewArticle>(_onSseNewArticle);
   }
 
   /// Loads all home data in parallel.
@@ -168,6 +208,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       _getTickerItems(const NoParams()),
       _getCategories(const NoParams()),
       _getStories(const NoParams()),
+      _getTrendingArticles(const NoParams()),
+      _getBreakingArticles(const NoParams()),
     ]);
 
     final heroResult = results[0];
@@ -175,6 +217,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final tickerResult = results[2];
     final categoriesResult = results[3];
     final storiesResult = results[4];
+    final trendingResult = results[5];
+    final breakingResult = results[6];
 
     // If the feed fails, surface the error. Other sections degrade gracefully.
     final feedEither = feedResult;
@@ -201,11 +245,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       (_) => <Story>[],
       (list) => list as List<Story>,
     );
+    final trendingArticles = trendingResult.fold(
+      (_) => <Article>[],
+      (list) => list as List<Article>,
+    );
+    final breakingArticles = breakingResult.fold(
+      (_) => <Article>[],
+      (list) => list as List<Article>,
+    );
 
     emit(
       HomeLoaded(
         heroArticle: heroArticle,
         articles: articles,
+        trendingArticles: trendingArticles,
+        breakingArticles: breakingArticles,
         tickerItems: tickerItems,
         categories: categories,
         stories: stories,
@@ -255,6 +309,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       _getTickerItems(const NoParams()),
       _getCategories(const NoParams()),
       _getStories(const NoParams()),
+      _getTrendingArticles(const NoParams()),
+      _getBreakingArticles(const NoParams()),
     ]);
 
     final heroResult = results[0];
@@ -262,6 +318,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final tickerResult = results[2];
     final categoriesResult = results[3];
     final storiesResult = results[4];
+    final trendingResult = results[5];
+    final breakingResult = results[6];
 
     final feedEither = feedResult;
     if (feedEither.isLeft()) {
@@ -289,11 +347,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       (_) => <Story>[],
       (list) => list as List<Story>,
     );
+    final trendingArticles = trendingResult.fold(
+      (_) => <Article>[],
+      (list) => list as List<Article>,
+    );
+    final breakingArticles = breakingResult.fold(
+      (_) => <Article>[],
+      (list) => list as List<Article>,
+    );
 
     emit(
       HomeLoaded(
         heroArticle: heroArticle,
         articles: articles,
+        trendingArticles: trendingArticles,
+        breakingArticles: breakingArticles,
         tickerItems: tickerItems,
         categories: categories,
         stories: stories,
@@ -301,5 +369,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         currentPage: 1,
       ),
     );
+  }
+
+  /// Subscribes to the articles SSE stream. Each incoming event triggers
+  /// [_SseNewArticle] so the BLoC can update state from the callback.
+  void _onSubscribeToArticleSse(
+    SubscribeToArticleSse event,
+    Emitter<HomeState> emit,
+  ) {
+    _articlesSseSubscription?.cancel();
+    _articlesSseSubscription = _sseClient.articlesStream().listen((_) {
+      add(const _SseNewArticle());
+    });
+  }
+
+  /// Sets [HomeLoaded.hasNewContent] to true so the UI can show a banner.
+  void _onSseNewArticle(
+    _SseNewArticle event,
+    Emitter<HomeState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is HomeLoaded) {
+      emit(currentState.copyWith(hasNewContent: true));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _articlesSseSubscription?.cancel();
+    return super.close();
   }
 }
