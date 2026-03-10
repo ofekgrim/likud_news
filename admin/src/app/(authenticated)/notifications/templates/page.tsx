@@ -160,7 +160,7 @@ export default function NotificationTemplatesPage() {
 
   function updateVariable(index: number, field: keyof TemplateVariable, value: unknown) {
     const updated = [...form.variables];
-    (updated[index] as Record<string, unknown>)[field] = value;
+    (updated[index] as unknown as Record<string, unknown>)[field] = value;
     setForm({ ...form, variables: updated });
   }
 

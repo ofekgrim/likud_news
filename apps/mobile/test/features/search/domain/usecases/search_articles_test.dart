@@ -99,7 +99,7 @@ void main() {
       const params = SearchParams(query: 'likud', page: 3);
 
       // assert
-      expect(params.props, ['likud', 3]);
+      expect(params.props, ['likud', 3, null]);
     });
   });
 }

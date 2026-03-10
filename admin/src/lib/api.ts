@@ -22,7 +22,7 @@ async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> 
     throw new Error(error.message || 'API Error');
   }
   const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  return text ? JSON.parse(text) : (null as T);
 }
 
 export const api = {

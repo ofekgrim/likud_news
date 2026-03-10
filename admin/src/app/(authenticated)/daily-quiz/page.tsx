@@ -156,7 +156,7 @@ export default function DailyQuizPage() {
           options[i] = { ...o, isCorrect: i === oIndex };
         });
       } else {
-        options[oIndex] = { ...options[oIndex], [field]: value };
+        options[oIndex] = { ...options[oIndex], label: value as string };
       }
 
       questions[qIndex] = { ...questions[qIndex], options };

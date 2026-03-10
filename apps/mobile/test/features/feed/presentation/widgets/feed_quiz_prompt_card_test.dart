@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:metzudat_halikud/features/auth/domain/entities/app_user.dart';
+import 'package:metzudat_halikud/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:metzudat_halikud/features/feed/presentation/widgets/feed_quiz_prompt_card.dart';
 
+import '../../../../helpers/mock_blocs.dart';
 import '../../../../helpers/test_fixtures.dart';
 import '../../../../helpers/widget_test_helpers.dart';
 
 void main() {
+  late MockAuthBloc mockAuthBloc;
+
+  setUp(() {
+    mockAuthBloc = MockAuthBloc();
+    when(() => mockAuthBloc.state).thenReturn(AuthAuthenticated(
+      user: AppUser(id: 'test-user', phone: '+1234567890'),
+    ));
+  });
+
   group('FeedQuizPromptCard', () {
     testWidgets('renders header badge with quiz icon and candidate_quiz text',
         (tester) async {
@@ -205,6 +219,9 @@ void main() {
           quizPrompt: quizContent,
           onTap: () => tapped = true,
         ),
+        providers: [
+          BlocProvider<AuthBloc>.value(value: mockAuthBloc),
+        ],
       );
 
       // Tap the CTA button (ElevatedButton)

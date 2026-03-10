@@ -61,7 +61,7 @@ export default function EndorsementsPage() {
   function handleDelete(endorsement: CandidateEndorsement) {
     const userName =
       endorsement.user?.displayName || endorsement.user?.phone || 'משתמש';
-    const candidateName = endorsement.candidate?.name || 'מועמד';
+    const candidateName = endorsement.candidate?.fullName || 'מועמד';
     setConfirmDialog({
       open: true,
       title: 'מחיקת תמיכה',

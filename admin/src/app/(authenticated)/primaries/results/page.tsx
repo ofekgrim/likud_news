@@ -346,7 +346,7 @@ export default function ElectionResultsPage() {
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
         onCancel={() => setDeleteTarget(null)}
         title="מחיקת תוצאות"
-        description={`האם למחוק את תוצאות הקולות של "${deleteTarget?.candidate?.name || 'מועמד'}"?`}
+        description={`האם למחוק את תוצאות הקולות של "${deleteTarget?.candidate?.fullName || 'מועמד'}"?`}
         confirmLabel="מחק"
         variant="destructive"
         loading={deleteMutation.isPending}

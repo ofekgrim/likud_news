@@ -79,7 +79,7 @@ void main() {
       const params = GetArticleDetailParams(slug: 'test-article');
 
       // assert
-      expect(params.props, ['test-article']);
+      expect(params.props, ['test-article', null]);
     });
   });
 }

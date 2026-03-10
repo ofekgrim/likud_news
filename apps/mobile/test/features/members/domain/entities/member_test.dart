@@ -64,6 +64,7 @@ void main() {
           null, // website
           null, // coverImageUrl
           null, // personalPageHtml
+          const [], // bioBlocks
         ]);
       });
     });

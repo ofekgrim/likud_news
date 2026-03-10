@@ -26,7 +26,7 @@ interface CampaignEvent {
   latitude?: number;
   longitude?: number;
   candidateId?: string;
-  candidate?: { id: string; name: string };
+  candidate?: { id: string; fullName: string };
   rsvpCount: number;
   isActive: boolean;
   createdAt: string;

@@ -78,6 +78,10 @@ void main() {
           true,
           true,
           42,
+          0, // shareCount
+          0, // commentCount
+          0, // readingTimeMinutes
+          null, // authorEntityName
           'title-slug',
           publishedAt,
           '5',

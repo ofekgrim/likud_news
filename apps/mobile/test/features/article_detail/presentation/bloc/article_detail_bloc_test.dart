@@ -84,6 +84,14 @@ void main() {
     mockRepository = MockArticleDetailRepository();
     mockAnalyticsService = MockAnalyticsService();
     when(() => mockDeviceIdService.deviceId).thenReturn('test-device-id');
+    when(() => mockAnalyticsService.trackEvent(
+          articleId: any(named: 'articleId'),
+          eventType: any(named: 'eventType'),
+          readTimeSeconds: any(named: 'readTimeSeconds'),
+          platform: any(named: 'platform'),
+          referrer: any(named: 'referrer'),
+          scrollDepthPercent: any(named: 'scrollDepthPercent'),
+        )).thenAnswer((_) async {});
 
     bloc = ArticleDetailBloc(
       mockGetArticleDetail,

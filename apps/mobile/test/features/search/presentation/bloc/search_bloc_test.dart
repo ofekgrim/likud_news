@@ -6,6 +6,7 @@ import 'package:metzudat_halikud/core/errors/failures.dart';
 import 'package:metzudat_halikud/features/home/domain/entities/article.dart';
 import 'package:metzudat_halikud/features/search/domain/entities/search_result.dart';
 import 'package:metzudat_halikud/features/search/domain/usecases/search_articles.dart';
+import 'package:metzudat_halikud/core/usecases/usecase.dart';
 import 'package:metzudat_halikud/features/search/presentation/bloc/search_bloc.dart';
 
 import '../../../home/presentation/bloc/home_bloc_test.dart';
@@ -54,11 +55,14 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(const SearchParams(query: ''));
+    registerFallbackValue(const NoParams());
   });
 
   setUp(() {
     mockSearchArticles = MockSearchArticles();
     mockGetCategories = MockGetCategories();
+    when(() => mockGetCategories(any()))
+        .thenAnswer((_) async => const Right([]));
     bloc = SearchBloc(mockSearchArticles, mockGetCategories);
   });
 
@@ -105,19 +109,25 @@ void main() {
       );
 
       blocTest<SearchBloc, SearchState>(
-        'emits [SearchInitial] when query is empty',
+        'stays in SearchInitial when query is empty',
         build: () => bloc,
         act: (bloc) => bloc.add(const SearchQueryChanged('')),
         wait: const Duration(milliseconds: 400),
-        expect: () => [isA<SearchInitial>()],
+        expect: () => <SearchState>[],
+        verify: (bloc) {
+          expect(bloc.state, isA<SearchInitial>());
+        },
       );
 
       blocTest<SearchBloc, SearchState>(
-        'emits [SearchInitial] when query is only whitespace',
+        'stays in SearchInitial when query is only whitespace',
         build: () => bloc,
         act: (bloc) => bloc.add(const SearchQueryChanged('   ')),
         wait: const Duration(milliseconds: 400),
-        expect: () => [isA<SearchInitial>()],
+        expect: () => <SearchState>[],
+        verify: (bloc) {
+          expect(bloc.state, isA<SearchInitial>());
+        },
       );
 
       blocTest<SearchBloc, SearchState>(
