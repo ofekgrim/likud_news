@@ -68,6 +68,16 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Create placeholder google-services.json
+        run: |
+          cat > android/app/google-services.json << 'GSEOF'
+          {
+            "project_info": { "project_number": "000000000000", "project_id": "placeholder", "storage_bucket": "placeholder.appspot.com" },
+            "client": [{ "client_info": { "mobilesdk_app_id": "1:000000000000:android:0000000000000000", "android_client_info": { "package_name": "com.likud.news.metzudat_halikud" } }, "api_key": [{ "current_key": "placeholder" }] }],
+            "configuration_version": "1"
+          }
+          GSEOF
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -99,6 +109,29 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      - name: Create placeholder GoogleService-Info.plist
+        run: |
+          cat > ios/Runner/GoogleService-Info.plist << 'PEOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>API_KEY</key><string>placeholder</string>
+            <key>GCM_SENDER_ID</key><string>000000000000</string>
+            <key>PLIST_VERSION</key><string>1</string>
+            <key>BUNDLE_ID</key><string>com.likud.news.metzudatHalikud</string>
+            <key>PROJECT_ID</key><string>placeholder</string>
+            <key>STORAGE_BUCKET</key><string>placeholder.appspot.com</string>
+            <key>IS_ADS_ENABLED</key><false/>
+            <key>IS_ANALYTICS_ENABLED</key><false/>
+            <key>IS_APPINVITE_ENABLED</key><false/>
+            <key>IS_GCM_ENABLED</key><true/>
+            <key>IS_SIGNIN_ENABLED</key><true/>
+            <key>GOOGLE_APP_ID</key><string>1:000000000000:ios:0000000000000000</string>
+          </dict>
+          </plist>
+          PEOF
 
       - name: Install dependencies
         run: flutter pub get
