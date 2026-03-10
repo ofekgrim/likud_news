@@ -1,0 +1,154 @@
+version: "3.8"
+
+# Local full-stack deployment with ngrok tunnel — no cloud provider needed
+# Usage: cd infra && docker compose -f docker-compose.local.yml up --build
+# Set NGROK_AUTHTOKEN env var before running (get it from https://dashboard.ngrok.com)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: likud_postgres_local
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: likud_news
+      POSTGRES_USER: likud
+      POSTGRES_PASSWORD: likud_dev
+    volumes:
+      - pgdata_local:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U likud -d likud_news"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: likud_redis_local
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: likud_backend_local
+    restart: unless-stopped
+    ports:
+      - "6000:6000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: 6000
+      NODE_ENV: production
+      API_PREFIX: api/v1
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: likud_news
+      DATABASE_USER: likud
+      DATABASE_PASSWORD: likud_dev
+      DATABASE_SSL: "false"
+      DATABASE_SYNCHRONIZE: "false"
+      DATABASE_LOGGING: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      JWT_SECRET: local-dev-jwt-secret-key-12345
+      JWT_EXPIRATION: 3600
+      JWT_REFRESH_SECRET: local-dev-refresh-secret-key-12345
+      JWT_REFRESH_EXPIRATION: 604800
+      CORS_ORIGINS: "http://localhost:3001,http://localhost:80,http://localhost"
+      THROTTLE_TTL: 60
+      THROTTLE_LIMIT: 100
+      # AWS/Firebase — leave empty for local (media uploads won't work)
+      AWS_REGION: ""
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+      AWS_S3_BUCKET: ""
+      AWS_CLOUDFRONT_DOMAIN: ""
+      FIREBASE_PROJECT_ID: ""
+      FIREBASE_PRIVATE_KEY: ""
+      FIREBASE_CLIENT_EMAIL: ""
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  admin:
+    build:
+      context: ../admin
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:6000/api/v1
+    container_name: likud_admin_local
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:6000/api/v1
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001', r => { process.exit(r.statusCode < 500 ? 0 : 1) }).on('error', () => process.exit(1))\""]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: likud_nginx_local
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+      admin:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: likud_ngrok
+    restart: unless-stopped
+    ports:
+      - "4040:4040"
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    command: http nginx:80 --log stdout
+    depends_on:
+      - nginx
+    networks:
+      - app-network
+
+volumes:
+  pgdata_local:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
