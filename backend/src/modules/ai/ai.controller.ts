@@ -158,13 +158,14 @@ export class AiController {
     @Param('articleId', ParseUUIDPipe) articleId: string,
     @Query() _query: SummarizeQueryDto,
   ) {
-    const summary =
-      await this.summarizationService.summarizeArticle(articleId);
-    return {
-      data: summary,
-      meta: null,
-      error: null,
-    };
+    try {
+      const summary =
+        await this.summarizationService.summarizeArticle(articleId);
+      return { data: summary, meta: null, error: null };
+    } catch {
+      // AI not configured or unavailable — return empty (client hides the card)
+      return { data: null, meta: null, error: null };
+    }
   }
 
   @Post('embeddings/article/:articleId')
