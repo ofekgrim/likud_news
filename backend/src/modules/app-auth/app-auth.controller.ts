@@ -6,6 +6,7 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiTags,
   ApiOperation,
@@ -33,6 +34,7 @@ export class AppAuthController {
   constructor(private readonly appAuthService: AppAuthService) {}
 
   @Post('otp/request')
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request OTP code for phone login' })
   @ApiResponse({ status: 200, description: 'OTP sent successfully' })
@@ -55,6 +57,7 @@ export class AppAuthController {
   }
 
   @Post('register')
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register with email and password' })
   @ApiResponse({ status: 201, description: 'Registration successful' })
@@ -71,6 +74,7 @@ export class AppAuthController {
   }
 
   @Post('login')
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })

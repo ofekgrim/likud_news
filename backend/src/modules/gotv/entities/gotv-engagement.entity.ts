@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
   Unique,
@@ -60,4 +61,8 @@ export class GotvEngagement {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // Auto-deleted 90 days after the election check-in for privacy compliance
+  @DeleteDateColumn()
+  deletedAt: Date;
 }

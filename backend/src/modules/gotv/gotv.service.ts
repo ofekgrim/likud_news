@@ -5,8 +5,9 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, IsNull, Not } from 'typeorm';
+import { Repository, In, IsNull, Not, LessThan } from 'typeorm';
 import { GotvEngagement } from './entities/gotv-engagement.entity';
 import { PollingStation } from '../polling-stations/entities/polling-station.entity';
 import { PrimaryElection } from '../elections/entities/primary-election.entity';
@@ -636,6 +637,24 @@ export class GotvService {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c;
+  }
+
+  /**
+   * Scheduled: runs on 1st of each month.
+   * Soft-deletes GOTV engagement records where stationCheckinAt > 90 days ago.
+   * Prevents indefinite retention of user+station location data.
+   */
+  @Cron('0 0 1 * *')
+  async pruneOldCheckins(): Promise<void> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    const result = await this.gotvRepo.softDelete({
+      stationCheckinAt: LessThan(cutoff),
+    });
+    const count = result.affected || 0;
+    if (count > 0) {
+      this.logger.log(`Soft-deleted ${count} GOTV check-ins older than 90 days`);
+    }
   }
 
   /**

@@ -19,10 +19,16 @@ import {
   ApiResponse,
   ApiParam,
 } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { QueryCommentsDto } from './dto/query-comments.dto';
 import { OptionalAppAuthGuard } from '../app-auth/guards/optional-app-auth.guard';
+import { AppAuthGuard } from '../app-auth/guards/app-auth.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { UserRole } from '../users/entities/user.entity';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 /**
  * Public-facing controller for article comments.
@@ -62,7 +68,7 @@ export class ArticleCommentsController {
   }
 
   @Post(':articleId/comments/:commentId/like')
-  @UseGuards(OptionalAppAuthGuard)
+  @UseGuards(AppAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Like a comment (requires login)' })
   @ApiParam({ name: 'articleId', description: 'Article UUID' })
@@ -82,6 +88,9 @@ export class ArticleCommentsController {
  * Handles routes under /comments
  */
 @ApiTags('comments')
+@ApiBearerAuth()
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
 @Controller('comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
@@ -163,7 +172,7 @@ export class StoryCommentsController {
   }
 
   @Post(':storyId/comments/:commentId/like')
-  @UseGuards(OptionalAppAuthGuard)
+  @UseGuards(AppAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Like a comment on a story (requires login)' })
   @ApiParam({ name: 'storyId', description: 'Story UUID' })

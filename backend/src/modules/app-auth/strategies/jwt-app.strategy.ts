@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -20,11 +20,16 @@ export class JwtAppStrategy extends PassportStrategy(Strategy, 'jwt-app') {
     @InjectRepository(AppUser)
     private readonly appUserRepository: Repository<AppUser>,
   ) {
+    const secret = configService.get<string>('jwt.secret');
+    if (!secret) {
+      throw new Error(
+        'JWT_SECRET env variable is required — refusing to start with insecure fallback',
+      );
+    }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey:
-        configService.get<string>('jwt.secret') ?? 'change-this-secret',
+      secretOrKey: secret,
     });
   }
 

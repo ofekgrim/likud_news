@@ -36,7 +36,7 @@ export class AppUser {
   @Column({ type: 'varchar', length: 300, nullable: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true, select: false })
   passwordHash: string;
 
   @Column({ type: 'varchar', length: 200, nullable: true })

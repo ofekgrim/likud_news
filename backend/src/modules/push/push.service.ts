@@ -1,4 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -226,5 +227,13 @@ export class PushService {
       this.logger.log(`Pruned ${pruned} stale push tokens (inactive > ${staleDays} days)`);
     }
     return pruned;
+  }
+
+  /**
+   * Scheduled: runs daily at 03:00 to deactivate tokens inactive for 30+ days.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async scheduledTokenPrune(): Promise<void> {
+    await this.pruneStaleTokens(30);
   }
 }

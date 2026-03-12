@@ -3,11 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { PollingStation } from './polling-station.entity';
-import { AppUser } from '../../app-users/entities/app-user.entity';
 
 @Entity('station_reports')
 export class StationReport {
@@ -21,12 +21,10 @@ export class StationReport {
   @JoinColumn({ name: 'stationId' })
   station: PollingStation;
 
-  @Column({ type: 'uuid' })
-  userId: string;
-
-  @ManyToOne(() => AppUser, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
-  user: AppUser;
+  // SHA-256 hash of the userId — one-way, used only for deduplication/rate-limiting.
+  // Raw user identity is never stored alongside station location.
+  @Column({ type: 'varchar', length: 64 })
+  userIdHash: string;
 
   @Column({ type: 'int' })
   waitTimeMinutes: number;
@@ -39,4 +37,7 @@ export class StationReport {
 
   @CreateDateColumn()
   reportedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }

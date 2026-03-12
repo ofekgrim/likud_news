@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -170,6 +172,9 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
       load: [configuration],
       envFilePath: '.env',
     }),
+
+    // Rate limiting — 100 requests per minute per IP globally
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
 
     // Cache (Redis with graceful fallback to memory)
     CacheModule.registerAsync({
@@ -381,6 +386,9 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
     HealthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    // Apply ThrottlerGuard globally
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

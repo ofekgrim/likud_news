@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import {
   Injectable,
   NotFoundException,
@@ -185,8 +186,11 @@ export class PollingStationsService {
     // Verify station exists
     await this.findOne(dto.stationId);
 
+    // Hash userId — never store raw user identity alongside GPS location
+    const userIdHash = createHash('sha256').update(userId).digest('hex');
+
     // Rate-limit: 1 report per station per user per 30 min
-    const rateLimitKey = `station_report:${dto.stationId}:${userId}`;
+    const rateLimitKey = `station_report:${dto.stationId}:${userIdHash}`;
     const existing = await this.cacheManager.get(rateLimitKey);
     if (existing) {
       throw new BadRequestException(
@@ -196,7 +200,7 @@ export class PollingStationsService {
 
     const report = this.reportRepository.create({
       stationId: dto.stationId,
-      userId,
+      userIdHash,
       waitTimeMinutes: dto.waitTimeMinutes,
       crowdLevel: dto.crowdLevel || 'moderate',
       note: dto.note,

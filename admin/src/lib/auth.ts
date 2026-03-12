@@ -1,3 +1,5 @@
+import { setAuthToken, clearAuthToken, getAuthToken } from './api';
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -5,17 +7,18 @@ export interface AuthUser {
   role: string;
 }
 
+// Token lives in memory only (XSS-safe). Lost on tab close — user must re-login.
+// User display info (name, role) is non-sensitive and stays in localStorage.
 export function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
+  return getAuthToken();
 }
 
 export function setToken(token: string): void {
-  localStorage.setItem('token', token);
+  setAuthToken(token);
 }
 
 export function removeToken(): void {
-  localStorage.removeItem('token');
+  clearAuthToken();
 }
 
 export function getUser(): AuthUser | null {

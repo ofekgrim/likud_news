@@ -1,18 +1,24 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/v1';
 
+// In-memory token store — NOT localStorage (XSS-safe).
+// Token is lost on tab close; the login page re-authenticates on next visit.
+let _authToken: string | null = null;
+export const setAuthToken = (token: string) => { _authToken = token; };
+export const clearAuthToken = () => { _authToken = null; };
+export const getAuthToken = () => _authToken;
+
 async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(_authToken ? { Authorization: `Bearer ${_authToken}` } : {}),
       ...options.headers,
     },
   });
   if (res.status === 401) {
+    clearAuthToken();
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
       window.location.href = '/login';
     }
     throw new Error('Unauthorized');
