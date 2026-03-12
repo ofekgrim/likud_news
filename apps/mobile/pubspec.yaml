@@ -1,7 +1,7 @@
 name: metzudat_halikud
 description: "Metzudat HaLikud - Hebrew RTL news application for the Likud party"
 publish_to: 'none'
-version: 1.0.0+9
+version: 2.0.0+10
 
 environment:
   sdk: ^3.11.0
