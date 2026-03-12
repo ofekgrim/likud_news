@@ -54,6 +54,17 @@ abstract class GamificationRemoteDataSource {
   /// [metadata] is optional additional data for the action.
   /// Throws a [DioException] on failure.
   Future<void> trackAction(String action, {Map<String, dynamic>? metadata});
+
+  /// Uses a freeze token to protect the current streak.
+  ///
+  /// Returns the updated streak data.
+  /// Throws a [DioException] on failure.
+  Future<Map<String, dynamic>> useStreakFreeze();
+
+  /// Fetches the authenticated user's tier progression info.
+  ///
+  /// Throws a [DioException] on failure.
+  Future<Map<String, dynamic>> getTierInfo();
 }
 
 /// Implementation of [GamificationRemoteDataSource] using [ApiClient].
@@ -178,5 +189,25 @@ class GamificationRemoteDataSourceImpl implements GamificationRemoteDataSource {
         if (metadata != null) 'metadata': metadata,
       },
     );
+  }
+
+  @override
+  Future<Map<String, dynamic>> useStreakFreeze() async {
+    final response = await _apiClient.post('/gamification/streak/freeze');
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    return {};
+  }
+
+  @override
+  Future<Map<String, dynamic>> getTierInfo() async {
+    final response = await _apiClient.get('/gamification/me/tier');
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    return {};
   }
 }

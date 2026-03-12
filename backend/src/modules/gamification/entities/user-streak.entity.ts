@@ -32,6 +32,18 @@ export class UserStreak {
   @Column({ type: 'date', nullable: true })
   lastActivityDate: string | null;
 
+  @Column({ type: 'int', default: 0 })
+  freezeTokens: number;
+
+  @Column({ type: 'int', default: 0 })
+  freezeTokensUsed: number;
+
+  @Column({ type: 'date', nullable: true })
+  lastFreezeUsedDate: string | null;
+
+  @Column({ type: 'int', default: 1 })
+  tier: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

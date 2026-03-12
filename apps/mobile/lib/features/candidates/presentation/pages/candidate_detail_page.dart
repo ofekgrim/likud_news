@@ -20,6 +20,8 @@ import '../../../../core/utils/auth_guard.dart';
 import '../../../../core/services/permission_service.dart' as perm;
 import '../../../../core/widgets/auth_prompt_dialog.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../../core/sharing/share_button.dart';
+import '../../../../core/sharing/models/share_link.dart';
 
 /// Full detail page for a single candidate.
 ///
@@ -249,6 +251,19 @@ class _CandidateDetailPageState extends State<CandidateDetailPage> {
             ),
           ),
           centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 8),
+              child: WhatsAppShareButton(
+                contentType: ShareContentType.candidate,
+                contentId: candidate.id,
+                shareText: candidate.fullName,
+                title: candidate.fullName,
+                description: candidate.position,
+                imageUrl: candidate.photoUrl,
+              ),
+            ),
+          ],
           flexibleSpace: FlexibleSpaceBar(
             background: _buildCoverImage(candidate),
           ),

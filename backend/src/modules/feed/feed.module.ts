@@ -6,6 +6,7 @@ import { FeedAlgorithmService } from './feed-algorithm.service';
 import { SseModule } from '../sse/sse.module';
 import { ElectionResultsModule } from '../election-results/election-results.module';
 import { CandidatesModule } from '../candidates/candidates.module';
+import { UserFollowsModule } from '../user-follows/user-follows.module';
 
 // Import entities from other modules
 import { Article } from '../articles/entities/article.entity';
@@ -19,6 +20,8 @@ import { EventRsvp } from '../campaign-events/entities/event-rsvp.entity';
 import { QuizResponse } from '../quiz/entities/quiz-response.entity';
 import { DailyQuiz } from '../gamification/entities/daily-quiz.entity';
 import { DailyQuizAttempt } from '../gamification/entities/daily-quiz-attempt.entity';
+import { CompanyAd } from '../ads/entities/company-ad.entity';
+import { CandidateAdPlacement } from '../ads/entities/candidate-ad-placement.entity';
 
 /**
  * Feed module - provides unified mixed-content feed.
@@ -30,6 +33,7 @@ import { DailyQuizAttempt } from '../gamification/entities/daily-quiz-attempt.en
  * - Elections: For primary election updates
  * - Quiz: For candidate quiz prompts
  * - Comments: For article comment counts
+ * - User Follows: For personalized "For You" feed
  */
 @Module({
   imports: [
@@ -45,10 +49,13 @@ import { DailyQuizAttempt } from '../gamification/entities/daily-quiz-attempt.en
       QuizResponse,
       DailyQuiz,
       DailyQuizAttempt,
+      CompanyAd,
+      CandidateAdPlacement,
     ]),
     SseModule, // Import SSE module for real-time feed updates
     ElectionResultsModule, // For real-time turnout + results in feed
     CandidatesModule, // For candidate data in election feed items
+    UserFollowsModule, // For personalized feed — user content follows
   ],
   controllers: [FeedController],
   providers: [FeedService, FeedAlgorithmService],

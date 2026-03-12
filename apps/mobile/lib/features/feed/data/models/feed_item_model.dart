@@ -22,6 +22,10 @@ abstract class FeedItemModel {
         return QuizPromptFeedItemModel.fromJson(json);
       case 'daily_quiz':
         return DailyQuizFeedItemModel.fromJson(json);
+      case 'company_ad':
+        return CompanyAdFeedItemModel.fromJson(json);
+      case 'candidate_ad':
+        return CandidateAdFeedItemModel.fromJson(json);
       default:
         throw ArgumentError('Unknown feed item type: $type');
     }
@@ -323,6 +327,8 @@ class FeedArticleContentModel {
   final String slug;
   final String? author;
   final String? authorEntityName;
+  final bool isSponsored;
+  final String? sponsorName;
 
   const FeedArticleContentModel({
     required this.id,
@@ -341,6 +347,8 @@ class FeedArticleContentModel {
     required this.slug,
     this.author,
     this.authorEntityName,
+    this.isSponsored = false,
+    this.sponsorName,
   });
 
   factory FeedArticleContentModel.fromJson(Map<String, dynamic> json) {
@@ -363,6 +371,8 @@ class FeedArticleContentModel {
       slug: json['slug'] as String? ?? '',
       author: json['author'] as String?,
       authorEntityName: json['authorEntityName'] as String?,
+      isSponsored: json['isSponsored'] as bool? ?? false,
+      sponsorName: json['sponsorName'] as String?,
     );
   }
 
@@ -384,6 +394,8 @@ class FeedArticleContentModel {
       'slug': slug,
       'author': author,
       'authorEntityName': authorEntityName,
+      'isSponsored': isSponsored,
+      'sponsorName': sponsorName,
     };
   }
 
@@ -405,6 +417,8 @@ class FeedArticleContentModel {
       slug: slug,
       author: author,
       authorEntityName: authorEntityName,
+      isSponsored: isSponsored,
+      sponsorName: sponsorName,
     );
   }
 }
@@ -917,6 +931,253 @@ class FeedDailyQuizContentModel {
       pointsReward: pointsReward,
       userHasCompleted: userHasCompleted,
       userScore: userScore,
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Company Ad Feed Item Model
+// ═══════════════════════════════════════════════════════════════════
+
+/// Model for company ad feed items
+class CompanyAdFeedItemModel implements FeedItemModel {
+  final String id;
+  final DateTime publishedAt;
+  final bool isPinned;
+  final int sortPriority;
+  final FeedCompanyAdContentModel companyAd;
+
+  const CompanyAdFeedItemModel({
+    required this.id,
+    required this.publishedAt,
+    required this.isPinned,
+    required this.sortPriority,
+    required this.companyAd,
+  });
+
+  factory CompanyAdFeedItemModel.fromJson(Map<String, dynamic> json) {
+    return CompanyAdFeedItemModel(
+      id: json['id'] as String,
+      publishedAt: json['publishedAt'] != null
+          ? DateTime.parse(json['publishedAt'] as String)
+          : DateTime.now(),
+      isPinned: json['isPinned'] as bool? ?? false,
+      sortPriority: json['sortPriority'] as int? ?? 0,
+      companyAd: FeedCompanyAdContentModel.fromJson(
+        json['companyAd'] as Map<String, dynamic>,
+      ),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': 'company_ad',
+      'publishedAt': publishedAt.toIso8601String(),
+      'isPinned': isPinned,
+      'sortPriority': sortPriority,
+      'companyAd': companyAd.toJson(),
+    };
+  }
+
+  @override
+  FeedItem toEntity() {
+    return CompanyAdFeedItem(
+      id: id,
+      publishedAt: publishedAt,
+      isPinned: isPinned,
+      sortPriority: sortPriority,
+      companyAd: companyAd.toEntity(),
+    );
+  }
+}
+
+class FeedCompanyAdContentModel {
+  final String adId;
+  final String advertiserName;
+  final String? advertiserLogoUrl;
+  final String title;
+  final String? contentHe;
+  final String? imageUrl;
+  final String? ctaUrl;
+  final String? ctaLabelHe;
+
+  const FeedCompanyAdContentModel({
+    required this.adId,
+    required this.advertiserName,
+    this.advertiserLogoUrl,
+    required this.title,
+    this.contentHe,
+    this.imageUrl,
+    this.ctaUrl,
+    this.ctaLabelHe,
+  });
+
+  factory FeedCompanyAdContentModel.fromJson(Map<String, dynamic> json) {
+    return FeedCompanyAdContentModel(
+      adId: json['adId'] as String? ?? '',
+      advertiserName: json['advertiserName'] as String? ?? '',
+      advertiserLogoUrl: json['advertiserLogoUrl'] as String?,
+      title: json['title'] as String? ?? '',
+      contentHe: json['contentHe'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      ctaUrl: json['ctaUrl'] as String?,
+      ctaLabelHe: json['ctaLabelHe'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'adId': adId,
+      'advertiserName': advertiserName,
+      'advertiserLogoUrl': advertiserLogoUrl,
+      'title': title,
+      'contentHe': contentHe,
+      'imageUrl': imageUrl,
+      'ctaUrl': ctaUrl,
+      'ctaLabelHe': ctaLabelHe,
+    };
+  }
+
+  FeedCompanyAdContent toEntity() {
+    return FeedCompanyAdContent(
+      adId: adId,
+      advertiserName: advertiserName,
+      advertiserLogoUrl: advertiserLogoUrl,
+      title: title,
+      contentHe: contentHe,
+      imageUrl: imageUrl,
+      ctaUrl: ctaUrl,
+      ctaLabelHe: ctaLabelHe,
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Candidate Ad Feed Item Model
+// ═══════════════════════════════════════════════════════════════════
+
+class CandidateAdFeedItemModel implements FeedItemModel {
+  final String id;
+  final DateTime publishedAt;
+  final bool isPinned;
+  final int sortPriority;
+  final FeedCandidateAdContentModel candidateAd;
+
+  const CandidateAdFeedItemModel({
+    required this.id,
+    required this.publishedAt,
+    required this.isPinned,
+    required this.sortPriority,
+    required this.candidateAd,
+  });
+
+  factory CandidateAdFeedItemModel.fromJson(Map<String, dynamic> json) {
+    return CandidateAdFeedItemModel(
+      id: json['id'] as String,
+      publishedAt: json['publishedAt'] != null
+          ? DateTime.parse(json['publishedAt'] as String)
+          : DateTime.now(),
+      isPinned: json['isPinned'] as bool? ?? false,
+      sortPriority: json['sortPriority'] as int? ?? 0,
+      candidateAd: FeedCandidateAdContentModel.fromJson(
+        json['candidateAd'] as Map<String, dynamic>,
+      ),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': 'candidate_ad',
+      'publishedAt': publishedAt.toIso8601String(),
+      'isPinned': isPinned,
+      'sortPriority': sortPriority,
+      'candidateAd': candidateAd.toJson(),
+    };
+  }
+
+  @override
+  FeedItem toEntity() {
+    return CandidateAdFeedItem(
+      id: id,
+      publishedAt: publishedAt,
+      isPinned: isPinned,
+      sortPriority: sortPriority,
+      candidateAd: candidateAd.toEntity(),
+    );
+  }
+}
+
+class FeedCandidateAdContentModel {
+  final String adId;
+  final String candidateName;
+  final String? candidatePhotoUrl;
+  final String title;
+  final String? contentHe;
+  final String? imageUrl;
+  final String? linkedContentType;
+  final String? linkedContentId;
+  final String? linkedContentSlug;
+  final String? ctaUrl;
+
+  const FeedCandidateAdContentModel({
+    required this.adId,
+    required this.candidateName,
+    this.candidatePhotoUrl,
+    required this.title,
+    this.contentHe,
+    this.imageUrl,
+    this.linkedContentType,
+    this.linkedContentId,
+    this.linkedContentSlug,
+    this.ctaUrl,
+  });
+
+  factory FeedCandidateAdContentModel.fromJson(Map<String, dynamic> json) {
+    return FeedCandidateAdContentModel(
+      adId: json['adId'] as String? ?? '',
+      candidateName: json['candidateName'] as String? ?? '',
+      candidatePhotoUrl: json['candidatePhotoUrl'] as String?,
+      title: json['title'] as String? ?? '',
+      contentHe: json['contentHe'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      linkedContentType: json['linkedContentType'] as String?,
+      linkedContentId: json['linkedContentId'] as String?,
+      linkedContentSlug: json['linkedContentSlug'] as String?,
+      ctaUrl: json['ctaUrl'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'adId': adId,
+      'candidateName': candidateName,
+      'candidatePhotoUrl': candidatePhotoUrl,
+      'title': title,
+      'contentHe': contentHe,
+      'imageUrl': imageUrl,
+      'linkedContentType': linkedContentType,
+      'linkedContentId': linkedContentId,
+      'linkedContentSlug': linkedContentSlug,
+      'ctaUrl': ctaUrl,
+    };
+  }
+
+  FeedCandidateAdContent toEntity() {
+    return FeedCandidateAdContent(
+      adId: adId,
+      candidateName: candidateName,
+      candidatePhotoUrl: candidatePhotoUrl,
+      title: title,
+      contentHe: contentHe,
+      imageUrl: imageUrl,
+      linkedContentType: linkedContentType,
+      linkedContentId: linkedContentId,
+      linkedContentSlug: linkedContentSlug,
+      ctaUrl: ctaUrl,
     );
   }
 }

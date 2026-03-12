@@ -8,6 +8,8 @@ enum FeedItemType {
   electionUpdate,
   quizPrompt,
   dailyQuiz,
+  companyAd,
+  candidateAd,
 }
 
 /// Base class for all feed items
@@ -127,6 +129,22 @@ class DailyQuizFeedItem extends FeedItem {
   List<Object?> get props => [...super.props, dailyQuiz];
 }
 
+/// Feed item containing a company/business ad
+class CompanyAdFeedItem extends FeedItem {
+  final FeedCompanyAdContent companyAd;
+
+  const CompanyAdFeedItem({
+    required super.id,
+    required super.publishedAt,
+    required super.isPinned,
+    required super.sortPriority,
+    required this.companyAd,
+  }) : super(type: FeedItemType.companyAd);
+
+  @override
+  List<Object?> get props => [...super.props, companyAd];
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // CONTENT ENTITIES (nested within feed items)
 // ═══════════════════════════════════════════════════════════════════
@@ -149,6 +167,8 @@ class FeedArticleContent extends Equatable {
   final String slug;
   final String? author;
   final String? authorEntityName;
+  final bool isSponsored;
+  final String? sponsorName;
 
   const FeedArticleContent({
     required this.id,
@@ -167,6 +187,8 @@ class FeedArticleContent extends Equatable {
     required this.slug,
     this.author,
     this.authorEntityName,
+    this.isSponsored = false,
+    this.sponsorName,
   });
 
   @override
@@ -187,6 +209,8 @@ class FeedArticleContent extends Equatable {
         slug,
         author,
         authorEntityName,
+        isSponsored,
+        sponsorName,
       ];
 }
 
@@ -426,5 +450,97 @@ class FeedDailyQuizContent extends Equatable {
         pointsReward,
         userHasCompleted,
         userScore,
+      ];
+}
+
+/// Feed item containing a candidate/sponsored ad
+class CandidateAdFeedItem extends FeedItem {
+  final FeedCandidateAdContent candidateAd;
+
+  const CandidateAdFeedItem({
+    required super.id,
+    required super.publishedAt,
+    required super.isPinned,
+    required super.sortPriority,
+    required this.candidateAd,
+  }) : super(type: FeedItemType.candidateAd);
+
+  @override
+  List<Object?> get props => [...super.props, candidateAd];
+}
+
+/// Candidate sponsored ad content within a feed item
+class FeedCandidateAdContent extends Equatable {
+  final String adId;
+  final String candidateName;
+  final String? candidatePhotoUrl;
+  final String title;
+  final String? contentHe;
+  final String? imageUrl;
+  final String? linkedContentType;
+  final String? linkedContentId;
+  final String? linkedContentSlug;
+  final String? ctaUrl;
+
+  const FeedCandidateAdContent({
+    required this.adId,
+    required this.candidateName,
+    this.candidatePhotoUrl,
+    required this.title,
+    this.contentHe,
+    this.imageUrl,
+    this.linkedContentType,
+    this.linkedContentId,
+    this.linkedContentSlug,
+    this.ctaUrl,
+  });
+
+  @override
+  List<Object?> get props => [
+        adId,
+        candidateName,
+        candidatePhotoUrl,
+        title,
+        contentHe,
+        imageUrl,
+        linkedContentType,
+        linkedContentId,
+        linkedContentSlug,
+        ctaUrl,
+      ];
+}
+
+/// Company ad content within a feed item
+class FeedCompanyAdContent extends Equatable {
+  final String adId;
+  final String advertiserName;
+  final String? advertiserLogoUrl;
+  final String title;
+  final String? contentHe;
+  final String? imageUrl;
+  final String? ctaUrl;
+  final String? ctaLabelHe;
+
+  const FeedCompanyAdContent({
+    required this.adId,
+    required this.advertiserName,
+    this.advertiserLogoUrl,
+    required this.title,
+    this.contentHe,
+    this.imageUrl,
+    this.ctaUrl,
+    this.ctaLabelHe,
+  });
+
+  @override
+  List<Object?> get props => [
+        adId,
+        advertiserName,
+        advertiserLogoUrl,
+        title,
+        contentHe,
+        imageUrl,
+        ctaUrl,
+        ctaLabelHe,
       ];
 }

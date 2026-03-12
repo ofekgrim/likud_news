@@ -1,5 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  Optional,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { Repository } from 'typeorm';
 import { PollingStation } from './entities/polling-station.entity';
 import { StationReport } from './entities/station-report.entity';
@@ -7,21 +16,37 @@ import { CreatePollingStationDto } from './dto/create-polling-station.dto';
 import { UpdatePollingStationDto } from './dto/update-polling-station.dto';
 import { CreateStationReportDto } from './dto/create-station-report.dto';
 import { QueryStationsDto } from './dto/query-stations.dto';
+import { SseService } from '../sse/sse.service';
+
+export type TrafficLight = 'green' | 'yellow' | 'red';
+
+export interface StationWaitInfo {
+  avgWaitMinutes: number | null;
+  trafficLight: TrafficLight | null;
+  reportCount: number;
+}
 
 @Injectable()
 export class PollingStationsService {
+  private readonly logger = new Logger(PollingStationsService.name);
+
+  /** Rate-limit window: 1 report per station per user per 30 min. */
+  private static readonly REPORT_RATE_LIMIT_SECONDS = 30 * 60;
+
   constructor(
     @InjectRepository(PollingStation)
     private readonly stationRepository: Repository<PollingStation>,
     @InjectRepository(StationReport)
     private readonly reportRepository: Repository<StationReport>,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    @Optional() @Inject(SseService) private readonly sseService?: SseService,
   ) {}
 
   /**
-   * Paginated stations list with filtering and proximity search.
+   * Paginated stations list with filtering, proximity search, and wait-time data.
    */
   async findAll(query: QueryStationsDto): Promise<{
-    data: PollingStation[];
+    data: (PollingStation & StationWaitInfo)[];
     total: number;
     page: number;
     limit: number;
@@ -91,8 +116,11 @@ export class PollingStationsService {
 
     const [data, total] = await qb.getManyAndCount();
 
+    // Enrich stations with 2-hour rolling wait-time averages
+    const enriched = await this.enrichWithWaitTimes(data);
+
     return {
-      data,
+      data: enriched,
       total,
       page,
       limit,
@@ -147,6 +175,8 @@ export class PollingStationsService {
 
   /**
    * Add a report for a polling station.
+   * Rate-limited: 1 report per station per user per 30 minutes (via Redis).
+   * Emits SSE event after successful submission.
    */
   async addReport(
     userId: string,
@@ -154,6 +184,15 @@ export class PollingStationsService {
   ): Promise<StationReport> {
     // Verify station exists
     await this.findOne(dto.stationId);
+
+    // Rate-limit: 1 report per station per user per 30 min
+    const rateLimitKey = `station_report:${dto.stationId}:${userId}`;
+    const existing = await this.cacheManager.get(rateLimitKey);
+    if (existing) {
+      throw new BadRequestException(
+        'You can only submit one report per station every 30 minutes',
+      );
+    }
 
     const report = this.reportRepository.create({
       stationId: dto.stationId,
@@ -163,7 +202,19 @@ export class PollingStationsService {
       note: dto.note,
     });
 
-    return this.reportRepository.save(report);
+    const saved = await this.reportRepository.save(report);
+
+    // Set rate-limit key with 30-min TTL (in milliseconds for cache-manager)
+    await this.cacheManager.set(
+      rateLimitKey,
+      '1',
+      PollingStationsService.REPORT_RATE_LIMIT_SECONDS * 1000,
+    );
+
+    // Emit SSE event with updated wait-time data
+    this.emitStationWaitUpdate(dto.stationId);
+
+    return saved;
   }
 
   /**
@@ -212,5 +263,115 @@ export class PollingStationsService {
   ): Promise<PollingStation[]> {
     const entities = stations.map((dto) => this.stationRepository.create(dto));
     return this.stationRepository.save(entities);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // WAIT-TIME ENRICHMENT
+  // ═══════════════════════════════════════════════════════════════════
+
+  /**
+   * Compute traffic-light color from average wait minutes.
+   * Green: < 10 min, Yellow: 10-30 min, Red: > 30 min.
+   */
+  computeTrafficLight(avgMinutes: number): TrafficLight {
+    if (avgMinutes < 10) return 'green';
+    if (avgMinutes <= 30) return 'yellow';
+    return 'red';
+  }
+
+  /**
+   * Batch-enrich stations with 2-hour rolling average wait times.
+   * Uses a single query to fetch averages for all station IDs.
+   */
+  async enrichWithWaitTimes(
+    stations: PollingStation[],
+  ): Promise<(PollingStation & StationWaitInfo)[]> {
+    if (stations.length === 0) return [];
+
+    const stationIds = stations.map((s) => s.id);
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+
+    // Batch query: average wait time per station for reports in the last 2 hours
+    const rawResults = await this.reportRepository
+      .createQueryBuilder('report')
+      .select('report.stationId', 'stationId')
+      .addSelect('AVG(report.waitTimeMinutes)', 'avg')
+      .addSelect('COUNT(report.id)', 'count')
+      .where('report.stationId IN (:...stationIds)', { stationIds })
+      .andWhere('report.reportedAt >= :twoHoursAgo', { twoHoursAgo })
+      .groupBy('report.stationId')
+      .getRawMany();
+
+    // Build lookup map: stationId -> { avg, count }
+    const waitMap = new Map<string, { avg: number; count: number }>();
+    for (const row of rawResults) {
+      waitMap.set(row.stationId, {
+        avg: parseFloat(row.avg),
+        count: parseInt(row.count, 10),
+      });
+    }
+
+    // Merge wait-time info into each station
+    return stations.map((station) => {
+      const waitData = waitMap.get(station.id);
+      const avgWaitMinutes = waitData
+        ? Math.round(waitData.avg * 10) / 10
+        : null;
+      const trafficLight =
+        avgWaitMinutes !== null
+          ? this.computeTrafficLight(avgWaitMinutes)
+          : null;
+      const reportCount = waitData ? waitData.count : 0;
+
+      return {
+        ...station,
+        avgWaitMinutes,
+        trafficLight,
+        reportCount,
+      };
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SSE EMISSION
+  // ═══════════════════════════════════════════════════════════════════
+
+  /**
+   * Emit an SSE event with updated wait-time data for a station.
+   * Runs asynchronously (fire-and-forget) so it does not block the response.
+   */
+  private emitStationWaitUpdate(stationId: string): void {
+    if (!this.sseService) return;
+
+    // Fire-and-forget — errors are logged, not thrown
+    this.getAverageWaitTime(stationId)
+      .then(({ averageWaitTime, reportCount }) => {
+        const avgWaitMinutes =
+          averageWaitTime !== null
+            ? Math.round(averageWaitTime * 10) / 10
+            : null;
+        const trafficLight =
+          avgWaitMinutes !== null
+            ? this.computeTrafficLight(avgWaitMinutes)
+            : null;
+
+        this.sseService!.emitStationWaitUpdate({
+          stationId,
+          avgWaitMinutes,
+          trafficLight,
+          reportCount,
+        });
+
+        this.logger.log(
+          `SSE station_wait_update emitted for station ${stationId}: ` +
+            `avg=${avgWaitMinutes}min, traffic=${trafficLight}, reports=${reportCount}`,
+        );
+      })
+      .catch((err) => {
+        this.logger.error(
+          `Failed to emit station_wait_update for station ${stationId}`,
+          err,
+        );
+      });
   }
 }

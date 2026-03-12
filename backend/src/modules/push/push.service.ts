@@ -1,11 +1,19 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import * as admin from 'firebase-admin';
 import { PushToken } from './entities/push-token.entity';
+import { AppUser } from '../app-users/entities/app-user.entity';
 import { RegisterTokenDto } from './dto/register-token.dto';
 import { SendNotificationDto } from './dto/send-notification.dto';
 import { FIREBASE_ADMIN } from './firebase-admin.provider';
+
+/** Maximum non-breaking notifications per user per 24h */
+const FREQUENCY_CAP = 3;
+/** TTL for the frequency counter key — 24 hours in milliseconds */
+const FREQUENCY_CAP_TTL_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class PushService {
@@ -16,7 +24,62 @@ export class PushService {
     private readonly pushTokenRepository: Repository<PushToken>,
     @Inject(FIREBASE_ADMIN)
     private readonly firebaseApp: admin.app.App | null,
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager: Cache,
   ) {}
+
+  /**
+   * Check if a user is currently in quiet hours.
+   * Compares against Israel time (Asia/Jerusalem).
+   */
+  isInQuietHours(user: AppUser): boolean {
+    if (!user.quietHoursStart || !user.quietHoursEnd) {
+      return false;
+    }
+
+    // Get current time in Israel
+    const now = new Date();
+    const israelTime = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }),
+    );
+    const currentMinutes = israelTime.getHours() * 60 + israelTime.getMinutes();
+
+    const [startH, startM] = user.quietHoursStart.split(':').map(Number);
+    const [endH, endM] = user.quietHoursEnd.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    if (startMinutes <= endMinutes) {
+      // Same-day range (e.g. 09:00 – 17:00)
+      return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+    } else {
+      // Overnight range (e.g. 22:00 – 07:00)
+      return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+    }
+  }
+
+  /**
+   * Check if a user has exceeded the non-breaking notification frequency cap.
+   * Returns true if the user can still receive notifications.
+   */
+  async checkFrequencyCap(userId: string): Promise<boolean> {
+    const dateKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const cacheKey = `notif_count:${userId}:${dateKey}`;
+
+    const count = await this.cacheManager.get<number>(cacheKey);
+    return (count ?? 0) < FREQUENCY_CAP;
+  }
+
+  /**
+   * Increment the notification frequency counter for a user.
+   */
+  async incrementFrequencyCount(userId: string): Promise<void> {
+    const dateKey = new Date().toISOString().slice(0, 10);
+    const cacheKey = `notif_count:${userId}:${dateKey}`;
+
+    const current = (await this.cacheManager.get<number>(cacheKey)) ?? 0;
+    await this.cacheManager.set(cacheKey, current + 1, FREQUENCY_CAP_TTL_MS);
+  }
 
   async registerToken(dto: RegisterTokenDto): Promise<PushToken> {
     const existing = await this.pushTokenRepository.findOne({

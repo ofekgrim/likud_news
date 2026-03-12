@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/leaderboard_entry.dart';
+import '../../domain/entities/tier_info.dart';
 import '../../domain/entities/user_badge.dart';
 import '../../domain/entities/user_points_entry.dart';
 import '../../domain/entities/user_streak.dart';
@@ -106,19 +107,102 @@ class GamificationRepositoryImpl implements GamificationRepository {
   Future<Either<Failure, UserStreak>> getStreak() async {
     try {
       final data = await _remoteDataSource.getStreak();
-      final streak = UserStreak(
-        currentStreak: data['currentStreak'] as int? ?? 0,
-        longestStreak: data['longestStreak'] as int? ?? 0,
-        lastActivityDate: data['lastActivityDate'] != null
-            ? DateTime.parse(data['lastActivityDate'] as String)
-            : null,
-      );
+      final streak = _parseStreak(data);
       return Right(streak);
     } on DioException catch (e) {
       return Left(_mapDioException(e));
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
+  }
+
+  @override
+  Future<Either<Failure, UserStreak>> useStreakFreeze() async {
+    try {
+      final data = await _remoteDataSource.useStreakFreeze();
+      final streak = _parseStreak(data);
+      return Right(streak);
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  /// Parses raw streak JSON into a [UserStreak] entity.
+  static UserStreak _parseStreak(Map<String, dynamic> data) {
+    final milestonesRaw = data['milestones'] as List<dynamic>?;
+    final milestones = milestonesRaw
+            ?.map((m) {
+              final map = m as Map<String, dynamic>;
+              return StreakMilestone(
+                days: map['days'] as int? ?? 0,
+                bonusPoints: map['bonusPoints'] as int? ?? 0,
+                earned: map['earned'] as bool? ?? false,
+                earnedAt: map['earnedAt'] != null
+                    ? DateTime.parse(map['earnedAt'] as String)
+                    : null,
+              );
+            })
+            .toList() ??
+        [];
+
+    return UserStreak(
+      currentStreak: data['currentStreak'] as int? ?? 0,
+      longestStreak: data['longestStreak'] as int? ?? 0,
+      freezeTokens: data['freezeTokens'] as int? ?? 0,
+      freezeTokensUsed: data['freezeTokensUsed'] as int? ?? 0,
+      tier: data['tier'] as int? ?? 0,
+      tierName: data['tierName'] as String? ?? '',
+      atRisk: data['atRisk'] as bool? ?? false,
+      activityDoneToday: data['activityDoneToday'] as bool? ?? false,
+      lastActivityDate: data['lastActivityDate'] != null
+          ? DateTime.parse(data['lastActivityDate'] as String)
+          : null,
+      milestones: milestones,
+    );
+  }
+
+  @override
+  Future<Either<Failure, TierInfo>> getTierInfo() async {
+    try {
+      final data = await _remoteDataSource.getTierInfo();
+      final tierInfo = _parseTierInfo(data);
+      return Right(tierInfo);
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  /// Parses raw tier info JSON into a [TierInfo] entity.
+  static TierInfo _parseTierInfo(Map<String, dynamic> data) {
+    final lockedRaw = data['lockedFeatures'] as List<dynamic>? ?? [];
+    final lockedFeatures = lockedRaw.map((item) {
+      final map = item as Map<String, dynamic>;
+      return LockedFeature(
+        feature: map['feature'] as String? ?? '',
+        requiredTier: map['requiredTier'] as int? ?? 0,
+        requiredTierName: map['requiredTierName'] as String? ?? '',
+      );
+    }).toList();
+
+    final unlockedRaw = data['unlockedFeatures'] as List<dynamic>? ?? [];
+    final unlockedFeatures =
+        unlockedRaw.map((item) => item as String).toList();
+
+    return TierInfo(
+      currentTier: data['currentTier'] as int? ?? 1,
+      tierName: data['tierName'] as String? ?? '',
+      tierNameEn: data['tierNameEn'] as String? ?? '',
+      totalXp: data['totalXp'] as int? ?? 0,
+      nextTierXp: data['nextTierXp'] as int?,
+      progressToNextTier:
+          (data['progressToNextTier'] as num?)?.toDouble() ?? 0.0,
+      unlockedFeatures: unlockedFeatures,
+      lockedFeatures: lockedFeatures,
+    );
   }
 
   @override

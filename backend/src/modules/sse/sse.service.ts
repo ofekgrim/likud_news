@@ -69,6 +69,22 @@ export class SseService {
     );
   }
 
+  // Station wait time updates stream
+  private readonly stationWaitSubject = new Subject<MessageEvent>();
+
+  emitStationWaitUpdate(data: object | string): void {
+    this.stationWaitSubject.next({ data });
+  }
+
+  getStationWaitStream(): Observable<MessageEvent> {
+    return this.stationWaitSubject.asObservable().pipe(
+      map((event) => ({
+        data: event.data,
+        type: 'station_wait_update',
+      })),
+    );
+  }
+
   // Feed updates stream
   private readonly feedSubject = new Subject<MessageEvent>();
 

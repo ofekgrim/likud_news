@@ -24,10 +24,15 @@ import '../features/article_detail/presentation/bloc/comments_bloc.dart';
 import '../features/tag_articles/presentation/bloc/tag_articles_bloc.dart';
 import '../features/author_articles/presentation/bloc/author_articles_bloc.dart';
 import '../features/candidates/presentation/bloc/candidates_bloc.dart';
+import '../features/candidate_compare/presentation/bloc/candidate_compare_bloc.dart';
+import '../features/candidate_compare/presentation/pages/candidate_compare_page.dart';
 import '../features/candidate_quiz/presentation/bloc/quiz_bloc.dart';
 import '../features/candidate_quiz/presentation/bloc/quiz_list_bloc.dart';
 import '../features/election_day/presentation/bloc/election_day_bloc.dart';
+import '../features/election_day/presentation/bloc/live_results_bloc.dart';
 import '../features/election_day/presentation/pages/election_day_page.dart';
+import '../features/election_day/presentation/pages/live_results_page.dart';
+import '../features/election_day/presentation/pages/station_map_page.dart';
 import '../features/authors/presentation/bloc/authors_bloc.dart';
 import '../features/authors/presentation/pages/authors_page.dart';
 import '../features/community_polls/presentation/bloc/polls_bloc.dart';
@@ -39,8 +44,26 @@ import '../features/membership/presentation/bloc/membership_bloc.dart';
 import '../features/membership/presentation/pages/membership_page.dart';
 import '../features/gamification/presentation/bloc/gamification_bloc.dart';
 import '../features/gamification/presentation/pages/gamification_page.dart';
+import '../features/gamification/presentation/pages/tier_detail_page.dart';
+import '../features/branch_leaderboard/presentation/bloc/branch_leaderboard_bloc.dart';
+import '../features/branch_leaderboard/presentation/pages/branch_leaderboard_page.dart';
 import '../features/daily_quiz/presentation/bloc/daily_quiz_bloc.dart';
 import '../features/daily_quiz/presentation/pages/daily_quiz_page.dart';
+import '../features/candidate_matcher/presentation/bloc/candidate_matcher_bloc.dart';
+import '../features/candidate_matcher/presentation/pages/matcher_intro_page.dart';
+import '../features/candidate_matcher/presentation/pages/matcher_questions_page.dart';
+import '../features/candidate_matcher/presentation/pages/matcher_results_page.dart';
+import '../features/primaries_guide/presentation/bloc/primaries_guide_bloc.dart';
+import '../features/primaries_guide/presentation/pages/primaries_guide_page.dart';
+import '../features/daily_missions/presentation/bloc/daily_missions_bloc.dart';
+import '../features/daily_missions/presentation/pages/daily_missions_page.dart';
+import '../features/ama_sessions/presentation/bloc/ama_sessions_bloc.dart';
+import '../features/ama_sessions/presentation/pages/ama_sessions_list_page.dart';
+import '../features/ama_sessions/presentation/pages/ama_live_page.dart';
+import '../features/ai_chat/presentation/bloc/ai_chat_bloc.dart';
+import '../features/ai_chat/presentation/pages/ai_chat_page.dart';
+import '../features/premium/presentation/bloc/premium_bloc.dart';
+import '../features/premium/presentation/pages/premium_page.dart';
 
 // Feature page imports
 import '../features/home/presentation/pages/home_page_with_feed.dart';
@@ -418,6 +441,16 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: '/primaries/compare',
+        builder: (context, state) {
+          final ids = state.extra as List<String>;
+          return BlocProvider(
+            create: (_) => getIt<CandidateCompareBloc>(),
+            child: CandidateComparePage(candidateIds: ids),
+          );
+        },
+      ),
+      GoRoute(
         path: '/primaries/quiz',
         builder: (context, state) => BlocProvider(
           create: (_) => getIt<QuizListBloc>(),
@@ -448,7 +481,60 @@ class AppRouter {
         ),
       ),
 
+      // Primaries Guide route
+      GoRoute(
+        path: '/primaries/guide',
+        builder: (context, state) => BlocProvider(
+          create: (_) => PrimariesGuideBloc(),
+          child: const PrimariesGuidePage(),
+        ),
+      ),
+
+      // Candidate Matcher (VAA) routes
+      GoRoute(
+        path: '/primaries/matcher',
+        builder: (context, state) => const MatcherIntroPage(),
+      ),
+      GoRoute(
+        path: '/primaries/matcher/questions/:electionId',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<CandidateMatcherBloc>(),
+          child: MatcherQuestionsPage(
+            electionId: state.pathParameters['electionId']!,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/primaries/matcher/results/:electionId',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<CandidateMatcherBloc>(),
+          child: MatcherResultsPage(
+            electionId: state.pathParameters['electionId']!,
+          ),
+        ),
+      ),
+
       // Sprint 6 routes
+      GoRoute(
+        path: '/election-day/results/:electionId',
+        builder: (context, state) {
+          final electionId = state.pathParameters['electionId']!;
+          return BlocProvider(
+            create: (_) => getIt<LiveResultsBloc>(),
+            child: LiveResultsPage(electionId: electionId),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/election-day/stations',
+        builder: (context, state) {
+          final electionId = state.uri.queryParameters['electionId'];
+          return BlocProvider(
+            create: (_) => getIt<ElectionDayBloc>(),
+            child: StationMapPage(electionId: electionId),
+          );
+        },
+      ),
       GoRoute(
         path: '/election-day/:electionId',
         builder: (context, state) {
@@ -495,6 +581,41 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: '/gamification/tier',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<GamificationBloc>(),
+          child: const TierDetailPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/leaderboard',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<BranchLeaderboardBloc>(),
+          child: const BranchLeaderboardPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/missions',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<DailyMissionsBloc>(),
+          child: const DailyMissionsPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/ama',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<AmaSessionsBloc>(),
+          child: const AmaSessionsListPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/ama/:sessionId',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<AmaSessionsBloc>(),
+          child: AmaLivePage(sessionId: state.pathParameters['sessionId']!),
+        ),
+      ),
+      GoRoute(
         path: '/daily-quiz',
         builder: (context, state) => BlocProvider(
           create: (_) => getIt<DailyQuizBloc>(),
@@ -504,6 +625,20 @@ class AppRouter {
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationInboxPage(),
+      ),
+      GoRoute(
+        path: '/chat',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<AiChatBloc>(),
+          child: const AiChatPage(),
+        ),
+      ),
+      GoRoute(
+        path: '/premium',
+        builder: (context, state) => BlocProvider(
+          create: (_) => getIt<PremiumBloc>(),
+          child: const PremiumPage(),
+        ),
       ),
     ],
   );

@@ -4,6 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Index,
 } from 'typeorm';
 
 export enum AppUserRole {
@@ -71,8 +74,44 @@ export class AppUser {
   @Column({ type: 'jsonb', default: '{}' })
   notificationPrefs: Record<string, unknown>;
 
+  // ── Granular notification preferences ────────────────────────────────
+  @Column({ type: 'boolean', default: true })
+  notifBreakingNews: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  notifPrimariesUpdates: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  notifDailyQuizReminder: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  notifStreakAchievements: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  notifEvents: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  notifGotv: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  notifAmaSessions: boolean;
+
+  @Column({ type: 'varchar', length: 5, nullable: true })
+  quietHoursStart: string | null;
+
+  @Column({ type: 'varchar', length: 5, nullable: true })
+  quietHoursEnd: string | null;
+
   @Column({ type: 'timestamp', nullable: true })
   lastLoginAt: Date;
+
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  branchId: string;
+
+  @ManyToOne('Branch', { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'branchId' })
+  branch: unknown;
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;

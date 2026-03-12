@@ -11,6 +11,8 @@ export enum FeedItemType {
   ELECTION_UPDATE = 'election_update',
   QUIZ_PROMPT = 'quiz_prompt',
   DAILY_QUIZ = 'daily_quiz',
+  COMPANY_AD = 'company_ad',
+  CANDIDATE_AD = 'candidate_ad',
 }
 
 /**
@@ -68,8 +70,12 @@ export class FeedItemDto {
     titleEn?: string;
     subtitle?: string;
     heroImageUrl?: string;
+    categoryId?: string;
     categoryName?: string;
     categoryColor?: string;
+    authorId?: string;
+    memberIds?: string[];
+    tagIds?: string[];
     isBreaking: boolean;
     viewCount: number;
     commentCount: number;
@@ -79,6 +85,8 @@ export class FeedItemDto {
     slug: string;
     author?: string;
     authorEntityName?: string;
+    isSponsored?: boolean;
+    sponsorName?: string;
   };
 
   @ApiProperty({
@@ -174,5 +182,37 @@ export class FeedItemDto {
     pointsReward: number;
     userHasCompleted: boolean;
     userScore?: number;
+  };
+
+  @ApiProperty({
+    description: 'Company ad content (present when type=company_ad)',
+    required: false,
+  })
+  companyAd?: {
+    adId: string;
+    advertiserName: string;
+    advertiserLogoUrl: string | null;
+    title: string;
+    contentHe: string | null;
+    imageUrl: string | null;
+    ctaUrl: string | null;
+    ctaLabelHe: string | null;
+  };
+
+  @ApiProperty({
+    description: 'Candidate ad content (present when type=candidate_ad)',
+    required: false,
+  })
+  candidateAd?: {
+    adId: string;
+    candidateName: string;
+    candidatePhotoUrl: string | null;
+    title: string;
+    contentHe: string | null;
+    imageUrl: string | null;
+    linkedContentType: string | null;
+    linkedContentId: string | null;
+    linkedContentSlug: string | null;
+    ctaUrl: string | null;
   };
 }

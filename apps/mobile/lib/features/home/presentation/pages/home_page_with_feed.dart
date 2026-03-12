@@ -20,6 +20,10 @@ import '../../../../features/feed/presentation/bloc/feed_event.dart'
     as feed_events;
 import '../../../../features/feed/presentation/bloc/feed_state.dart';
 import '../../../../features/feed/presentation/widgets/feed_item_card.dart';
+import '../../../../features/daily_missions/presentation/bloc/daily_missions_bloc.dart';
+import '../../../../features/daily_missions/presentation/bloc/daily_missions_event.dart';
+import '../../../../features/gamification/presentation/bloc/gamification_bloc.dart';
+import '../../../../features/gamification/presentation/widgets/home_streak_card.dart';
 import '../../../feed/domain/entities/feed_item.dart';
 import '../bloc/home_bloc.dart';
 import '../widgets/breaking_ticker.dart';
@@ -40,6 +44,8 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
   final _scrollController = ScrollController();
   late final FeedBloc _feedBloc;
   late final PollsBloc _pollsBloc;
+  late final GamificationBloc _gamificationBloc;
+  late final DailyMissionsBloc _dailyMissionsBloc;
   bool _showRefreshButton = false;
 
   @override
@@ -58,6 +64,14 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
     _pollsBloc = getIt<PollsBloc>();
     _pollsBloc.add(const LoadPolls());
 
+    // Initialize GamificationBloc for streak counter
+    _gamificationBloc = getIt<GamificationBloc>();
+    _gamificationBloc.add(const LoadStreak());
+
+    // Initialize DailyMissionsBloc for missions strip
+    _dailyMissionsBloc = getIt<DailyMissionsBloc>();
+    _dailyMissionsBloc.add(const LoadTodayMissions());
+
     // Setup scroll listener for pagination and refresh button visibility
     _scrollController.addListener(_onScroll);
   }
@@ -67,6 +81,8 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
     _scrollController.dispose();
     _feedBloc.close();
     _pollsBloc.close();
+    _gamificationBloc.close();
+    _dailyMissionsBloc.close();
     super.dispose();
   }
 
@@ -123,35 +139,41 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
       value: _feedBloc,
       child: BlocProvider.value(
         value: _pollsBloc,
-        child: RtlScaffold(
-          showDrawerIcon: true,
-          floatingActionButton: _showRefreshButton
-              ? _buildLiquidGlassRefreshButton()
-              : null,
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.miniCenterTop,
-          body: BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, homeState) {
-              if (homeState is HomeLoading || homeState is HomeInitial) {
-                return _buildLoadingState();
-              }
+        child: BlocProvider.value(
+          value: _gamificationBloc,
+          child: BlocProvider.value(
+            value: _dailyMissionsBloc,
+            child: RtlScaffold(
+              showDrawerIcon: true,
+              floatingActionButton: _showRefreshButton
+                  ? _buildLiquidGlassRefreshButton()
+                  : null,
+              floatingActionButtonLocation:
+                  FloatingActionButtonLocation.miniCenterTop,
+              body: BlocBuilder<HomeBloc, HomeState>(
+                builder: (context, homeState) {
+                  if (homeState is HomeLoading || homeState is HomeInitial) {
+                    return _buildLoadingState();
+                  }
 
-              if (homeState is HomeError) {
-                return ErrorView(
-                  message: homeState.message,
-                  onRetry: () {
-                    context.read<HomeBloc>().add(const LoadHome());
-                    _feedBloc.add(const feed_events.LoadFeed());
-                  },
-                );
-              }
+                  if (homeState is HomeError) {
+                    return ErrorView(
+                      message: homeState.message,
+                      onRetry: () {
+                        context.read<HomeBloc>().add(const LoadHome());
+                        _feedBloc.add(const feed_events.LoadFeed());
+                      },
+                    );
+                  }
 
-              if (homeState is HomeLoaded) {
-                return _buildLoadedState(context, homeState);
-              }
+                  if (homeState is HomeLoaded) {
+                    return _buildLoadedState(context, homeState);
+                  }
 
-              return const SizedBox.shrink();
-            },
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
           ),
         ),
       ),
@@ -310,6 +332,18 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
                 ),
               ),
             ),
+
+          // Compact streak counter
+          SliverToBoxAdapter(
+            child: BlocBuilder<GamificationBloc, GamificationState>(
+              builder: (context, gamState) {
+                if (gamState is GamificationLoaded) {
+                  return HomeStreakCard(streak: gamState.streak);
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
 
           // Trending / Breaking tabs carousel
           if (homeState.trendingArticles.isNotEmpty ||
@@ -485,6 +519,12 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
       case DailyQuizFeedItem _:
         // Navigate to daily quiz page
         context.push('/daily-quiz');
+        break;
+      case CompanyAdFeedItem _:
+        // Tap handled internally by SponsoredFeedCard
+        break;
+      case CandidateAdFeedItem _:
+        // Tap handled internally by SponsoredCandidateAdCard
         break;
     }
   }

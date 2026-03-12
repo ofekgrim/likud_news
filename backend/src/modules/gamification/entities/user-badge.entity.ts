@@ -23,6 +23,7 @@ export enum BadgeType {
   QUIZ_MASTER = 'quiz_master',
   NEWS_JUNKIE = 'news_junkie',
   COMMUNITY_VOICE = 'community_voice',
+  I_VOTED = 'i_voted',
 }
 
 @Entity('user_badges')

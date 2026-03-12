@@ -6,12 +6,29 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserFollow } from './entities/user-follow.entity';
+import {
+  UserContentFollow,
+  ContentFollowType,
+} from './entities/user-content-follow.entity';
+
+/**
+ * Grouped user content follows, keyed by follow type.
+ * Each set contains the target UUIDs that the user follows.
+ */
+export interface UserFollowsMap {
+  categories: Set<string>;
+  members: Set<string>;
+  authors: Set<string>;
+  tags: Set<string>;
+}
 
 @Injectable()
 export class UserFollowsService {
   constructor(
     @InjectRepository(UserFollow)
     private readonly followRepository: Repository<UserFollow>,
+    @InjectRepository(UserContentFollow)
+    private readonly contentFollowRepository: Repository<UserContentFollow>,
   ) {}
 
   async follow(followerId: string, followeeId: string): Promise<UserFollow> {
@@ -65,5 +82,94 @@ export class UserFollowsService {
 
   async getFollowerCount(followeeId: string): Promise<number> {
     return this.followRepository.count({ where: { followeeId } });
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Content follows (polymorphic: category, member, author, tag)
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Follow a content entity (category, member, author, or tag).
+   */
+  async followContent(
+    userId: string,
+    type: ContentFollowType,
+    targetId: string,
+  ): Promise<UserContentFollow> {
+    const existing = await this.contentFollowRepository.findOne({
+      where: { userId, type, targetId },
+    });
+    if (existing) {
+      throw new ConflictException(`Already following this ${type}`);
+    }
+    const follow = this.contentFollowRepository.create({ userId, type, targetId });
+    return this.contentFollowRepository.save(follow);
+  }
+
+  /**
+   * Unfollow a content entity.
+   */
+  async unfollowContent(
+    userId: string,
+    type: ContentFollowType,
+    targetId: string,
+  ): Promise<void> {
+    const existing = await this.contentFollowRepository.findOne({
+      where: { userId, type, targetId },
+    });
+    if (!existing) {
+      throw new NotFoundException(`${type} follow not found`);
+    }
+    await this.contentFollowRepository.remove(existing);
+  }
+
+  /**
+   * Get all content follows for a user, grouped by type.
+   *
+   * Returns a map with Sets of target IDs for each follow type,
+   * including member follows from the legacy `user_follows` table.
+   * This is the primary data source for the feed personalization algorithm.
+   */
+  async getUserFollowsMap(userId: string): Promise<UserFollowsMap> {
+    // Fetch polymorphic content follows
+    const contentFollows = await this.contentFollowRepository.find({
+      where: { userId },
+    });
+
+    // Fetch legacy member follows (user_follows table) — the user is the follower
+    const memberFollows = await this.followRepository.find({
+      where: { followerId: userId },
+    });
+
+    const map: UserFollowsMap = {
+      categories: new Set<string>(),
+      members: new Set<string>(),
+      authors: new Set<string>(),
+      tags: new Set<string>(),
+    };
+
+    for (const follow of contentFollows) {
+      switch (follow.type) {
+        case ContentFollowType.CATEGORY:
+          map.categories.add(follow.targetId);
+          break;
+        case ContentFollowType.MEMBER:
+          map.members.add(follow.targetId);
+          break;
+        case ContentFollowType.AUTHOR:
+          map.authors.add(follow.targetId);
+          break;
+        case ContentFollowType.TAG:
+          map.tags.add(follow.targetId);
+          break;
+      }
+    }
+
+    // Merge legacy member follows into the members set
+    for (const follow of memberFollows) {
+      map.members.add(follow.followeeId);
+    }
+
+    return map;
   }
 }

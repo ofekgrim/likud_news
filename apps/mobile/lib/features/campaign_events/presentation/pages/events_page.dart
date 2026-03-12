@@ -35,7 +35,9 @@ class _EventsPageState extends State<EventsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<EventsBloc>().add(const LoadEvents());
+    // Default to upcoming events so the list opens showing future events.
+    // _showUpcoming = true already matches the filter chip's default state.
+    _onFilterChanged();
     _scrollController.addListener(_onScroll);
   }
 

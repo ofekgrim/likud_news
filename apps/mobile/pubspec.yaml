@@ -1,7 +1,7 @@
 name: metzudat_halikud
 description: "Metzudat HaLikud - Hebrew RTL news application for the Likud party"
 publish_to: 'none'
-version: 1.0.0+9
+version: 2.0.0+10
 
 environment:
   sdk: ^3.11.0
@@ -85,6 +85,9 @@ dependencies:
 
   # Ads
   google_mobile_ads: ^5.3.0
+
+  # WebSocket
+  web_socket_channel: ^3.0.0
 
   # Logging
   talker_flutter: ^4.7.0

@@ -30,6 +30,14 @@ import {
   FileText,
   Clock,
   History,
+  GitCompareArrows,
+  ListChecks,
+  Building2,
+  ClipboardList,
+  Megaphone,
+  Bot,
+  Brain,
+  DollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -75,6 +83,27 @@ const navGroups = [
     ],
   },
   {
+    label: 'סניפים',
+    items: [
+      { href: '/branches', label: 'סניפים', icon: Building2 },
+    ],
+  },
+  {
+    label: 'AI',
+    items: [
+      { href: '/ai/quiz-review', label: 'חידוני AI', icon: Bot },
+      { href: '/ai/summaries', label: 'סיכומי כתבות', icon: Brain },
+    ],
+  },
+  {
+    label: 'מונטיזציה',
+    items: [
+      { href: '/monetisation/ads', label: 'מודעות', icon: DollarSign },
+      { href: '/monetisation/advertisers', label: 'מפרסמים', icon: Building2 },
+      { href: '/monetisation/company-ads', label: 'מודעות חברות', icon: Megaphone },
+    ],
+  },
+  {
     label: 'בחירות',
     items: [
       { href: '/primaries', label: 'לוח בקרה', icon: LayoutDashboard },
@@ -82,13 +111,18 @@ const navGroups = [
       { href: '/primaries/candidates', label: 'מועמדים', icon: Users },
       { href: '/primaries/endorsements', label: 'תמיכות', icon: Target },
       { href: '/primaries/quiz', label: 'שאלון התאמה', icon: HelpCircle },
+      { href: '/primaries/matcher', label: 'מתאים מועמדים', icon: GitCompareArrows },
       { href: '/primaries/stations', label: 'קלפיות', icon: MapPin },
+      { href: '/primaries/list-assembly', label: 'הרכבת רשימה', icon: ListChecks },
       { href: '/primaries/results', label: 'תוצאות', icon: BarChart3 },
       { href: '/primaries/polls', label: 'סקרים', icon: BarChart3 },
       { href: '/primaries/events', label: 'אירועים', icon: Calendar },
       { href: '/primaries/gamification', label: 'גיימיפיקציה', icon: Trophy },
+      { href: '/primaries/gamification/missions', label: 'משימות יומיות', icon: ClipboardList },
       { href: '/daily-quiz', label: 'חידון יומי', icon: HelpCircle },
+      { href: '/primaries/gotv', label: 'GOTV', icon: Megaphone },
       { href: '/primaries/turnout', label: 'אחוזי הצבעה', icon: BarChart3 },
+      { href: '/ama', label: 'מפגשי AMA', icon: MessageSquare },
     ],
   },
 ];

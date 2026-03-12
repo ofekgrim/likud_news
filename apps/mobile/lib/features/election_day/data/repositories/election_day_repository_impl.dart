@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../domain/entities/branch_turnout.dart';
 import '../../domain/entities/election_result.dart';
 import '../../domain/entities/polling_station.dart';
 import '../../domain/entities/station_report.dart';
@@ -134,6 +135,70 @@ class ElectionDayRepositoryImpl implements ElectionDayRepository {
     try {
       final models = await _remoteDataSource.getTurnoutTimeline(electionId);
       return Right(models.map((m) => m.toEntity()).toList());
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> claimIVotedBadge() async {
+    try {
+      final result = await _remoteDataSource.claimIVotedBadge();
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> saveVotingPlan(String timeSlot) async {
+    try {
+      final result = await _remoteDataSource.saveVotingPlan(timeSlot);
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<BranchTurnout>>> getBranchTurnouts(
+    String electionId,
+  ) async {
+    try {
+      final models = await _remoteDataSource.getTurnoutSnapshots(electionId);
+      // Derive branch turnouts from district-level snapshots.
+      final districtSnapshots =
+          models.where((m) => m.district != null && m.district!.isNotEmpty);
+
+      final branches = districtSnapshots.map((m) {
+        final pct = m.eligibleVoters > 0
+            ? (m.actualVoters / m.eligibleVoters) * 100
+            : 0.0;
+        return BranchTurnout(
+          branchName: m.district!,
+          turnoutPct: pct,
+          rank: 0, // Will be assigned after sorting.
+        );
+      }).toList()
+        ..sort((a, b) => b.turnoutPct.compareTo(a.turnoutPct));
+
+      // Assign ranks.
+      final ranked = branches.asMap().entries.map((entry) {
+        return BranchTurnout(
+          branchName: entry.value.branchName,
+          turnoutPct: entry.value.turnoutPct,
+          rank: entry.key + 1,
+          isMyBranch: entry.value.isMyBranch,
+        );
+      }).toList();
+
+      return Right(ranked);
     } on DioException catch (e) {
       return Left(_mapDioException(e));
     } catch (e) {

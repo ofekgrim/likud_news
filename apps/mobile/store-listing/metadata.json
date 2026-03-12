@@ -1,0 +1,18 @@
+{
+  "app_name": "מצודת הליכוד",
+  "app_name_en": "Metzudat HaLikud",
+  "bundle_id": "com.likud.news.metzudatHalikud",
+  "package_name": "com.likud.news.metzudat_halikud",
+  "primary_category": "News",
+  "secondary_category": "Social Networking",
+  "content_rating": "Everyone",
+  "privacy_policy_url": "https://metzudat.co.il/privacy",
+  "support_url": "https://metzudat.co.il/support",
+  "marketing_url": "https://metzudat.co.il",
+  "copyright": "\u00a9 2026 Likud Party",
+  "primary_locale": "he",
+  "supported_locales": ["he", "en"],
+  "minimum_ios_version": "15.0",
+  "minimum_android_sdk": 24,
+  "target_android_sdk": 34
+}

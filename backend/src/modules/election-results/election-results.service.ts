@@ -1,11 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { ElectionResult } from './entities/election-result.entity';
 import { TurnoutSnapshot } from './entities/turnout-snapshot.entity';
+import { KnessetListSlot, KnessetSlotType } from './entities/knesset-list-slot.entity';
 import { CreateResultDto } from './dto/create-result.dto';
 import { CreateTurnoutDto } from './dto/create-turnout.dto';
+import { AssignSlotDto } from './dto/assign-slot.dto';
+import { ConfirmSlotDto } from './dto/confirm-slot.dto';
 import { SseService } from '../sse/sse.service';
+
+const LIST_CACHE_TTL = 5000; // 5 seconds in ms
+const LEADERBOARD_CACHE_TTL = 5000; // 5 seconds in ms
 
 @Injectable()
 export class ElectionResultsService {
@@ -14,6 +28,9 @@ export class ElectionResultsService {
     private readonly resultRepository: Repository<ElectionResult>,
     @InjectRepository(TurnoutSnapshot)
     private readonly turnoutRepository: Repository<TurnoutSnapshot>,
+    @InjectRepository(KnessetListSlot)
+    private readonly slotRepository: Repository<KnessetListSlot>,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly sseService: SseService,
   ) {}
 
@@ -262,5 +279,204 @@ export class ElectionResultsService {
     }
 
     return qb.getMany();
+  }
+
+  // ===========================================================================
+  // Knesset List Assembly
+  // ===========================================================================
+
+  /**
+   * Get assembled list for an election, ordered by slotNumber ASC.
+   * Cached in Redis with 5s TTL.
+   */
+  async getAssembledList(electionId: string): Promise<KnessetListSlot[]> {
+    const cacheKey = `knesset-list:${electionId}`;
+    const cached = await this.cacheManager.get<string>(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    const slots = await this.slotRepository.find({
+      where: { electionId },
+      relations: ['candidate'],
+      order: { slotNumber: 'ASC' },
+    });
+
+    await this.cacheManager.set(cacheKey, JSON.stringify(slots), LIST_CACHE_TTL);
+    return slots;
+  }
+
+  /**
+   * Assign a candidate to a slot. Validates slot is not already confirmed.
+   * Invalidates Redis cache.
+   */
+  async assignSlot(dto: AssignSlotDto, adminId: string): Promise<KnessetListSlot> {
+    // Check if slot already exists for this election+slotNumber
+    let slot = await this.slotRepository.findOne({
+      where: { electionId: dto.electionId, slotNumber: dto.slotNumber },
+    });
+
+    if (slot && slot.isConfirmed) {
+      throw new BadRequestException(
+        `Slot ${dto.slotNumber} is already confirmed and cannot be reassigned`,
+      );
+    }
+
+    if (slot) {
+      // Update existing slot
+      slot.candidateId = dto.candidateId;
+      slot.slotType = dto.slotType;
+      slot.notes = dto.notes ?? slot.notes;
+      slot.assignedById = adminId;
+    } else {
+      // Create new slot
+      slot = this.slotRepository.create({
+        electionId: dto.electionId,
+        slotNumber: dto.slotNumber,
+        candidateId: dto.candidateId,
+        slotType: dto.slotType,
+        notes: dto.notes,
+        assignedById: adminId,
+      });
+    }
+
+    const saved = await this.slotRepository.save(slot);
+    await this.invalidateListCache(dto.electionId);
+    return saved;
+  }
+
+  /**
+   * Confirm a slot. Requires a different admin than who last modified it (dual confirmation).
+   * Sets isConfirmed=true, confirmedById, confirmedAt.
+   */
+  async confirmSlot(dto: ConfirmSlotDto, adminId: string): Promise<KnessetListSlot> {
+    const slot = await this.slotRepository.findOne({
+      where: { electionId: dto.electionId, slotNumber: dto.slotNumber },
+    });
+
+    if (!slot) {
+      throw new NotFoundException(
+        `Slot ${dto.slotNumber} not found for election ${dto.electionId}`,
+      );
+    }
+
+    if (!slot.candidateId) {
+      throw new BadRequestException(
+        `Slot ${dto.slotNumber} has no candidate assigned`,
+      );
+    }
+
+    if (slot.isConfirmed) {
+      throw new BadRequestException(
+        `Slot ${dto.slotNumber} is already confirmed`,
+      );
+    }
+
+    // Dual confirmation: the confirming admin must be different from the assigner
+    if (slot.assignedById === adminId) {
+      throw new ForbiddenException(
+        'Dual confirmation required: a different admin must confirm this slot',
+      );
+    }
+
+    slot.isConfirmed = true;
+    slot.confirmedById = adminId;
+    slot.confirmedAt = new Date();
+
+    const saved = await this.slotRepository.save(slot);
+    await this.invalidateListCache(dto.electionId);
+    return saved;
+  }
+
+  /**
+   * Remove candidate from an unconfirmed slot. Error if slot is confirmed.
+   */
+  async unassignSlot(electionId: string, slotNumber: number): Promise<void> {
+    const slot = await this.slotRepository.findOne({
+      where: { electionId, slotNumber },
+    });
+
+    if (!slot) {
+      throw new NotFoundException(
+        `Slot ${slotNumber} not found for election ${electionId}`,
+      );
+    }
+
+    if (slot.isConfirmed) {
+      throw new BadRequestException(
+        `Slot ${slotNumber} is confirmed and cannot be unassigned`,
+      );
+    }
+
+    await this.slotRepository.remove(slot);
+    await this.invalidateListCache(electionId);
+  }
+
+  /**
+   * Get candidates ranked by vote count with delta from previous update.
+   * Cached in Redis with 5s TTL.
+   */
+  async getLeaderboardWithDelta(
+    electionId: string,
+  ): Promise<{ candidateId: string; candidate: any; voteCount: number; percentage: number; delta: number; rank: number }[]> {
+    const cacheKey = `leaderboard-delta:${electionId}`;
+    const cached = await this.cacheManager.get<string>(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    // Get current aggregate results (stationId IS NULL)
+    const results = await this.resultRepository
+      .createQueryBuilder('result')
+      .leftJoinAndSelect('result.candidate', 'candidate')
+      .where('result.electionId = :electionId', { electionId })
+      .andWhere('result.stationId IS NULL')
+      .orderBy('result.voteCount', 'DESC')
+      .getMany();
+
+    const leaderboard = results.map((r, index) => ({
+      candidateId: r.candidateId,
+      candidate: r.candidate,
+      voteCount: r.voteCount,
+      percentage: parseFloat((r.percentage as any) ?? '0'),
+      delta: 0, // Delta would be computed from previous snapshot; defaulting to 0
+      rank: index + 1,
+    }));
+
+    await this.cacheManager.set(cacheKey, JSON.stringify(leaderboard), LEADERBOARD_CACHE_TTL);
+    return leaderboard;
+  }
+
+  /**
+   * Get slot statistics for an election.
+   */
+  async getSlotStatistics(electionId: string): Promise<{
+    totalSlots: number;
+    filledSlots: number;
+    confirmedSlots: number;
+    byType: Record<string, number>;
+  }> {
+    const slots = await this.slotRepository.find({
+      where: { electionId },
+    });
+
+    const totalSlots = slots.length;
+    const filledSlots = slots.filter((s) => s.candidateId !== null).length;
+    const confirmedSlots = slots.filter((s) => s.isConfirmed).length;
+
+    const byType: Record<string, number> = {};
+    for (const type of Object.values(KnessetSlotType)) {
+      byType[type] = slots.filter((s) => s.slotType === type).length;
+    }
+
+    return { totalSlots, filledSlots, confirmedSlots, byType };
+  }
+
+  /**
+   * Invalidate list cache for an election.
+   */
+  private async invalidateListCache(electionId: string): Promise<void> {
+    await this.cacheManager.del(`knesset-list:${electionId}`);
+    await this.cacheManager.del(`leaderboard-delta:${electionId}`);
   }
 }

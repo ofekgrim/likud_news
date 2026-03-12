@@ -25,6 +25,9 @@ void main() async {
 
       AppLogger.info('App starting...');
 
+      // Initialize Firebase early (before Crashlytics usage)
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
       // Catch Flutter framework errors (rendering, layout, etc.)
       FlutterError.onError = (details) {
         AppLogger.error(
@@ -72,9 +75,6 @@ void main() async {
           printChanges: false, // Transitions already cover this
         ),
       );
-
-      // Initialize Firebase
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
       // Initialize push notifications (router set later in app.dart)
       final pushService = getIt<PushNotificationService>();

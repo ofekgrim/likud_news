@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Put,
+  Patch,
   Post,
   Delete,
   Body,
@@ -22,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 import { AppUsersService } from './app-users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateNotificationPreferencesDto } from './dto/update-notification-preferences.dto';
 import { UpdateAvatarDto } from './dto/update-avatar.dto';
 import { VerifyMembershipDto } from './dto/verify-membership.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -82,6 +84,27 @@ export class AppUsersController {
   ) {
     await this.appUsersService.changePassword(userId, dto);
     return { message: 'Password changed successfully' };
+  }
+
+  @Get('me/notification-preferences')
+  @UseGuards(AppAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current notification preferences' })
+  @ApiResponse({ status: 200, description: 'Notification preferences returned' })
+  async getNotificationPreferences(@CurrentAppUser('id') userId: string) {
+    return this.appUsersService.getNotificationPreferences(userId);
+  }
+
+  @Patch('me/notification-preferences')
+  @UseGuards(AppAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update notification preferences' })
+  @ApiResponse({ status: 200, description: 'Notification preferences updated' })
+  async updateNotificationPreferences(
+    @CurrentAppUser('id') userId: string,
+    @Body() dto: UpdateNotificationPreferencesDto,
+  ) {
+    return this.appUsersService.updateNotificationPreferences(userId, dto);
   }
 
   @Post('me/verify-membership')

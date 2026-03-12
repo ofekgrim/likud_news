@@ -17,6 +17,9 @@ class PollingStation extends Equatable {
   final String? notes;
   final String? electionId;
   final bool isActive;
+  final int? avgWaitMinutes;
+  final String? crowdLevel;
+  final int? reportsCount;
 
   const PollingStation({
     required this.id,
@@ -34,6 +37,9 @@ class PollingStation extends Equatable {
     this.notes,
     this.electionId,
     this.isActive = true,
+    this.avgWaitMinutes,
+    this.crowdLevel,
+    this.reportsCount,
   });
 
   @override
@@ -53,5 +59,8 @@ class PollingStation extends Equatable {
         notes,
         electionId,
         isActive,
+        avgWaitMinutes,
+        crowdLevel,
+        reportsCount,
       ];
 }

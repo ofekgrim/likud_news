@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../entities/leaderboard_entry.dart';
+import '../entities/tier_info.dart';
 import '../entities/user_badge.dart';
 import '../entities/user_points_entry.dart';
 import '../entities/user_streak.dart';
@@ -55,4 +56,10 @@ abstract class GamificationRepository {
     String action, {
     Map<String, dynamic>? metadata,
   });
+
+  /// Uses a freeze token to protect the current streak.
+  Future<Either<Failure, UserStreak>> useStreakFreeze();
+
+  /// Fetches the authenticated user's tier progression info.
+  Future<Either<Failure, TierInfo>> getTierInfo();
 }

@@ -141,3 +141,13 @@ jobs:
 
       - name: Build iOS (no codesign)
         run: flutter build ios --release --no-codesign
+
+      - name: Upload iOS dSYMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-dsyms
+          path: |
+            apps/mobile/build/ios/Release-iphoneos/*.dSYM
+            apps/mobile/ios/build/Release-iphoneos/*.dSYM
+          if-no-files-found: warn
+          retention-days: 30

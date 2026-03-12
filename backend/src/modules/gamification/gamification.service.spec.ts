@@ -2,11 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GamificationService } from './gamification.service';
+import { DailyMissionService } from './daily-mission.service';
 import { UserPoints, PointAction } from './entities/user-points.entity';
 import { UserBadge, BadgeType } from './entities/user-badge.entity';
 import { UserStreak } from './entities/user-streak.entity';
+import { StreakMilestone } from './entities/streak-milestone.entity';
 import { DailyQuizAttempt } from './entities/daily-quiz-attempt.entity';
 import { AppUser } from '../app-users/entities/app-user.entity';
+
+const mockDailyMissionService = {
+  autoTrackMission: jest.fn().mockResolvedValue(undefined),
+};
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -51,6 +57,7 @@ describe('GamificationService', () => {
   let userPointsRepository: jest.Mocked<Repository<UserPoints>>;
   let userBadgeRepository: jest.Mocked<Repository<UserBadge>>;
   let userStreakRepository: jest.Mocked<Repository<UserStreak>>;
+  let streakMilestoneRepository: jest.Mocked<Repository<StreakMilestone>>;
   let dailyQuizAttemptRepository: jest.Mocked<Repository<DailyQuizAttempt>>;
   let appUserRepository: jest.Mocked<Repository<AppUser>>;
 
@@ -61,8 +68,10 @@ describe('GamificationService', () => {
         { provide: getRepositoryToken(UserPoints), useFactory: mockRepository },
         { provide: getRepositoryToken(UserBadge), useFactory: mockRepository },
         { provide: getRepositoryToken(UserStreak), useFactory: mockRepository },
+        { provide: getRepositoryToken(StreakMilestone), useFactory: mockRepository },
         { provide: getRepositoryToken(DailyQuizAttempt), useFactory: mockRepository },
         { provide: getRepositoryToken(AppUser), useFactory: mockRepository },
+        { provide: DailyMissionService, useValue: mockDailyMissionService },
       ],
     }).compile();
 
@@ -70,8 +79,13 @@ describe('GamificationService', () => {
     userPointsRepository = module.get(getRepositoryToken(UserPoints));
     userBadgeRepository = module.get(getRepositoryToken(UserBadge));
     userStreakRepository = module.get(getRepositoryToken(UserStreak));
+    streakMilestoneRepository = module.get(getRepositoryToken(StreakMilestone));
     dailyQuizAttemptRepository = module.get(getRepositoryToken(DailyQuizAttempt));
     appUserRepository = module.get(getRepositoryToken(AppUser));
+
+    // Reset daily mission mock
+    mockDailyMissionService.autoTrackMission.mockReset();
+    mockDailyMissionService.autoTrackMission.mockResolvedValue(undefined);
 
     // Default streak mock — individual tests can override
     userStreakRepository.findOne.mockResolvedValue({
@@ -79,8 +93,18 @@ describe('GamificationService', () => {
       currentStreak: 0,
       longestStreak: 0,
       lastActivityDate: null,
+      freezeTokens: 0,
+      freezeTokensUsed: 0,
+      lastFreezeUsedDate: null,
+      tier: 1,
     } as any);
     userStreakRepository.save.mockImplementation(async (s) => s as UserStreak);
+
+    // Default streakMilestone mocks
+    streakMilestoneRepository.findOne.mockResolvedValue(null);
+    streakMilestoneRepository.find.mockResolvedValue([]);
+    streakMilestoneRepository.create.mockImplementation((data) => data as StreakMilestone);
+    streakMilestoneRepository.save.mockImplementation(async (s) => s as StreakMilestone);
 
     // Default dailyQuizAttempt count mock
     dailyQuizAttemptRepository.count.mockResolvedValue(0);
@@ -113,6 +137,10 @@ describe('GamificationService', () => {
       currentStreak: 0,
       longestStreak: 0,
       lastActivityDate: null,
+      freezeTokens: 0,
+      freezeTokensUsed: 0,
+      lastFreezeUsedDate: null,
+      tier: 1,
     } as any);
 
     // dailyQuizAttempt count — 0 by default
@@ -486,6 +514,10 @@ describe('GamificationService', () => {
         currentStreak: 7,
         longestStreak: 7,
         lastActivityDate: '2026-03-09',
+        freezeTokens: 0,
+        freezeTokensUsed: 0,
+        lastFreezeUsedDate: null,
+        tier: 1,
       } as any);
 
       dailyQuizAttemptRepository.count.mockResolvedValue(0);
@@ -688,6 +720,304 @@ describe('GamificationService', () => {
       await service.getUserRank('user-1', 'all_time');
 
       expect(mockQb.where).not.toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // isShabbatGracePeriod
+  // ---------------------------------------------------------------------------
+  describe('isShabbatGracePeriod', () => {
+    it('should grant grace for Friday→Sunday (2-day gap)', () => {
+      // Friday 2026-03-13, Sunday 2026-03-15
+      expect(service.isShabbatGracePeriod('2026-03-13', '2026-03-15')).toBe(true);
+    });
+
+    it('should NOT grant grace for Thursday→Saturday', () => {
+      // Thursday 2026-03-12, Saturday 2026-03-14
+      expect(service.isShabbatGracePeriod('2026-03-12', '2026-03-14')).toBe(false);
+    });
+
+    it('should NOT grant grace for Friday→Monday (3-day gap)', () => {
+      // Friday 2026-03-13, Monday 2026-03-16
+      expect(service.isShabbatGracePeriod('2026-03-13', '2026-03-16')).toBe(false);
+    });
+
+    it('should NOT grant grace for Wednesday→Friday', () => {
+      expect(service.isShabbatGracePeriod('2026-03-11', '2026-03-13')).toBe(false);
+    });
+
+    it('should NOT grant grace for same-day (Friday→Friday)', () => {
+      expect(service.isShabbatGracePeriod('2026-03-13', '2026-03-13')).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getTierForXp
+  // ---------------------------------------------------------------------------
+  describe('getTierForXp', () => {
+    it('should return tier 1 (פעיל) for 0 XP', () => {
+      const tier = service.getTierForXp(0);
+      expect(tier.tier).toBe(1);
+      expect(tier.name).toBe('פעיל');
+      expect(tier.nameEn).toBe('Active');
+    });
+
+    it('should return tier 1 for 499 XP (just below tier 2)', () => {
+      const tier = service.getTierForXp(499);
+      expect(tier.tier).toBe(1);
+      expect(tier.name).toBe('פעיל');
+    });
+
+    it('should return tier 2 (מוביל) for 500 XP', () => {
+      const tier = service.getTierForXp(500);
+      expect(tier.tier).toBe(2);
+      expect(tier.name).toBe('מוביל');
+      expect(tier.nameEn).toBe('Leader');
+    });
+
+    it('should return tier 2 for 1999 XP (just below tier 3)', () => {
+      const tier = service.getTierForXp(1999);
+      expect(tier.tier).toBe(2);
+    });
+
+    it('should return tier 3 (שגריר) for 2000 XP', () => {
+      const tier = service.getTierForXp(2000);
+      expect(tier.tier).toBe(3);
+      expect(tier.name).toBe('שגריר');
+      expect(tier.nameEn).toBe('Ambassador');
+    });
+
+    it('should return tier 3 for 7499 XP (just below tier 4)', () => {
+      const tier = service.getTierForXp(7499);
+      expect(tier.tier).toBe(3);
+    });
+
+    it('should return tier 4 (גנרל) for 7500 XP', () => {
+      const tier = service.getTierForXp(7500);
+      expect(tier.tier).toBe(4);
+      expect(tier.name).toBe('גנרל');
+      expect(tier.nameEn).toBe('General');
+    });
+
+    it('should return tier 4 for 24999 XP (just below tier 5)', () => {
+      const tier = service.getTierForXp(24999);
+      expect(tier.tier).toBe(4);
+    });
+
+    it('should return tier 5 (אריה) for 25000 XP', () => {
+      const tier = service.getTierForXp(25000);
+      expect(tier.tier).toBe(5);
+      expect(tier.name).toBe('אריה');
+      expect(tier.nameEn).toBe('Lion');
+    });
+
+    it('should return tier 2 for 999 XP (between tier 2 and 3)', () => {
+      const tier = service.getTierForXp(999);
+      expect(tier.tier).toBe(2);
+    });
+
+    it('should return tier 5 for 100000 XP (above max threshold)', () => {
+      const tier = service.getTierForXp(100000);
+      expect(tier.tier).toBe(5);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getTierInfo
+  // ---------------------------------------------------------------------------
+  describe('getTierInfo', () => {
+    it('should return correct tier info structure for a tier 3 user', async () => {
+      const mockQb = mockQueryBuilder();
+      mockQb.getRawOne.mockResolvedValue({ totalPoints: '3500' });
+      userPointsRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+
+      const result = await service.getTierInfo('user-1');
+
+      expect(result.currentTier).toBe(3);
+      expect(result.tierName).toBe('שגריר');
+      expect(result.tierNameEn).toBe('Ambassador');
+      expect(result.totalXp).toBe(3500);
+      expect(result.nextTierXp).toBe(7500);
+      expect(result.progressToNextTier).toBeCloseTo(0.273, 2);
+      expect(result.unlockedFeatures).toContain('ama_early_access');
+      expect(result.unlockedFeatures).toContain('vip_events');
+      expect(result.unlockedFeatures).not.toContain('mk_qa');
+      expect(result.lockedFeatures).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ feature: 'mk_qa', requiredTier: 4 }),
+          expect.objectContaining({ feature: 'merchandise', requiredTier: 5 }),
+        ]),
+      );
+    });
+
+    it('should return progressToNextTier=1.0 for max tier user', async () => {
+      const mockQb = mockQueryBuilder();
+      mockQb.getRawOne.mockResolvedValue({ totalPoints: '30000' });
+      userPointsRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+
+      const result = await service.getTierInfo('user-1');
+
+      expect(result.currentTier).toBe(5);
+      expect(result.nextTierXp).toBeNull();
+      expect(result.progressToNextTier).toBe(1.0);
+      expect(result.unlockedFeatures).toHaveLength(4);
+      expect(result.lockedFeatures).toHaveLength(0);
+    });
+
+    it('should return tier 1 with no unlocked features for new user', async () => {
+      const mockQb = mockQueryBuilder();
+      mockQb.getRawOne.mockResolvedValue({ totalPoints: '0' });
+      userPointsRepository.createQueryBuilder.mockReturnValue(mockQb as any);
+
+      const result = await service.getTierInfo('user-new');
+
+      expect(result.currentTier).toBe(1);
+      expect(result.totalXp).toBe(0);
+      expect(result.nextTierXp).toBe(500);
+      expect(result.progressToNextTier).toBe(0);
+      expect(result.unlockedFeatures).toHaveLength(0);
+      expect(result.lockedFeatures).toHaveLength(4);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // checkTierPromotion
+  // ---------------------------------------------------------------------------
+  describe('checkTierPromotion', () => {
+    it('should return true and update tier when promoted', async () => {
+      userStreakRepository.findOne.mockResolvedValue({
+        userId: 'user-1',
+        currentStreak: 5,
+        longestStreak: 5,
+        lastActivityDate: '2026-03-10',
+        freezeTokens: 0,
+        freezeTokensUsed: 0,
+        lastFreezeUsedDate: null,
+        tier: 1,
+      } as any);
+
+      const result = await service.checkTierPromotion('user-1', 500);
+
+      expect(result).toBe(true);
+      expect(userStreakRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ tier: 2 }),
+      );
+    });
+
+    it('should return false when tier unchanged', async () => {
+      userStreakRepository.findOne.mockResolvedValue({
+        userId: 'user-1',
+        currentStreak: 5,
+        longestStreak: 5,
+        lastActivityDate: '2026-03-10',
+        freezeTokens: 0,
+        freezeTokensUsed: 0,
+        lastFreezeUsedDate: null,
+        tier: 2,
+      } as any);
+
+      const result = await service.checkTierPromotion('user-1', 600);
+
+      expect(result).toBe(false);
+    });
+
+    it('should handle promotion to max tier', async () => {
+      userStreakRepository.findOne.mockResolvedValue({
+        userId: 'user-1',
+        currentStreak: 100,
+        longestStreak: 100,
+        lastActivityDate: '2026-03-10',
+        freezeTokens: 0,
+        freezeTokensUsed: 0,
+        lastFreezeUsedDate: null,
+        tier: 4,
+      } as any);
+
+      const result = await service.checkTierPromotion('user-1', 25000);
+
+      expect(result).toBe(true);
+      expect(userStreakRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ tier: 5 }),
+      );
+    });
+
+    it('should handle tier demotion (edge case)', async () => {
+      // If XP somehow decreased (e.g., admin adjustment)
+      userStreakRepository.findOne.mockResolvedValue({
+        userId: 'user-1',
+        currentStreak: 5,
+        longestStreak: 5,
+        lastActivityDate: '2026-03-10',
+        freezeTokens: 0,
+        freezeTokensUsed: 0,
+        lastFreezeUsedDate: null,
+        tier: 3,
+      } as any);
+
+      const result = await service.checkTierPromotion('user-1', 400);
+
+      expect(result).toBe(true);
+      expect(userStreakRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({ tier: 1 }),
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // useFreeze
+  // ---------------------------------------------------------------------------
+  describe('useFreeze', () => {
+    it('should decrement freeze tokens and extend lastActivityDate', async () => {
+      userStreakRepository.findOne.mockResolvedValue({
+        userId: 'user-1',
+        currentStreak: 5,
+        longestStreak: 5,
+        lastActivityDate: '2026-03-10',
+        freezeTokens: 2,
+        freezeTokensUsed: 1,
+        lastFreezeUsedDate: null,
+        tier: 1,
+      } as any);
+
+      const result = await service.useFreeze('user-1');
+
+      expect(result.freezeTokens).toBe(1);
+      expect(result.freezeTokensUsed).toBe(2);
+      expect(result.lastFreezeUsedDate).toBeDefined();
+    });
+
+    it('should throw BadRequestException when no freeze tokens available', async () => {
+      userStreakRepository.findOne.mockResolvedValue({
+        userId: 'user-1',
+        currentStreak: 5,
+        longestStreak: 5,
+        lastActivityDate: '2026-03-10',
+        freezeTokens: 0,
+        freezeTokensUsed: 0,
+        lastFreezeUsedDate: null,
+        tier: 1,
+      } as any);
+
+      await expect(service.useFreeze('user-1')).rejects.toThrow(
+        'No freeze tokens available',
+      );
+    });
+
+    it('should throw BadRequestException when no active streak', async () => {
+      userStreakRepository.findOne.mockResolvedValue({
+        userId: 'user-1',
+        currentStreak: 0,
+        longestStreak: 5,
+        lastActivityDate: '2026-03-05',
+        freezeTokens: 2,
+        freezeTokensUsed: 0,
+        lastFreezeUsedDate: null,
+        tier: 1,
+      } as any);
+
+      await expect(service.useFreeze('user-1')).rejects.toThrow(
+        'No active streak to freeze',
+      );
     });
   });
 });

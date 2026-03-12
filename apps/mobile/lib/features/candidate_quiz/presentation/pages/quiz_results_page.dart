@@ -12,6 +12,8 @@ import '../bloc/quiz_bloc.dart';
 import '../widgets/candidate_match_card.dart';
 import '../widgets/community_comparison_section.dart';
 import '../widgets/match_percentage_circle.dart';
+import '../../../../core/sharing/share_button.dart';
+import '../../../../core/sharing/models/share_link.dart';
 
 /// Results page showing ranked candidate matches after quiz completion.
 ///
@@ -66,9 +68,31 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
             ),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.share_outlined, color: AppColors.likudBlue),
-              onPressed: () => _shareResults(context),
+            BlocBuilder<QuizBloc, QuizState>(
+              builder: (context, state) {
+                if (state is QuizResultsLoaded && state.matchResults.isNotEmpty) {
+                  final sorted = List<CandidateMatch>.from(state.matchResults)
+                    ..sort((a, b) => b.matchPercentage.compareTo(a.matchPercentage));
+                  final best = sorted.first;
+                  return WhatsAppShareButton(
+                    contentType: ShareContentType.quizResult,
+                    contentId: electionId,
+                    shareText: 'quiz_share_text'.tr(args: [
+                      best.candidateName,
+                      best.matchPercentage.toString(),
+                    ]),
+                    title: 'quiz_share_header'.tr(),
+                    description: 'quiz_share_text'.tr(args: [
+                      best.candidateName,
+                      best.matchPercentage.toString(),
+                    ]),
+                  );
+                }
+                return IconButton(
+                  icon: const Icon(Icons.share_outlined, color: AppColors.likudBlue),
+                  onPressed: () => _shareResults(context),
+                );
+              },
             ),
           ],
         ),
@@ -309,27 +333,50 @@ class _QuizResultsPageState extends State<QuizResultsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Share Results button
-        SizedBox(
-          height: 48,
-          child: ElevatedButton.icon(
-            onPressed: () => _shareResults(context),
-            icon: const Icon(Icons.share_outlined, size: 18),
-            label: Text('quiz_share_results'.tr()),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.likudBlue,
-              foregroundColor: AppColors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        // WhatsApp Share Results button
+        BlocBuilder<QuizBloc, QuizState>(
+          builder: (context, state) {
+            if (state is QuizResultsLoaded && state.matchResults.isNotEmpty) {
+              final sorted = List<CandidateMatch>.from(state.matchResults)
+                ..sort((a, b) => b.matchPercentage.compareTo(a.matchPercentage));
+              final best = sorted.first;
+              return WhatsAppShareButton(
+                contentType: ShareContentType.quizResult,
+                contentId: electionId,
+                shareText: 'quiz_share_text'.tr(args: [
+                  best.candidateName,
+                  best.matchPercentage.toString(),
+                ]),
+                title: 'quiz_share_header'.tr(),
+                description: 'quiz_share_text'.tr(args: [
+                  best.candidateName,
+                  best.matchPercentage.toString(),
+                ]),
+                showLabel: true,
+              );
+            }
+            return SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () => _shareResults(context),
+                icon: const Icon(Icons.share_outlined, size: 18),
+                label: Text('quiz_share_results'.tr()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.likudBlue,
+                  foregroundColor: AppColors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                  textStyle: const TextStyle(
+                    fontFamily: 'Heebo',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-              elevation: 0,
-              textStyle: const TextStyle(
-                fontFamily: 'Heebo',
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+            );
+          },
         ),
         const SizedBox(height: 12),
         // Retake Quiz button

@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Candidate } from './entities/candidate.entity';
 import { CreateCandidateDto } from './dto/create-candidate.dto';
 import { UpdateCandidateDto } from './dto/update-candidate.dto';
@@ -173,5 +177,81 @@ export class CandidatesService {
       .execute();
 
     return this.findOne(id);
+  }
+
+  /**
+   * Compare 2-4 candidates side-by-side.
+   * Returns candidate profiles and a quiz positions comparison matrix.
+   */
+  async compareCandidates(ids: string[]): Promise<{
+    candidates: {
+      id: string;
+      fullName: string;
+      slug: string;
+      photoUrl: string | null;
+      position: string | null;
+      district: string | null;
+      endorsementCount: number;
+      bio: string | null;
+      socialLinks: Record<string, string>;
+      quizPositions: Record<string, number>;
+    }[];
+    positionComparison: {
+      questionId: string;
+      positions: { candidateId: string; value: number | null }[];
+    }[];
+  }> {
+    const candidates = await this.candidateRepository.find({
+      where: { id: In(ids) },
+      relations: ['election'],
+    });
+
+    if (candidates.length < 2) {
+      throw new BadRequestException(
+        `Only ${candidates.length} of the requested candidates were found. ` +
+          'At least 2 valid candidate IDs are required for comparison.',
+      );
+    }
+
+    // Preserve the order requested by the caller
+    const idOrder = new Map(ids.map((id, i) => [id, i]));
+    candidates.sort(
+      (a, b) => (idOrder.get(a.id) ?? 0) - (idOrder.get(b.id) ?? 0),
+    );
+
+    // Collect every unique questionId across all candidates' quizPositions
+    const questionIdSet = new Set<string>();
+    for (const c of candidates) {
+      if (c.quizPositions) {
+        for (const qId of Object.keys(c.quizPositions)) {
+          questionIdSet.add(qId);
+        }
+      }
+    }
+
+    // Build the comparison matrix: one row per question, with each candidate's value
+    const positionComparison = Array.from(questionIdSet).map((questionId) => ({
+      questionId,
+      positions: candidates.map((c) => ({
+        candidateId: c.id,
+        value: c.quizPositions?.[questionId] ?? null,
+      })),
+    }));
+
+    return {
+      candidates: candidates.map((c) => ({
+        id: c.id,
+        fullName: c.fullName,
+        slug: c.slug,
+        photoUrl: c.photoUrl ?? null,
+        position: c.position ?? null,
+        district: c.district ?? null,
+        endorsementCount: c.endorsementCount,
+        bio: c.bio ?? null,
+        socialLinks: c.socialLinks ?? {},
+        quizPositions: c.quizPositions ?? {},
+      })),
+      positionComparison,
+    };
   }
 }

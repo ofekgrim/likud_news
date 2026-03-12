@@ -42,12 +42,16 @@ import { EventRsvp } from './modules/campaign-events/entities/event-rsvp.entity'
 import { UserPoints } from './modules/gamification/entities/user-points.entity';
 import { UserBadge } from './modules/gamification/entities/user-badge.entity';
 import { UserStreak } from './modules/gamification/entities/user-streak.entity';
+import { StreakMilestone } from './modules/gamification/entities/streak-milestone.entity';
 import { DailyQuiz } from './modules/gamification/entities/daily-quiz.entity';
 import { DailyQuizAttempt } from './modules/gamification/entities/daily-quiz-attempt.entity';
+import { DailyMission } from './modules/gamification/entities/daily-mission.entity';
+import { UserDailyMission } from './modules/gamification/entities/user-daily-mission.entity';
 import { PollingStation } from './modules/polling-stations/entities/polling-station.entity';
 import { StationReport } from './modules/polling-stations/entities/station-report.entity';
 import { ElectionResult } from './modules/election-results/entities/election-result.entity';
 import { TurnoutSnapshot } from './modules/election-results/entities/turnout-snapshot.entity';
+import { KnessetListSlot } from './modules/election-results/entities/knesset-list-slot.entity';
 import { CommunityPoll } from './modules/community-polls/entities/community-poll.entity';
 import { PollVote } from './modules/community-polls/entities/poll-vote.entity';
 import { ArticleAnalytics } from './modules/article-analytics/entities/article-analytics.entity';
@@ -57,6 +61,42 @@ import { NotificationTemplate } from './modules/notifications/entities/notificat
 import { NotificationLog } from './modules/notifications/entities/notification-log.entity';
 import { NotificationSchedule } from './modules/notifications/entities/notification-schedule.entity';
 import { NotificationReceipt } from './modules/notifications/entities/notification-receipt.entity';
+
+// Sharing entities
+import { ShareLink } from './modules/sharing/entities/share-link.entity';
+
+// Candidate Matcher entities
+import { PolicyStatement } from './modules/candidate-matcher/entities/policy-statement.entity';
+import { CandidatePosition } from './modules/candidate-matcher/entities/candidate-position.entity';
+import { MemberQuizResponse } from './modules/candidate-matcher/entities/member-quiz-response.entity';
+import { QuizMatchResult } from './modules/candidate-matcher/entities/quiz-match-result.entity';
+
+// GOTV entities
+import { GotvEngagement } from './modules/gotv/entities/gotv-engagement.entity';
+
+// Branch entities
+import { Branch } from './modules/branches/entities/branch.entity';
+import { BranchWeeklyScore } from './modules/branches/entities/branch-weekly-score.entity';
+
+// AI entities
+import { ArticleAiSummary } from './modules/ai/entities/article-ai-summary.entity';
+import { ChatbotSession } from './modules/ai/entities/chatbot-session.entity';
+import { ArticleEmbedding } from './modules/ai/entities/article-embedding.entity';
+
+// AMA entities
+import { AmaSession } from './modules/ama/entities/ama-session.entity';
+import { AmaQuestion } from './modules/ama/entities/ama-question.entity';
+
+// Donation entities
+import { Donation } from './modules/donations/entities/donation.entity';
+
+// Subscription entities
+import { MemberSubscription } from './modules/subscriptions/entities/member-subscription.entity';
+
+// Ad Marketplace entities
+import { CandidateAdPlacement } from './modules/ads/entities/candidate-ad-placement.entity';
+import { CompanyAdvertiser } from './modules/ads/entities/company-advertiser.entity';
+import { CompanyAd } from './modules/ads/entities/company-ad.entity';
 
 // Feature modules
 import { ArticlesModule } from './modules/articles/articles.module';
@@ -96,7 +136,31 @@ import { CommunityPollsModule } from './modules/community-polls/community-polls.
 import { ArticleAnalyticsModule } from './modules/article-analytics/article-analytics.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { SharingModule } from './modules/sharing/sharing.module';
 import { HealthModule } from './modules/health/health.module';
+import { GotvModule } from './modules/gotv/gotv.module';
+import { CandidateMatcherModule } from './modules/candidate-matcher/candidate-matcher.module';
+
+// Branches
+import { BranchesModule } from './modules/branches/branches.module';
+
+// AMA (Ask Me Anything)
+import { AmaModule } from './modules/ama/ama.module';
+
+// Donations
+import { DonationsModule } from './modules/donations/donations.module';
+
+// Subscriptions
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+
+// Ads
+import { AdsModule } from './modules/ads/ads.module';
+
+// AI
+import { AiModule } from './modules/ai/ai.module';
+
+// Realtime (WebSocket)
+import { RealtimeModule } from './modules/realtime/realtime.module';
 
 @Module({
   imports: [
@@ -191,13 +255,17 @@ import { HealthModule } from './modules/health/health.module';
           UserPoints,
           UserBadge,
           UserStreak,
+          StreakMilestone,
           DailyQuiz,
           DailyQuizAttempt,
+          DailyMission,
+          UserDailyMission,
           // Polling & Results entities
           PollingStation,
           StationReport,
           ElectionResult,
           TurnoutSnapshot,
+          KnessetListSlot,
           CommunityPoll,
           PollVote,
           ArticleAnalytics,
@@ -206,6 +274,33 @@ import { HealthModule } from './modules/health/health.module';
           NotificationLog,
           NotificationSchedule,
           NotificationReceipt,
+          // Sharing entities
+          ShareLink,
+          // Candidate Matcher entities
+          PolicyStatement,
+          CandidatePosition,
+          MemberQuizResponse,
+          QuizMatchResult,
+          // GOTV entities
+          GotvEngagement,
+          // Branch entities
+          Branch,
+          BranchWeeklyScore,
+          // AMA entities
+          AmaSession,
+          AmaQuestion,
+          // Donation entities
+          Donation,
+          // Subscription entities
+          MemberSubscription,
+          // Ad Marketplace entities
+          CandidateAdPlacement,
+          CompanyAdvertiser,
+          CompanyAd,
+          // AI entities
+          ArticleAiSummary,
+          ChatbotSession,
+          ArticleEmbedding,
         ],
         migrations: ['dist/database/migrations/*{.ts,.js}'],
       }),
@@ -251,6 +346,36 @@ import { HealthModule } from './modules/health/health.module';
 
     // Notifications
     NotificationsModule,
+
+    // Sharing
+    SharingModule,
+
+    // Candidate Matcher
+    CandidateMatcherModule,
+
+    // GOTV
+    GotvModule,
+
+    // Branches
+    BranchesModule,
+
+    // AMA (Ask Me Anything)
+    AmaModule,
+
+    // Donations
+    DonationsModule,
+
+    // Subscriptions
+    SubscriptionsModule,
+
+    // Ads (Candidate Ad Marketplace)
+    AdsModule,
+
+    // AI
+    AiModule,
+
+    // Realtime (WebSocket)
+    RealtimeModule,
 
     // Health
     HealthModule,

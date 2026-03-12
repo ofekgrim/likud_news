@@ -1,11 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { FeedItemDto, FeedItemType } from './dto/feed-item.dto';
+import { UserFollowsMap } from '../user-follows/user-follows.service';
 
 /**
  * Feed algorithm service that computes priority scores and interleaves content.
  *
- * Priority Algorithm:
+ * Priority Algorithm (standard):
  * priority = typeWeight + pinnedBonus + breakingBonus + recencyBoost + engagementBoost
+ *
+ * Personalized Priority Algorithm:
+ * score = base_recency_score
+ *       + (followed_category ? +3 : 0)
+ *       + (followed_member ? +5 : 0)
+ *       + (followed_author ? +4 : 0)
+ *       + (followed_tag ? +2 : 0)
+ *       + recency_decay      // -1 per hour since publish (capped at -24)
+ *       + popularity_boost   // min(viewCount / 100, 5)
  *
  * - typeWeight: Base priority by type (election=1000, article=500, poll=400, event=300)
  * - pinnedBonus: +500 for pinned items
@@ -26,6 +36,8 @@ export class FeedAlgorithmService {
     [FeedItemType.POLL]: 400,
     [FeedItemType.EVENT]: 300,
     [FeedItemType.QUIZ_PROMPT]: 200,
+    [FeedItemType.COMPANY_AD]: 0, // injected positionally, not by score
+    [FeedItemType.CANDIDATE_AD]: 0, // injected positionally, not by score
   };
 
   /**
@@ -64,6 +76,76 @@ export class FeedAlgorithmService {
     priority += this.computeEngagementBoost(item);
 
     return Math.round(priority);
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Personalized Priority
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Compute personalized priority score for a feed item based on user follows.
+   *
+   * Formula:
+   *   score = base_recency_score (10 for items < 1 hour, decaying)
+   *         + (followed_category ? +3 : 0)
+   *         + (followed_member   ? +5 : 0)   — per matching member
+   *         + (followed_author   ? +4 : 0)
+   *         + (followed_tag      ? +2 : 0)   — per matching tag
+   *         + recency_decay                   — -1 per hour (max -24)
+   *         + popularity_boost                — min(viewCount / 100, 5)
+   *
+   * Non-article items receive base_recency_score + recency_decay only
+   * (no follow-based boosts, since follows apply to article metadata).
+   */
+  computePersonalizedPriority(
+    item: FeedItemDto,
+    userFollows: UserFollowsMap,
+  ): number {
+    let score = 0;
+
+    // 1. Base recency score: 10 for items < 1 hour old, decaying by 1 per hour
+    const ageHours = this.getAgeHours(item.publishedAt);
+    score += Math.max(0, 10 - Math.floor(ageHours));
+
+    // 2. Follow-based boosts (articles only — follow data maps to article metadata)
+    if (item.type === FeedItemType.ARTICLE && item.article) {
+      // Category follow boost (+3)
+      if (item.article.categoryId && userFollows.categories.has(item.article.categoryId)) {
+        score += 3;
+      }
+
+      // Member follow boost (+5 per matching member)
+      if (item.article.memberIds && item.article.memberIds.length > 0) {
+        for (const memberId of item.article.memberIds) {
+          if (userFollows.members.has(memberId)) {
+            score += 5;
+          }
+        }
+      }
+
+      // Author follow boost (+4)
+      if (item.article.authorId && userFollows.authors.has(item.article.authorId)) {
+        score += 4;
+      }
+
+      // Tag follow boost (+2 per matching tag)
+      if (item.article.tagIds && item.article.tagIds.length > 0) {
+        for (const tagId of item.article.tagIds) {
+          if (userFollows.tags.has(tagId)) {
+            score += 2;
+          }
+        }
+      }
+
+      // Popularity boost: viewCount / 100, capped at +5
+      score += Math.min((item.article.viewCount || 0) / 100, 5);
+    }
+
+    // 3. Recency decay: -1 per hour since publish, capped at -24
+    const decay = Math.min(Math.floor(ageHours), 24);
+    score -= decay;
+
+    return score;
   }
 
   /**
@@ -224,6 +306,8 @@ export class FeedAlgorithmService {
       [FeedItemType.ELECTION_UPDATE]: 0,
       [FeedItemType.QUIZ_PROMPT]: 0,
       [FeedItemType.DAILY_QUIZ]: 0,
+      [FeedItemType.COMPANY_AD]: 0,
+      [FeedItemType.CANDIDATE_AD]: 0,
     };
 
     const limits: Record<FeedItemType, number> = {
@@ -233,6 +317,8 @@ export class FeedAlgorithmService {
       [FeedItemType.ELECTION_UPDATE]: 1,
       [FeedItemType.QUIZ_PROMPT]: 1,
       [FeedItemType.DAILY_QUIZ]: 1,
+      [FeedItemType.COMPANY_AD]: Infinity, // injected positionally, not capped here
+      [FeedItemType.CANDIDATE_AD]: Infinity, // injected positionally, not capped here
     };
 
     for (const item of items) {

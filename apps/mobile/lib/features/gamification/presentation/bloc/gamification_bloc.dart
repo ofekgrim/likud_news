@@ -5,12 +5,15 @@ import 'package:injectable/injectable.dart';
 
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/leaderboard_entry.dart';
+import '../../domain/entities/tier_info.dart';
 import '../../domain/entities/user_badge.dart';
 import '../../domain/entities/user_streak.dart';
 import '../../domain/repositories/gamification_repository.dart';
 import '../../domain/usecases/get_leaderboard.dart';
+import '../../domain/usecases/get_tier_info.dart';
 import '../../domain/usecases/get_user_badges.dart';
 import '../../domain/usecases/get_user_points.dart';
+import '../../domain/usecases/use_streak_freeze.dart';
 
 // ---------------------------------------------------------------------------
 // Period enum
@@ -80,6 +83,21 @@ final class ChangePeriod extends GamificationEvent {
   List<Object?> get props => [period];
 }
 
+/// Loads just the streak data (for home screen compact widget).
+final class LoadStreak extends GamificationEvent {
+  const LoadStreak();
+}
+
+/// Uses a freeze token to protect the current streak.
+final class UseFreeze extends GamificationEvent {
+  const UseFreeze();
+}
+
+/// Loads the authenticated user's tier progression info.
+final class LoadTierInfo extends GamificationEvent {
+  const LoadTierInfo();
+}
+
 // ---------------------------------------------------------------------------
 // States
 // ---------------------------------------------------------------------------
@@ -110,6 +128,7 @@ final class GamificationLoaded extends GamificationState {
   final List<LeaderboardEntry> leaderboard;
   final GamificationPeriod selectedPeriod;
   final UserStreak streak;
+  final TierInfo? tierInfo;
 
   const GamificationLoaded({
     this.totalPoints = 0,
@@ -118,6 +137,7 @@ final class GamificationLoaded extends GamificationState {
     this.leaderboard = const [],
     this.selectedPeriod = GamificationPeriod.weekly,
     this.streak = const UserStreak(),
+    this.tierInfo,
   });
 
   /// Creates a copy with optional overrides.
@@ -128,6 +148,7 @@ final class GamificationLoaded extends GamificationState {
     List<LeaderboardEntry>? leaderboard,
     GamificationPeriod? selectedPeriod,
     UserStreak? streak,
+    TierInfo? tierInfo,
   }) {
     return GamificationLoaded(
       totalPoints: totalPoints ?? this.totalPoints,
@@ -136,6 +157,7 @@ final class GamificationLoaded extends GamificationState {
       leaderboard: leaderboard ?? this.leaderboard,
       selectedPeriod: selectedPeriod ?? this.selectedPeriod,
       streak: streak ?? this.streak,
+      tierInfo: tierInfo ?? this.tierInfo,
     );
   }
 
@@ -147,6 +169,7 @@ final class GamificationLoaded extends GamificationState {
         leaderboard,
         selectedPeriod,
         streak,
+        tierInfo,
       ];
 }
 
@@ -174,18 +197,25 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
   final GetUserBadges _getUserBadges;
   final GetLeaderboard _getLeaderboard;
   final GamificationRepository _repository;
+  final UseStreakFreeze _useStreakFreeze;
+  final GetTierInfo _getTierInfo;
 
   GamificationBloc(
     this._getUserPoints,
     this._getUserBadges,
     this._getLeaderboard,
     this._repository,
+    this._useStreakFreeze,
+    this._getTierInfo,
   ) : super(const GamificationInitial()) {
     on<LoadGamification>(_onLoadGamification);
     on<LoadMyPoints>(_onLoadMyPoints);
     on<LoadMyBadges>(_onLoadMyBadges);
     on<LoadLeaderboard>(_onLoadLeaderboard);
     on<ChangePeriod>(_onChangePeriod);
+    on<LoadStreak>(_onLoadStreak);
+    on<UseFreeze>(_onUseFreeze);
+    on<LoadTierInfo>(_onLoadTierInfo);
   }
 
   /// Loads all gamification data at once.
@@ -231,6 +261,14 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
       (s) => streak = s,
     );
 
+    // Fetch tier info
+    TierInfo? tierInfo;
+    final tierResult = await _getTierInfo(const NoParams());
+    tierResult.fold(
+      (_) {},
+      (t) => tierInfo = t,
+    );
+
     emit(GamificationLoaded(
       totalPoints: totalPoints,
       badges: badges,
@@ -238,6 +276,7 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
       leaderboard: leaderboard,
       selectedPeriod: period,
       streak: streak,
+      tierInfo: tierInfo,
     ));
   }
 
@@ -363,6 +402,88 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
         final updatedState = state;
         if (updatedState is GamificationLoaded) {
           emit(updatedState.copyWith(leaderboard: entries));
+        }
+      },
+    );
+  }
+
+  /// Loads only the streak data (used by compact home screen widget).
+  Future<void> _onLoadStreak(
+    LoadStreak event,
+    Emitter<GamificationState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! GamificationLoaded) {
+      emit(const GamificationLoading());
+    }
+
+    final result = await _repository.getStreak();
+
+    result.fold(
+      (failure) {
+        if (currentState is GamificationLoaded) {
+          return;
+        }
+        emit(GamificationError(
+          message: failure.message ?? 'gamification_error_loading'.tr(),
+        ));
+      },
+      (streak) {
+        if (currentState is GamificationLoaded) {
+          emit(currentState.copyWith(streak: streak));
+        } else {
+          emit(GamificationLoaded(streak: streak));
+        }
+      },
+    );
+  }
+
+  /// Uses a freeze token to protect the current streak.
+  Future<void> _onUseFreeze(
+    UseFreeze event,
+    Emitter<GamificationState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! GamificationLoaded) return;
+
+    final result = await _useStreakFreeze(const NoParams());
+
+    result.fold(
+      (failure) {
+        // Keep existing data on failure — UI can show a snackbar.
+      },
+      (updatedStreak) {
+        emit(currentState.copyWith(streak: updatedStreak));
+      },
+    );
+  }
+
+  /// Loads the user's tier progression info.
+  Future<void> _onLoadTierInfo(
+    LoadTierInfo event,
+    Emitter<GamificationState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! GamificationLoaded) {
+      emit(const GamificationLoading());
+    }
+
+    final result = await _getTierInfo(const NoParams());
+
+    result.fold(
+      (failure) {
+        if (currentState is GamificationLoaded) {
+          return;
+        }
+        emit(GamificationError(
+          message: failure.message ?? 'gamification_error_loading'.tr(),
+        ));
+      },
+      (tierInfo) {
+        if (currentState is GamificationLoaded) {
+          emit(currentState.copyWith(tierInfo: tierInfo));
+        } else {
+          emit(GamificationLoaded(tierInfo: tierInfo));
         }
       },
     );

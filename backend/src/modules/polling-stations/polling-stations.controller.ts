@@ -97,6 +97,7 @@ export class PollingStationsController {
   @ApiOperation({ summary: 'Submit a wait-time report for a station (app user)' })
   @ApiParam({ name: 'id', description: 'Polling station UUID' })
   @ApiResponse({ status: 201, description: 'Report submitted successfully' })
+  @ApiResponse({ status: 400, description: 'Rate-limited: only 1 report per station per user per 30 min' })
   @ApiResponse({ status: 404, description: 'Polling station not found' })
   addReport(
     @Param('id', ParseUUIDPipe) id: string,

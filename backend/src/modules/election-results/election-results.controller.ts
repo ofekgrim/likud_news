@@ -7,7 +7,9 @@ import {
   Body,
   Param,
   Query,
+  Req,
   ParseUUIDPipe,
+  ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -23,6 +25,8 @@ import { ElectionResultsService } from './election-results.service';
 import { CreateResultDto } from './dto/create-result.dto';
 import { PublishResultsDto } from './dto/publish-results.dto';
 import { CreateTurnoutDto } from './dto/create-turnout.dto';
+import { AssignSlotDto } from './dto/assign-slot.dto';
+import { ConfirmSlotDto } from './dto/confirm-slot.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '../users/entities/user.entity';
@@ -33,6 +37,80 @@ export class ElectionResultsController {
   constructor(
     private readonly electionResultsService: ElectionResultsService,
   ) {}
+
+  // ===========================================================================
+  // Static routes MUST come before dynamic :param routes
+  // ===========================================================================
+
+  @Post()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add or update an election result (admin only)' })
+  @ApiResponse({ status: 201, description: 'Result added/updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  addResult(@Body() dto: CreateResultDto) {
+    return this.electionResultsService.addResult(dto);
+  }
+
+  @Post('publish')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Publish election results and emit SSE event (admin only)' })
+  @ApiResponse({ status: 201, description: 'Results published successfully' })
+  publishResults(@Body() dto: PublishResultsDto) {
+    return this.electionResultsService.publishResults(
+      dto.electionId,
+      dto.isOfficial ?? false,
+    );
+  }
+
+  @Post('bulk-import')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bulk import election results (admin only)' })
+  @ApiResponse({ status: 201, description: 'Results imported successfully' })
+  bulkImportResults(@Body() results: CreateResultDto[]) {
+    return this.electionResultsService.bulkImportResults(results);
+  }
+
+  @Post('turnout')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add a turnout snapshot and emit SSE event (admin only)' })
+  @ApiResponse({ status: 201, description: 'Turnout snapshot added successfully' })
+  addTurnoutSnapshot(@Body() dto: CreateTurnoutDto) {
+    return this.electionResultsService.addTurnoutSnapshot(dto);
+  }
+
+  // --- List assembly static routes (POST before GET with params) ---
+
+  @Post('list-assembly/assign')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Assign a candidate to a Knesset list slot (admin only)' })
+  @ApiResponse({ status: 201, description: 'Slot assigned successfully' })
+  @ApiResponse({ status: 400, description: 'Slot already confirmed' })
+  assignSlot(@Body() dto: AssignSlotDto, @Req() req: any) {
+    return this.electionResultsService.assignSlot(dto, req.user.id);
+  }
+
+  @Post('list-assembly/confirm')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Confirm a Knesset list slot (admin only, dual confirmation)' })
+  @ApiResponse({ status: 201, description: 'Slot confirmed successfully' })
+  @ApiResponse({ status: 403, description: 'Same admin cannot confirm' })
+  confirmSlot(@Body() dto: ConfirmSlotDto, @Req() req: any) {
+    return this.electionResultsService.confirmSlot(dto, req.user.id);
+  }
+
+  // --- Dynamic routes ---
 
   @Get('election/:electionId')
   @ApiOperation({ summary: 'Get all results for an election' })
@@ -55,17 +133,6 @@ export class ElectionResultsController {
       electionId,
       stationId,
     );
-  }
-
-  @Post()
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Add or update an election result (admin only)' })
-  @ApiResponse({ status: 201, description: 'Result added/updated successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid input' })
-  addResult(@Body() dto: CreateResultDto) {
-    return this.electionResultsService.addResult(dto);
   }
 
   @Patch(':id')
@@ -95,45 +162,12 @@ export class ElectionResultsController {
     return this.electionResultsService.deleteResult(id);
   }
 
-  @Post('publish')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Publish election results and emit SSE event (admin only)' })
-  @ApiResponse({ status: 201, description: 'Results published successfully' })
-  publishResults(@Body() dto: PublishResultsDto) {
-    return this.electionResultsService.publishResults(
-      dto.electionId,
-      dto.isOfficial ?? false,
-    );
-  }
-
-  @Post('bulk-import')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Bulk import election results (admin only)' })
-  @ApiResponse({ status: 201, description: 'Results imported successfully' })
-  bulkImportResults(@Body() results: CreateResultDto[]) {
-    return this.electionResultsService.bulkImportResults(results);
-  }
-
   @Get('turnout/:electionId')
   @ApiOperation({ summary: 'Get latest turnout snapshots for an election' })
   @ApiParam({ name: 'electionId', description: 'Election UUID' })
   @ApiResponse({ status: 200, description: 'Turnout snapshots grouped by district' })
   getTurnout(@Param('electionId', ParseUUIDPipe) electionId: string) {
     return this.electionResultsService.getTurnout(electionId);
-  }
-
-  @Post('turnout')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Add a turnout snapshot and emit SSE event (admin only)' })
-  @ApiResponse({ status: 201, description: 'Turnout snapshot added successfully' })
-  addTurnoutSnapshot(@Body() dto: CreateTurnoutDto) {
-    return this.electionResultsService.addTurnoutSnapshot(dto);
   }
 
   @Get('turnout/:electionId/timeline')
@@ -149,5 +183,51 @@ export class ElectionResultsController {
       electionId,
       district,
     );
+  }
+
+  @Get('leaderboard/:electionId')
+  @ApiOperation({ summary: 'Get candidates ranked by vote count with delta' })
+  @ApiParam({ name: 'electionId', description: 'Election UUID' })
+  @ApiResponse({ status: 200, description: 'Leaderboard with delta' })
+  getLeaderboardWithDelta(
+    @Param('electionId', ParseUUIDPipe) electionId: string,
+  ) {
+    return this.electionResultsService.getLeaderboardWithDelta(electionId);
+  }
+
+  @Get('list-assembly/:electionId/stats')
+  @ApiOperation({ summary: 'Get slot statistics for an election' })
+  @ApiParam({ name: 'electionId', description: 'Election UUID' })
+  @ApiResponse({ status: 200, description: 'Slot statistics' })
+  getSlotStatistics(
+    @Param('electionId', ParseUUIDPipe) electionId: string,
+  ) {
+    return this.electionResultsService.getSlotStatistics(electionId);
+  }
+
+  @Get('list-assembly/:electionId')
+  @ApiOperation({ summary: 'Get assembled Knesset list for an election' })
+  @ApiParam({ name: 'electionId', description: 'Election UUID' })
+  @ApiResponse({ status: 200, description: 'Knesset list slots ordered by slot number' })
+  getAssembledList(
+    @Param('electionId', ParseUUIDPipe) electionId: string,
+  ) {
+    return this.electionResultsService.getAssembledList(electionId);
+  }
+
+  @Delete('list-assembly/:electionId/:slotNumber')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Unassign a candidate from a Knesset list slot (admin only)' })
+  @ApiParam({ name: 'electionId', description: 'Election UUID' })
+  @ApiParam({ name: 'slotNumber', description: 'Knesset seat position (1-120)' })
+  @ApiResponse({ status: 200, description: 'Slot unassigned successfully' })
+  @ApiResponse({ status: 400, description: 'Slot is confirmed' })
+  unassignSlot(
+    @Param('electionId', ParseUUIDPipe) electionId: string,
+    @Param('slotNumber', ParseIntPipe) slotNumber: number,
+  ) {
+    return this.electionResultsService.unassignSlot(electionId, slotNumber);
   }
 }

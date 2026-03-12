@@ -2,7 +2,22 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { PushToken } from '../push/entities/push-token.entity';
+import { PushService } from '../push/push.service';
 import { AudienceRulesDto } from './dto/audience-rules.dto';
+
+/**
+ * Maps notification preference keys (used in audience rules) to the
+ * corresponding boolean column on AppUser.
+ */
+const PREF_KEY_TO_COLUMN: Record<string, string> = {
+  breakingNews: 'notifBreakingNews',
+  primariesUpdates: 'notifPrimariesUpdates',
+  dailyQuizReminder: 'notifDailyQuizReminder',
+  streakAchievements: 'notifStreakAchievements',
+  events: 'notifEvents',
+  gotv: 'notifGotv',
+  amaSessions: 'notifAmaSessions',
+};
 
 @Injectable()
 export class NotificationAudienceService {
@@ -11,16 +26,58 @@ export class NotificationAudienceService {
   constructor(
     @InjectRepository(PushToken)
     private readonly pushTokenRepo: Repository<PushToken>,
+    private readonly pushService: PushService,
   ) {}
 
   /**
    * Resolve audience rules to a list of active push tokens.
+   * Applies granular notification preferences, quiet hours filtering,
+   * and frequency cap for non-breaking notifications.
    */
   async resolveAudience(rules: AudienceRulesDto): Promise<PushToken[]> {
     const qb = this.buildAudienceQuery(rules);
     const tokens = await qb.getMany();
     this.logger.log(`Resolved audience: ${tokens.length} tokens for rules type="${rules.type}"`);
-    return tokens;
+
+    const isBreaking = rules.notificationPrefKey === 'breakingNews';
+
+    if (isBreaking) {
+      // Breaking news bypasses quiet hours and frequency cap
+      return tokens;
+    }
+
+    // Filter out users in quiet hours and over frequency cap
+    const filtered: PushToken[] = [];
+    for (const token of tokens) {
+      if (token.user) {
+        // Check quiet hours
+        if (this.pushService.isInQuietHours(token.user)) {
+          continue;
+        }
+
+        // Check frequency cap
+        if (token.userId) {
+          const canSend = await this.pushService.checkFrequencyCap(token.userId);
+          if (!canSend) {
+            continue;
+          }
+        }
+      }
+
+      filtered.push(token);
+    }
+
+    // Increment frequency counters for users that passed
+    for (const token of filtered) {
+      if (token.userId) {
+        await this.pushService.incrementFrequencyCount(token.userId);
+      }
+    }
+
+    this.logger.log(
+      `After quiet hours / frequency cap filter: ${filtered.length} of ${tokens.length} tokens`,
+    );
+    return filtered;
   }
 
   /**
@@ -34,11 +91,12 @@ export class NotificationAudienceService {
   private buildAudienceQuery(rules: AudienceRulesDto): SelectQueryBuilder<PushToken> {
     const qb = this.pushTokenRepo
       .createQueryBuilder('token')
-      .leftJoin('token.user', 'appUser')
+      .leftJoinAndSelect('token.user', 'appUser')
       .where('token.isActive = :active', { active: true });
 
     if (rules.type === 'all') {
-      // No additional filters — send to all active tokens
+      // Apply granular pref filter even for "all" audience
+      this.applyNotificationPrefFilter(qb, rules);
       return this.applyExclusions(qb, rules);
     }
 
@@ -46,6 +104,7 @@ export class NotificationAudienceService {
       qb.andWhere('token.userId IN (:...userIds)', {
         userIds: rules.userIds,
       });
+      this.applyNotificationPrefFilter(qb, rules);
       return this.applyExclusions(qb, rules);
     }
 
@@ -73,14 +132,32 @@ export class NotificationAudienceService {
       });
     }
 
-    // Filter by notification preference key
-    if (rules.notificationPrefKey) {
-      qb.andWhere(`appUser.notificationPrefs ->> :prefKey = 'true'`, {
+    // Filter by granular notification preference column
+    this.applyNotificationPrefFilter(qb, rules);
+
+    return this.applyExclusions(qb, rules);
+  }
+
+  /**
+   * Apply granular notification preference column filter.
+   * Maps notificationPrefKey to the typed boolean column on AppUser.
+   * Falls back to the legacy JSONB lookup if the key is not recognized.
+   */
+  private applyNotificationPrefFilter(
+    qb: SelectQueryBuilder<PushToken>,
+    rules: AudienceRulesDto,
+  ): void {
+    if (!rules.notificationPrefKey) return;
+
+    const column = PREF_KEY_TO_COLUMN[rules.notificationPrefKey];
+    if (column) {
+      qb.andWhere(`appUser."${column}" = true`);
+    } else {
+      // Legacy JSONB fallback for any old/custom preference keys
+      qb.andWhere(`appUser."notificationPrefs" ->> :prefKey = 'true'`, {
         prefKey: rules.notificationPrefKey,
       });
     }
-
-    return this.applyExclusions(qb, rules);
   }
 
   private applyExclusions(

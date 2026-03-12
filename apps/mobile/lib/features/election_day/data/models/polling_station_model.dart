@@ -19,6 +19,9 @@ class PollingStationModel {
   final String? notes;
   final String? electionId;
   final bool isActive;
+  final int? avgWaitMinutes;
+  final String? crowdLevel;
+  final int? reportsCount;
 
   const PollingStationModel({
     required this.id,
@@ -36,6 +39,9 @@ class PollingStationModel {
     this.notes,
     this.electionId,
     this.isActive = true,
+    this.avgWaitMinutes,
+    this.crowdLevel,
+    this.reportsCount,
   });
 
   factory PollingStationModel.fromJson(Map<String, dynamic> json) {
@@ -61,6 +67,13 @@ class PollingStationModel {
       notes: json['notes'] as String?,
       electionId: json['electionId'] as String?,
       isActive: json['isActive'] as bool? ?? true,
+      avgWaitMinutes: json['avgWaitMinutes'] != null
+          ? int.tryParse(json['avgWaitMinutes'].toString())
+          : null,
+      crowdLevel: json['crowdLevel'] as String?,
+      reportsCount: json['reportsCount'] != null
+          ? int.tryParse(json['reportsCount'].toString())
+          : null,
     );
   }
 
@@ -81,6 +94,9 @@ class PollingStationModel {
       'notes': notes,
       'electionId': electionId,
       'isActive': isActive,
+      'avgWaitMinutes': avgWaitMinutes,
+      'crowdLevel': crowdLevel,
+      'reportsCount': reportsCount,
     };
   }
 
@@ -101,6 +117,9 @@ class PollingStationModel {
       notes: notes,
       electionId: electionId,
       isActive: isActive,
+      avgWaitMinutes: avgWaitMinutes,
+      crowdLevel: crowdLevel,
+      reportsCount: reportsCount,
     );
   }
 }

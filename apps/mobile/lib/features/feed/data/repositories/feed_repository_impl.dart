@@ -152,6 +152,10 @@ class FeedRepositoryImpl implements FeedRepository {
         return 'quiz_prompt';
       case FeedItemType.dailyQuiz:
         return 'daily_quiz';
+      case FeedItemType.companyAd:
+        return 'company_ad';
+      case FeedItemType.candidateAd:
+        return 'candidate_ad';
     }
   }
 }

@@ -151,6 +151,14 @@ ehthumbs.db
 Thumbs.db
 Desktop.ini
 
+# ------ Fastlane build artifacts ------
+*.ipa
+*.app.dSYM.zip
+apps/mobile/fastlane/report.xml
+apps/mobile/.next/
+Gemfile
+Gemfile.lock
+
 # ------ Misc ------
 *.log
 *.tmp

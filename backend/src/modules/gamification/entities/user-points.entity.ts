@@ -21,6 +21,8 @@ export enum PointAction {
   ARTICLE_READ = 'article_read',
   DAILY_LOGIN = 'daily_login',
   STREAK_BONUS = 'streak_bonus',
+  DAILY_MISSION_COMPLETE = 'daily_mission_complete',
+  DAILY_MISSION_BONUS = 'daily_mission_bonus',
 }
 
 /** Default point values per action */
@@ -37,6 +39,8 @@ export const POINT_VALUES: Record<PointAction, number> = {
   [PointAction.LOGIN_STREAK]: 5,
   [PointAction.PROFILE_COMPLETE]: 50,
   [PointAction.STREAK_BONUS]: 0, // varies by milestone
+  [PointAction.DAILY_MISSION_COMPLETE]: 0, // varies by mission
+  [PointAction.DAILY_MISSION_BONUS]: 50, // all-missions-done bonus
 };
 
 @Entity('user_points')

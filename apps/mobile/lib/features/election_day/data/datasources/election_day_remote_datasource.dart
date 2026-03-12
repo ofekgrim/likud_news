@@ -54,6 +54,18 @@ abstract class ElectionDayRemoteDataSource {
   ///
   /// Throws a [DioException] on failure.
   Future<List<TurnoutSnapshotModel>> getTurnoutTimeline(String electionId);
+
+  /// Claims the "I Voted" badge via POST /gotv/checkin.
+  ///
+  /// Returns true on success.
+  /// Throws a [DioException] on failure.
+  Future<bool> claimIVotedBadge();
+
+  /// Saves a voting plan via POST /gotv/plan.
+  ///
+  /// Returns true on success.
+  /// Throws a [DioException] on failure.
+  Future<bool> saveVotingPlan(String timeSlot);
 }
 
 /// Implementation of [ElectionDayRemoteDataSource] using [ApiClient].
@@ -223,5 +235,20 @@ class ElectionDayRemoteDataSourceImpl implements ElectionDayRemoteDataSource {
         .map((json) =>
             TurnoutSnapshotModel.fromJson(json as Map<String, dynamic>))
         .toList();
+  }
+
+  @override
+  Future<bool> claimIVotedBadge() async {
+    await _apiClient.post(ApiConstants.gotvCheckin, data: {});
+    return true;
+  }
+
+  @override
+  Future<bool> saveVotingPlan(String timeSlot) async {
+    await _apiClient.post(
+      ApiConstants.gotvPlan,
+      data: {'timeSlot': timeSlot},
+    );
+    return true;
   }
 }

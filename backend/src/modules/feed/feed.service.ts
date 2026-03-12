@@ -15,9 +15,12 @@ import { EventRsvp } from '../campaign-events/entities/event-rsvp.entity';
 import { QuizResponse } from '../quiz/entities/quiz-response.entity';
 import { DailyQuiz } from '../gamification/entities/daily-quiz.entity';
 import { DailyQuizAttempt } from '../gamification/entities/daily-quiz-attempt.entity';
+import { CompanyAd, CompanyAdType } from '../ads/entities/company-ad.entity';
+import { CandidateAdPlacement, AdPlacementType } from '../ads/entities/candidate-ad-placement.entity';
 import { FeedItemDto, FeedItemType } from './dto/feed-item.dto';
-import { QueryFeedDto } from './dto/query-feed.dto';
+import { QueryFeedDto, FeedMode } from './dto/query-feed.dto';
 import { FeedAlgorithmService } from './feed-algorithm.service';
+import { UserFollowsService, UserFollowsMap } from '../user-follows/user-follows.service';
 import { SseService } from '../sse/sse.service';
 import { ElectionResultsService } from '../election-results/election-results.service';
 import { CandidatesService } from '../candidates/candidates.service';
@@ -63,20 +66,30 @@ export class FeedService {
     private readonly dailyQuizRepository: Repository<DailyQuiz>,
     @InjectRepository(DailyQuizAttempt)
     private readonly dailyQuizAttemptRepository: Repository<DailyQuizAttempt>,
+    @InjectRepository(CompanyAd)
+    private readonly companyAdRepository: Repository<CompanyAd>,
+    @InjectRepository(CandidateAdPlacement)
+    private readonly candidateAdRepository: Repository<CandidateAdPlacement>,
     private readonly algorithmService: FeedAlgorithmService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly electionResultsService: ElectionResultsService,
     private readonly candidatesService: CandidatesService,
+    @Optional()
+    private readonly userFollowsService?: UserFollowsService,
     @Optional() @Inject(SseService) private readonly sseService?: SseService,
   ) {}
 
   /**
    * Get unified feed with mixed content types.
    *
+   * Supports two modes:
+   * - `latest` (default for anonymous): standard priority algorithm sort
+   * - `personalized` (default for authenticated): "For You" feed boosted by user follows
+   *
    * Caching strategy:
    * - Public feeds (no deviceId/userId): cached for 2 minutes
-   * - Personalized feeds (with deviceId/userId): cached for 5 minutes per user
-   * - Cache key includes: page, limit, types, categoryId, deviceId, userId
+   * - Personalized feeds (with deviceId/userId): cached for 30s (user) / 60s (device)
+   * - Cache key includes: page, limit, types, categoryId, deviceId, userId, mode
    */
   async getFeed(query: QueryFeedDto): Promise<{
     data: FeedItemDto[];
@@ -90,12 +103,17 @@ export class FeedService {
       eventsCount: number;
       electionsCount: number;
       quizzesCount: number;
+      mode: FeedMode;
     };
   }> {
     const { page = 1, limit = 20, types, categoryId, deviceId, userId } = query;
 
+    // Resolve feed mode: explicit > default (personalized for authenticated, latest for anon)
+    const mode = query.mode ?? (userId ? FeedMode.PERSONALIZED : FeedMode.LATEST);
+    const isPersonalized = mode === FeedMode.PERSONALIZED && !!userId;
+
     // Generate cache key
-    const cacheKey = this.generateCacheKey(query);
+    const cacheKey = this.generateCacheKey(query, mode);
 
     // Try to get from cache
     const cached = await this.cacheManager.get<any>(cacheKey);
@@ -104,12 +122,30 @@ export class FeedService {
       return cached;
     }
 
-    this.logger.debug(`Cache MISS for key: ${cacheKey}, fetching fresh data...`);
+    this.logger.debug(`Cache MISS for key: ${cacheKey}, fetching fresh data (mode: ${mode})...`);
+
+    // Fetch user follows map if personalized mode is active
+    let userFollows: UserFollowsMap | null = null;
+    if (isPersonalized && this.userFollowsService) {
+      try {
+        userFollows = await this.userFollowsService.getUserFollowsMap(userId);
+        this.logger.debug(
+          `User follows loaded: ${userFollows.categories.size} categories, ` +
+          `${userFollows.members.size} members, ${userFollows.authors.size} authors, ` +
+          `${userFollows.tags.size} tags`,
+        );
+      } catch (err) {
+        this.logger.warn(`Failed to load user follows for ${userId}: ${err.message}`);
+        // Fall back to non-personalized mode
+        userFollows = null;
+      }
+    }
 
     // Determine which content types to fetch
     const activeTypes = types || Object.values(FeedItemType);
 
     // Fetch content in parallel
+    // When personalized, fetch articles with member/tag relations for matching
     const [
       articles,
       polls,
@@ -119,7 +155,7 @@ export class FeedService {
       dailyQuizItem,
     ] = await Promise.all([
       activeTypes.includes(FeedItemType.ARTICLE)
-        ? this.fetchArticles(categoryId, deviceId, userId)
+        ? this.fetchArticles(categoryId, deviceId, userId, !!userFollows)
         : [],
       activeTypes.includes(FeedItemType.POLL)
         ? this.fetchPolls(deviceId, userId)
@@ -149,11 +185,20 @@ export class FeedService {
     ];
 
     this.logger.debug(`Transformed ${feedItems.length} items, computing priorities...`);
-    // Compute priority for each item
-    feedItems = feedItems.map((item) => ({
-      ...item,
-      sortPriority: this.algorithmService.computePriority(item),
-    }));
+
+    if (userFollows) {
+      // Personalized mode: compute personalized priority for each item
+      feedItems = feedItems.map((item) => ({
+        ...item,
+        sortPriority: this.algorithmService.computePersonalizedPriority(item, userFollows),
+      }));
+    } else {
+      // Standard mode: compute base priority for each item
+      feedItems = feedItems.map((item) => ({
+        ...item,
+        sortPriority: this.algorithmService.computePriority(item),
+      }));
+    }
 
     this.logger.debug('Sorting by priority...');
     // Sort by priority (highest first)
@@ -178,7 +223,169 @@ export class FeedService {
     const start = (page - 1) * limit;
     const paginatedItems = feedItems.slice(start, start + limit);
 
-    this.logger.debug(`Returning ${paginatedItems.length} items (total: ${totalItems})`);
+    // Inject approved company feed-native ads at positions 4 and 14
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const companyAds = await this.companyAdRepository
+        .createQueryBuilder('ad')
+        .leftJoinAndSelect('ad.advertiser', 'advertiser')
+        .where('ad.adType = :adType', { adType: CompanyAdType.FEED_NATIVE })
+        .andWhere('ad.isApproved = true')
+        .andWhere('ad.isActive = true')
+        .andWhere('ad.status = :status', { status: 'approved' })
+        .andWhere('(ad.startDate IS NULL OR ad.startDate <= :today)', { today })
+        .andWhere('(ad.endDate IS NULL OR ad.endDate >= :today)', { today })
+        .andWhere('(ad.impressions * ad.cpmNis / 1000) < ad.dailyBudgetNis OR ad.dailyBudgetNis = 0')
+        .getMany();
+
+      if (companyAds.length > 0) {
+        const adItems: FeedItemDto[] = companyAds.map((ad) => ({
+          id: `company-ad-${ad.id}`,
+          type: FeedItemType.COMPANY_AD,
+          publishedAt: ad.createdAt,
+          isPinned: false,
+          sortPriority: 0,
+          companyAd: {
+            adId: ad.id,
+            advertiserName: ad.advertiser?.name || '',
+            advertiserLogoUrl: ad.advertiser?.logoUrl || null,
+            title: ad.title,
+            contentHe: ad.contentHe,
+            imageUrl: ad.imageUrl,
+            ctaUrl: ad.ctaUrl,
+            ctaLabelHe: ad.ctaLabelHe,
+          },
+        }));
+
+        // Inject at positions 4 and 14 (0-indexed) if enough items exist
+        if (paginatedItems.length > 4) {
+          paginatedItems.splice(4, 0, adItems[0]);
+        }
+        if (adItems.length > 1 && paginatedItems.length > 14) {
+          paginatedItems.splice(14, 0, adItems[1 % adItems.length]);
+        } else if (adItems.length === 1 && paginatedItems.length > 14) {
+          paginatedItems.splice(14, 0, adItems[0]);
+        }
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to inject company ads: ${err.message}`);
+    }
+
+    // Inject approved candidate feed_sponsored ads at positions 8 and 20
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const candidateAds = await this.candidateAdRepository
+        .createQueryBuilder('ad')
+        .leftJoinAndSelect('ad.candidate', 'candidate')
+        .where('ad.placementType = :type', { type: AdPlacementType.FEED_SPONSORED })
+        .andWhere('ad.isApproved = true')
+        .andWhere('ad.isActive = true')
+        .andWhere('ad.status = :status', { status: 'approved' })
+        .andWhere('(ad.startDate IS NULL OR ad.startDate <= :today)', { today })
+        .andWhere('(ad.endDate IS NULL OR ad.endDate >= :today)', { today })
+        .andWhere('(ad.impressions * ad.cpmNis / 1000) < ad.dailyBudgetNis OR ad.dailyBudgetNis = 0')
+        .getMany();
+
+      if (candidateAds.length > 0) {
+        // For article-linked ads: fetch full article data and emit as ARTICLE type with isSponsored=true
+        // For other types: emit as CANDIDATE_AD type (uses ad's own title/image)
+        const articleLinkedAds = candidateAds.filter(
+          (ad) => ad.linkedContentType === 'article' && ad.linkedContentId,
+        );
+        const otherAds = candidateAds.filter(
+          (ad) => !(ad.linkedContentType === 'article' && ad.linkedContentId),
+        );
+
+        // Batch-fetch full article data for article-linked ads
+        const articleMap = new Map<string, any>();
+        if (articleLinkedAds.length > 0) {
+          const articleIdList = articleLinkedAds.map((ad) => ad.linkedContentId as string);
+          const rawArticles = await this.articleRepository
+            .createQueryBuilder('a')
+            .leftJoinAndSelect('a.category', 'category')
+            .leftJoinAndSelect('a.authorEntity', 'authorEntity')
+            .where('a.id IN (:...ids)', { ids: articleIdList })
+            .getMany();
+          const enriched = await this.enrichWithCommentCounts(rawArticles);
+          enriched.forEach((a: any) => articleMap.set(a.id, a));
+        }
+
+        const adItems: FeedItemDto[] = [];
+
+        // Article-linked ads → emit as real ARTICLE with isSponsored flag
+        for (const ad of articleLinkedAds) {
+          const article = articleMap.get(ad.linkedContentId!);
+          if (!article) continue;
+          adItems.push({
+            id: article.id,
+            type: FeedItemType.ARTICLE,
+            publishedAt: article.publishedAt,
+            isPinned: false,
+            sortPriority: 0,
+            article: {
+              id: article.id,
+              title: article.title,
+              titleEn: article.titleEn,
+              subtitle: article.subtitle,
+              heroImageUrl: article.heroImageUrl,
+              categoryId: article.categoryId || article.category?.id,
+              categoryName: article.category?.name,
+              categoryColor: article.category?.color,
+              authorId: article.authorId || article.authorEntity?.id,
+              memberIds: [],
+              tagIds: [],
+              isBreaking: article.isBreaking,
+              viewCount: article.viewCount,
+              commentCount: article.commentCount || 0,
+              shareCount: article.shareCount,
+              readingTimeMinutes: article.readingTimeMinutes,
+              publishedAt: article.publishedAt,
+              slug: article.slug,
+              author: article.author,
+              authorEntityName: article.authorEntity?.nameHe || article.authorEntity?.nameEn,
+              isSponsored: true,
+              sponsorName: ad.candidate?.fullName || '',
+            },
+          });
+        }
+
+        // Non-article ads → emit as CANDIDATE_AD with ad's own content
+        for (const ad of otherAds) {
+          adItems.push({
+            id: `candidate-ad-${ad.id}`,
+            type: FeedItemType.CANDIDATE_AD,
+            publishedAt: ad.createdAt,
+            isPinned: false,
+            sortPriority: 0,
+            candidateAd: {
+              adId: ad.id,
+              candidateName: ad.candidate?.fullName || '',
+              candidatePhotoUrl: ad.candidate?.photoUrl || null,
+              title: ad.title,
+              contentHe: ad.contentHe,
+              imageUrl: ad.imageUrl,
+              linkedContentType: ad.linkedContentType,
+              linkedContentId: ad.linkedContentId,
+              linkedContentSlug: null,
+              ctaUrl: ad.ctaUrl,
+            },
+          });
+        }
+
+        if (paginatedItems.length > 8) {
+          paginatedItems.splice(8, 0, adItems[0]);
+        }
+        if (adItems.length > 1 && paginatedItems.length > 20) {
+          paginatedItems.splice(20, 0, adItems[1 % adItems.length]);
+        } else if (adItems.length === 1 && paginatedItems.length > 20) {
+          paginatedItems.splice(20, 0, adItems[0]);
+        }
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to inject candidate ads: ${err.message}`);
+    }
+
+    this.logger.debug(`Returning ${paginatedItems.length} items (total: ${totalItems}, mode: ${mode})`);
     const result = {
       data: paginatedItems,
       meta: {
@@ -191,6 +398,7 @@ export class FeedService {
         eventsCount: events.length,
         electionsCount: elections.length,
         quizzesCount: quizzes.length,
+        mode,
       },
     };
 
@@ -204,11 +412,19 @@ export class FeedService {
 
   /**
    * Fetch published articles.
+   *
+   * @param categoryId - Optional category filter
+   * @param deviceId - Device ID (unused, reserved for future personalization)
+   * @param userId - User ID (unused here, used by caller for personalization)
+   * @param includeRelations - When true, eagerly loads members and tags
+   *   relations needed for personalized feed matching. Only enabled when
+   *   personalization is active to avoid unnecessary JOINs on anonymous feeds.
    */
   private async fetchArticles(
     categoryId?: string,
     deviceId?: string,
     userId?: string,
+    includeRelations?: boolean,
   ): Promise<Article[]> {
     const qb = this.articleRepository
       .createQueryBuilder('article')
@@ -217,6 +433,12 @@ export class FeedService {
       .where('article.status = :status', { status: ArticleStatus.PUBLISHED })
       .orderBy('article.publishedAt', 'DESC')
       .take(500); // Fetch all published articles for full pagination
+
+    // Load member and tag relations for personalization matching
+    if (includeRelations) {
+      qb.leftJoinAndSelect('article.members', 'members');
+      qb.leftJoinAndSelect('article.tags', 'tags');
+    }
 
     if (categoryId) {
       qb.andWhere('article.categoryId = :categoryId', { categoryId });
@@ -457,6 +679,8 @@ export class FeedService {
       publishedAt: article.publishedAt,
       slug: article.slug,
       allowComments: article.allowComments,
+      categoryId: article.categoryId,
+      authorId: article.authorId,
       category: article.category ? {
         id: article.category.id,
         name: article.category.name,
@@ -467,12 +691,18 @@ export class FeedService {
         nameHe: article.authorEntity.nameHe,
         nameEn: article.authorEntity.nameEn,
       } : undefined,
+      // Preserve member/tag arrays for personalization matching
+      members: article.members?.map((m: any) => ({ id: m.id })) || [],
+      tags: article.tags?.map((t: any) => ({ id: t.id })) || [],
       commentCount: commentCountMap[article.id] || 0,
     }));
   }
 
   /**
    * Transform Article to FeedItemDto.
+   *
+   * Includes optional `categoryId`, `authorId`, `memberIds`, and `tagIds`
+   * fields used by the personalization algorithm to match against user follows.
    */
   private transformArticle(article: any): FeedItemDto {
     return {
@@ -487,8 +717,12 @@ export class FeedService {
         titleEn: article.titleEn,
         subtitle: article.subtitle,
         heroImageUrl: article.heroImageUrl,
+        categoryId: article.categoryId || article.category?.id,
         categoryName: article.category?.name,
         categoryColor: article.category?.color,
+        authorId: article.authorId || article.authorEntity?.id,
+        memberIds: article.members?.map((m: any) => m.id) || [],
+        tagIds: article.tags?.map((t: any) => t.id) || [],
         isBreaking: article.isBreaking,
         viewCount: article.viewCount,
         commentCount: article.commentCount || 0,
@@ -791,9 +1025,9 @@ export class FeedService {
   /**
    * Generate cache key for feed query.
    *
-   * Key format: feed:{types}:{category}:{device}:{user}:page{X}:limit{Y}:v{version}
+   * Key format: feed:{mode}:{types}:{category}:{device}:{user}:page{X}:limit{Y}:v{version}
    */
-  private generateCacheKey(query: QueryFeedDto): string {
+  private generateCacheKey(query: QueryFeedDto, mode: FeedMode): string {
     const {
       page = 1,
       limit = 20,
@@ -811,7 +1045,7 @@ export class FeedService {
     // Get current version for this content type (0 if not set)
     const version = this.feedCacheVersion[typesStr] || 0;
 
-    return `feed:${typesStr}:cat${categoryStr}:dev${deviceStr}:usr${userStr}:p${page}:l${limit}:v${version}`;
+    return `feed:${mode}:${typesStr}:cat${categoryStr}:dev${deviceStr}:usr${userStr}:p${page}:l${limit}:v${version}`;
   }
 
   /**

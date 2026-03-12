@@ -13,6 +13,7 @@ import {
 } from './entities/app-user.entity';
 import { VotingEligibility } from './entities/voting-eligibility.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateNotificationPreferencesDto, NotificationPreferencesResponseDto } from './dto/update-notification-preferences.dto';
 import { VerifyMembershipDto } from './dto/verify-membership.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 
@@ -121,6 +122,15 @@ export class AppUsersService {
       membershipVerifiedAt: user.membershipVerifiedAt,
       preferredCategories: user.preferredCategories,
       notificationPrefs: user.notificationPrefs,
+      notifBreakingNews: user.notifBreakingNews,
+      notifPrimariesUpdates: user.notifPrimariesUpdates,
+      notifDailyQuizReminder: user.notifDailyQuizReminder,
+      notifStreakAchievements: user.notifStreakAchievements,
+      notifEvents: user.notifEvents,
+      notifGotv: user.notifGotv,
+      notifAmaSessions: user.notifAmaSessions,
+      quietHoursStart: user.quietHoursStart,
+      quietHoursEnd: user.quietHoursEnd,
       isActive: user.isActive,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
@@ -141,6 +151,54 @@ export class AppUsersService {
 
     user.passwordHash = await bcrypt.hash(dto.newPassword, 10);
     await this.appUserRepository.save(user);
+  }
+
+  // ── Notification Preferences ────────────────────────────────────────
+
+  async getNotificationPreferences(userId: string): Promise<NotificationPreferencesResponseDto> {
+    const user = await this.findById(userId);
+    return {
+      notifBreakingNews: user.notifBreakingNews,
+      notifPrimariesUpdates: user.notifPrimariesUpdates,
+      notifDailyQuizReminder: user.notifDailyQuizReminder,
+      notifStreakAchievements: user.notifStreakAchievements,
+      notifEvents: user.notifEvents,
+      notifGotv: user.notifGotv,
+      notifAmaSessions: user.notifAmaSessions,
+      quietHoursStart: user.quietHoursStart,
+      quietHoursEnd: user.quietHoursEnd,
+    };
+  }
+
+  async updateNotificationPreferences(
+    userId: string,
+    dto: UpdateNotificationPreferencesDto,
+  ): Promise<NotificationPreferencesResponseDto> {
+    const user = await this.findById(userId);
+
+    if (dto.notifBreakingNews !== undefined) user.notifBreakingNews = dto.notifBreakingNews;
+    if (dto.notifPrimariesUpdates !== undefined) user.notifPrimariesUpdates = dto.notifPrimariesUpdates;
+    if (dto.notifDailyQuizReminder !== undefined) user.notifDailyQuizReminder = dto.notifDailyQuizReminder;
+    if (dto.notifStreakAchievements !== undefined) user.notifStreakAchievements = dto.notifStreakAchievements;
+    if (dto.notifEvents !== undefined) user.notifEvents = dto.notifEvents;
+    if (dto.notifGotv !== undefined) user.notifGotv = dto.notifGotv;
+    if (dto.notifAmaSessions !== undefined) user.notifAmaSessions = dto.notifAmaSessions;
+    if (dto.quietHoursStart !== undefined) user.quietHoursStart = dto.quietHoursStart;
+    if (dto.quietHoursEnd !== undefined) user.quietHoursEnd = dto.quietHoursEnd;
+
+    const saved = await this.appUserRepository.save(user);
+
+    return {
+      notifBreakingNews: saved.notifBreakingNews,
+      notifPrimariesUpdates: saved.notifPrimariesUpdates,
+      notifDailyQuizReminder: saved.notifDailyQuizReminder,
+      notifStreakAchievements: saved.notifStreakAchievements,
+      notifEvents: saved.notifEvents,
+      notifGotv: saved.notifGotv,
+      notifAmaSessions: saved.notifAmaSessions,
+      quietHoursStart: saved.quietHoursStart,
+      quietHoursEnd: saved.quietHoursEnd,
+    };
   }
 
   // ── Admin Methods ───────────────────────────────────────────────────

@@ -16,11 +16,13 @@ import {
   ApiOperation,
   ApiResponse,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { CandidatesService } from './candidates.service';
 import { CreateCandidateDto } from './dto/create-candidate.dto';
 import { UpdateCandidateDto } from './dto/update-candidate.dto';
 import { QueryCandidatesDto } from './dto/query-candidates.dto';
+import { CompareCandidatesDto } from './dto/compare-candidates.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '../users/entities/user.entity';
@@ -43,6 +45,24 @@ export class CandidatesController {
   @ApiResponse({ status: 200, description: 'List of candidates for the election' })
   findByElection(@Param('electionId', ParseUUIDPipe) electionId: string) {
     return this.candidatesService.findByElection(electionId);
+  }
+
+  @Get('compare')
+  @ApiOperation({
+    summary: 'Compare 2-4 candidates side-by-side',
+    description:
+      'Returns candidate profiles and a quiz position comparison matrix. ' +
+      'Pass 2-4 candidate UUIDs as a comma-separated query parameter.',
+  })
+  @ApiQuery({
+    name: 'ids',
+    description: 'Comma-separated candidate UUIDs (2-4)',
+    example: 'uuid1,uuid2',
+  })
+  @ApiResponse({ status: 200, description: 'Candidate comparison data' })
+  @ApiResponse({ status: 400, description: 'Invalid or insufficient IDs' })
+  compare(@Query() query: CompareCandidatesDto) {
+    return this.candidatesService.compareCandidates(query.ids);
   }
 
   @Get('slug/:slug')

@@ -1,9 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import {
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ElectionResultsService } from './election-results.service';
 import { ElectionResult } from './entities/election-result.entity';
 import { TurnoutSnapshot } from './entities/turnout-snapshot.entity';
+import { KnessetListSlot, KnessetSlotType } from './entities/knesset-list-slot.entity';
 import { SseService } from '../sse/sse.service';
 
 const mockRepository = () => ({
@@ -53,18 +60,33 @@ const mockSseService = () => ({
   emitPrimaries: jest.fn(),
 });
 
+const mockCacheManager = {
+  get: jest.fn().mockResolvedValue(null),
+  set: jest.fn().mockResolvedValue(undefined),
+  del: jest.fn().mockResolvedValue(undefined),
+};
+
 describe('ElectionResultsService', () => {
   let service: ElectionResultsService;
   let resultRepository: jest.Mocked<Repository<ElectionResult>>;
   let turnoutRepository: jest.Mocked<Repository<TurnoutSnapshot>>;
+  let slotRepository: jest.Mocked<Repository<KnessetListSlot>>;
   let sseService: { emitBreaking: jest.Mock; emitTicker: jest.Mock; emitPrimaries: jest.Mock };
+  let cacheManager: typeof mockCacheManager;
 
   beforeEach(async () => {
+    // Reset cache manager mocks
+    mockCacheManager.get.mockReset().mockResolvedValue(null);
+    mockCacheManager.set.mockReset().mockResolvedValue(undefined);
+    mockCacheManager.del.mockReset().mockResolvedValue(undefined);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ElectionResultsService,
         { provide: getRepositoryToken(ElectionResult), useFactory: mockRepository },
         { provide: getRepositoryToken(TurnoutSnapshot), useFactory: mockRepository },
+        { provide: getRepositoryToken(KnessetListSlot), useFactory: mockRepository },
+        { provide: CACHE_MANAGER, useValue: mockCacheManager },
         { provide: SseService, useFactory: mockSseService },
       ],
     }).compile();
@@ -72,7 +94,9 @@ describe('ElectionResultsService', () => {
     service = module.get<ElectionResultsService>(ElectionResultsService);
     resultRepository = module.get(getRepositoryToken(ElectionResult));
     turnoutRepository = module.get(getRepositoryToken(TurnoutSnapshot));
+    slotRepository = module.get(getRepositoryToken(KnessetListSlot));
     sseService = module.get(SseService);
+    cacheManager = mockCacheManager;
   });
 
   it('should be defined', () => {
@@ -722,6 +746,410 @@ describe('ElectionResultsService', () => {
       const result = await service.getTurnoutTimeline('election-uuid-999');
 
       expect(result).toEqual([]);
+    });
+  });
+
+  // ===========================================================================
+  // Knesset List Assembly
+  // ===========================================================================
+
+  // ---------------------------------------------------------------------------
+  // getAssembledList
+  // ---------------------------------------------------------------------------
+  describe('getAssembledList', () => {
+    const electionId = 'election-uuid-1';
+
+    it('should return ordered slots with candidates', async () => {
+      const slots = [
+        {
+          id: 'slot-1',
+          electionId,
+          slotNumber: 1,
+          slotType: KnessetSlotType.LEADER,
+          candidateId: 'c1',
+          candidate: { id: 'c1', fullName: 'Leader' },
+          isConfirmed: true,
+        },
+        {
+          id: 'slot-2',
+          electionId,
+          slotNumber: 2,
+          slotType: KnessetSlotType.NATIONAL,
+          candidateId: 'c2',
+          candidate: { id: 'c2', fullName: 'National 1' },
+          isConfirmed: false,
+        },
+      ] as unknown as KnessetListSlot[];
+
+      slotRepository.find.mockResolvedValue(slots);
+
+      const result = await service.getAssembledList(electionId);
+
+      expect(slotRepository.find).toHaveBeenCalledWith({
+        where: { electionId },
+        relations: ['candidate'],
+        order: { slotNumber: 'ASC' },
+      });
+      expect(result).toEqual(slots);
+    });
+
+    it('should return cached data when available', async () => {
+      const cached = [
+        { id: 'slot-1', slotNumber: 1, candidateId: 'c1' },
+      ];
+      cacheManager.get.mockResolvedValue(JSON.stringify(cached));
+
+      const result = await service.getAssembledList(electionId);
+
+      expect(result).toEqual(cached);
+      expect(slotRepository.find).not.toHaveBeenCalled();
+    });
+
+    it('should cache the result after fetching', async () => {
+      slotRepository.find.mockResolvedValue([]);
+
+      await service.getAssembledList(electionId);
+
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        `knesset-list:${electionId}`,
+        JSON.stringify([]),
+        5000,
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // assignSlot
+  // ---------------------------------------------------------------------------
+  describe('assignSlot', () => {
+    const adminId = 'admin-uuid-1';
+    const dto = {
+      electionId: 'election-uuid-1',
+      slotNumber: 5,
+      candidateId: 'candidate-uuid-1',
+      slotType: KnessetSlotType.NATIONAL,
+      notes: 'Test note',
+    };
+
+    it('should assign a candidate to a new slot', async () => {
+      slotRepository.findOne.mockResolvedValue(null);
+      const created = {
+        id: 'slot-uuid-1',
+        ...dto,
+        assignedById: adminId,
+        isConfirmed: false,
+      } as unknown as KnessetListSlot;
+      slotRepository.create.mockReturnValue(created);
+      slotRepository.save.mockResolvedValue(created);
+
+      const result = await service.assignSlot(dto, adminId);
+
+      expect(slotRepository.create).toHaveBeenCalledWith({
+        electionId: dto.electionId,
+        slotNumber: dto.slotNumber,
+        candidateId: dto.candidateId,
+        slotType: dto.slotType,
+        notes: dto.notes,
+        assignedById: adminId,
+      });
+      expect(slotRepository.save).toHaveBeenCalledWith(created);
+      expect(result).toEqual(created);
+      expect(cacheManager.del).toHaveBeenCalledWith(`knesset-list:${dto.electionId}`);
+    });
+
+    it('should update an existing unconfirmed slot', async () => {
+      const existing = {
+        id: 'slot-uuid-1',
+        electionId: dto.electionId,
+        slotNumber: dto.slotNumber,
+        candidateId: 'old-candidate',
+        slotType: KnessetSlotType.DISTRICT,
+        isConfirmed: false,
+        assignedById: 'old-admin',
+        notes: 'Old note',
+      } as unknown as KnessetListSlot;
+
+      slotRepository.findOne.mockResolvedValue(existing);
+      slotRepository.save.mockImplementation(async (entity) => entity as KnessetListSlot);
+
+      const result = await service.assignSlot(dto, adminId);
+
+      expect(existing.candidateId).toBe(dto.candidateId);
+      expect(existing.slotType).toBe(dto.slotType);
+      expect(existing.assignedById).toBe(adminId);
+      expect(result).toEqual(existing);
+    });
+
+    it('should reject if slot is already confirmed', async () => {
+      const confirmed = {
+        id: 'slot-uuid-1',
+        electionId: dto.electionId,
+        slotNumber: dto.slotNumber,
+        candidateId: 'c1',
+        isConfirmed: true,
+      } as unknown as KnessetListSlot;
+
+      slotRepository.findOne.mockResolvedValue(confirmed);
+
+      await expect(service.assignSlot(dto, adminId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // confirmSlot
+  // ---------------------------------------------------------------------------
+  describe('confirmSlot', () => {
+    const assignerAdminId = 'admin-uuid-1';
+    const confirmerAdminId = 'admin-uuid-2';
+    const dto = {
+      electionId: 'election-uuid-1',
+      slotNumber: 5,
+    };
+
+    it('should set confirmation fields', async () => {
+      const slot = {
+        id: 'slot-uuid-1',
+        electionId: dto.electionId,
+        slotNumber: dto.slotNumber,
+        candidateId: 'candidate-uuid-1',
+        isConfirmed: false,
+        assignedById: assignerAdminId,
+        confirmedById: null,
+        confirmedAt: null,
+      } as unknown as KnessetListSlot;
+
+      slotRepository.findOne.mockResolvedValue(slot);
+      slotRepository.save.mockImplementation(async (entity) => entity as KnessetListSlot);
+
+      const result = await service.confirmSlot(dto, confirmerAdminId);
+
+      expect(result.isConfirmed).toBe(true);
+      expect(result.confirmedById).toBe(confirmerAdminId);
+      expect(result.confirmedAt).toBeInstanceOf(Date);
+      expect(cacheManager.del).toHaveBeenCalledWith(`knesset-list:${dto.electionId}`);
+    });
+
+    it('should reject same admin as assigner (dual confirmation)', async () => {
+      const slot = {
+        id: 'slot-uuid-1',
+        electionId: dto.electionId,
+        slotNumber: dto.slotNumber,
+        candidateId: 'candidate-uuid-1',
+        isConfirmed: false,
+        assignedById: assignerAdminId,
+      } as unknown as KnessetListSlot;
+
+      slotRepository.findOne.mockResolvedValue(slot);
+
+      await expect(
+        service.confirmSlot(dto, assignerAdminId),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should reject if slot not found', async () => {
+      slotRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.confirmSlot(dto, confirmerAdminId),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should reject if no candidate assigned', async () => {
+      const slot = {
+        id: 'slot-uuid-1',
+        electionId: dto.electionId,
+        slotNumber: dto.slotNumber,
+        candidateId: null,
+        isConfirmed: false,
+        assignedById: assignerAdminId,
+      } as unknown as KnessetListSlot;
+
+      slotRepository.findOne.mockResolvedValue(slot);
+
+      await expect(
+        service.confirmSlot(dto, confirmerAdminId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject if slot is already confirmed', async () => {
+      const slot = {
+        id: 'slot-uuid-1',
+        electionId: dto.electionId,
+        slotNumber: dto.slotNumber,
+        candidateId: 'candidate-uuid-1',
+        isConfirmed: true,
+        assignedById: assignerAdminId,
+      } as unknown as KnessetListSlot;
+
+      slotRepository.findOne.mockResolvedValue(slot);
+
+      await expect(
+        service.confirmSlot(dto, confirmerAdminId),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // unassignSlot
+  // ---------------------------------------------------------------------------
+  describe('unassignSlot', () => {
+    const electionId = 'election-uuid-1';
+    const slotNumber = 5;
+
+    it('should work for unconfirmed slots', async () => {
+      const slot = {
+        id: 'slot-uuid-1',
+        electionId,
+        slotNumber,
+        candidateId: 'c1',
+        isConfirmed: false,
+      } as unknown as KnessetListSlot;
+
+      slotRepository.findOne.mockResolvedValue(slot);
+      slotRepository.remove.mockResolvedValue(slot);
+
+      await service.unassignSlot(electionId, slotNumber);
+
+      expect(slotRepository.remove).toHaveBeenCalledWith(slot);
+      expect(cacheManager.del).toHaveBeenCalledWith(`knesset-list:${electionId}`);
+    });
+
+    it('should reject confirmed slots', async () => {
+      const slot = {
+        id: 'slot-uuid-1',
+        electionId,
+        slotNumber,
+        candidateId: 'c1',
+        isConfirmed: true,
+      } as unknown as KnessetListSlot;
+
+      slotRepository.findOne.mockResolvedValue(slot);
+
+      await expect(
+        service.unassignSlot(electionId, slotNumber),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw NotFoundException when slot does not exist', async () => {
+      slotRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.unassignSlot(electionId, slotNumber),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getSlotStatistics
+  // ---------------------------------------------------------------------------
+  describe('getSlotStatistics', () => {
+    it('should return correct counts', async () => {
+      const electionId = 'election-uuid-1';
+      const slots = [
+        { slotType: KnessetSlotType.LEADER, candidateId: 'c1', isConfirmed: true },
+        { slotType: KnessetSlotType.NATIONAL, candidateId: 'c2', isConfirmed: true },
+        { slotType: KnessetSlotType.NATIONAL, candidateId: 'c3', isConfirmed: false },
+        { slotType: KnessetSlotType.RESERVED_WOMAN, candidateId: null, isConfirmed: false },
+        { slotType: KnessetSlotType.DISTRICT, candidateId: 'c4', isConfirmed: false },
+        { slotType: KnessetSlotType.RESERVED_MINORITY, candidateId: null, isConfirmed: false },
+      ] as unknown as KnessetListSlot[];
+
+      slotRepository.find.mockResolvedValue(slots);
+
+      const result = await service.getSlotStatistics(electionId);
+
+      expect(result.totalSlots).toBe(6);
+      expect(result.filledSlots).toBe(4);
+      expect(result.confirmedSlots).toBe(2);
+      expect(result.byType).toEqual({
+        leader: 1,
+        reserved_minority: 1,
+        reserved_woman: 1,
+        national: 2,
+        district: 1,
+      });
+    });
+
+    it('should return zero counts when no slots exist', async () => {
+      slotRepository.find.mockResolvedValue([]);
+
+      const result = await service.getSlotStatistics('election-uuid-1');
+
+      expect(result.totalSlots).toBe(0);
+      expect(result.filledSlots).toBe(0);
+      expect(result.confirmedSlots).toBe(0);
+      expect(result.byType).toEqual({
+        leader: 0,
+        reserved_minority: 0,
+        reserved_woman: 0,
+        national: 0,
+        district: 0,
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getLeaderboardWithDelta
+  // ---------------------------------------------------------------------------
+  describe('getLeaderboardWithDelta', () => {
+    const electionId = 'election-uuid-1';
+
+    it('should return ranked candidates', async () => {
+      const results = [
+        {
+          candidateId: 'c1',
+          candidate: { id: 'c1', fullName: 'Candidate A' },
+          voteCount: 1000,
+          percentage: '55.00',
+        },
+        {
+          candidateId: 'c2',
+          candidate: { id: 'c2', fullName: 'Candidate B' },
+          voteCount: 800,
+          percentage: '45.00',
+        },
+      ] as unknown as ElectionResult[];
+
+      const qb = mockQueryBuilder();
+      resultRepository.createQueryBuilder.mockReturnValue(qb as any);
+      qb.getMany.mockResolvedValue(results);
+
+      const result = await service.getLeaderboardWithDelta(electionId);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].rank).toBe(1);
+      expect(result[0].candidateId).toBe('c1');
+      expect(result[0].voteCount).toBe(1000);
+      expect(result[1].rank).toBe(2);
+      expect(result[1].candidateId).toBe('c2');
+    });
+
+    it('should return cached data when available', async () => {
+      const cached = [
+        { candidateId: 'c1', voteCount: 1000, rank: 1, delta: 0 },
+      ];
+      cacheManager.get.mockResolvedValue(JSON.stringify(cached));
+
+      const result = await service.getLeaderboardWithDelta(electionId);
+
+      expect(result).toEqual(cached);
+      expect(resultRepository.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('should cache the result after fetching', async () => {
+      const qb = mockQueryBuilder();
+      resultRepository.createQueryBuilder.mockReturnValue(qb as any);
+      qb.getMany.mockResolvedValue([]);
+
+      await service.getLeaderboardWithDelta(electionId);
+
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        `leaderboard-delta:${electionId}`,
+        expect.any(String),
+        5000,
+      );
     });
   });
 });
