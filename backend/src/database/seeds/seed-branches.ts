@@ -247,7 +247,7 @@ async function seedBranches() {
           totalScore += weighted;
         }
 
-        totalScore = Math.round(totalScore * 100) / 100;
+        totalScore = Math.round(totalScore); // DB column is integer
         const perCapitaScore =
           Math.round((totalScore / memberCount) * 100) / 100;
 

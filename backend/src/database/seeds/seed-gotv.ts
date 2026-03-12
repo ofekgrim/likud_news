@@ -378,10 +378,10 @@ async function seedGotv() {
         `INSERT INTO "gotv_engagement"
           ("id", "appUserId", "electionId", "votingPlanTime", "plannedStationId",
            "stationCheckinAt", "votedBadgeClaimedAt", "notificationsSent",
-           "notificationLog", "remindersEnabled", "remindersSnoozed",
+           "remindersSnoozed",
            "createdAt", "updatedAt")
         VALUES
-          (uuid_generate_v4(), $1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10::jsonb, NOW(), NOW())`,
+          (uuid_generate_v4(), $1, $2, $3, $4, $5, $6, $7, $8::jsonb, NOW(), NOW())`,
         [
           user.id,
           election.id,
@@ -390,8 +390,6 @@ async function seedGotv() {
           stationCheckinAt,
           votedBadgeClaimedAt,
           profile.notificationsSent,
-          notificationLog,
-          profile.remindersEnabled,
           remindersSnoozed,
         ],
       );

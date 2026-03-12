@@ -423,18 +423,19 @@ describe('PollingStationsService', () => {
         where: { id: dto.stationId },
         relations: ['election'],
       });
+      const expectedHash = '9d08cd99bb60b16d703c96880ac77e1939d744edddb8afe4afed105d8e149a51';
       expect(reportRepository.create).toHaveBeenCalledWith({
         stationId: dto.stationId,
-        userId,
+        userIdHash: expectedHash,
         waitTimeMinutes: 15,
         crowdLevel: 'high',
         note: 'Long queue at entrance',
       });
       expect(reportRepository.save).toHaveBeenCalledWith(report);
       expect(result).toEqual(report);
-      // Verify rate-limit key was set with 30-min TTL
+      // Verify rate-limit key uses the hash, not raw userId
       expect(mockCacheManager.set).toHaveBeenCalledWith(
-        `station_report:${dto.stationId}:${userId}`,
+        `station_report:${dto.stationId}:${expectedHash}`,
         '1',
         30 * 60 * 1000,
       );
