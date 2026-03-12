@@ -220,6 +220,8 @@
   "comment_pending_moderation": "התגובה תפורסם לאחר אישור",
   "load_more_comments": "טען עוד תגובות",
   "no_comments_yet": "אין תגובות עדיין",
+  "comments_guest_prompt": "רוצה להגיב? הצטרף לשיחה",
+  "comments_register_cta": "הרשמה",
   "tags": "תגיות",
   "photo_credit": "צילום:",
   "view_on_x": "צפה ב-X",

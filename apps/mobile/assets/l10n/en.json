@@ -220,6 +220,8 @@
   "comment_pending_moderation": "Your comment will be published after approval",
   "load_more_comments": "Load more comments",
   "no_comments_yet": "No comments yet",
+  "comments_guest_prompt": "Want to join the conversation?",
+  "comments_register_cta": "Sign up",
   "tags": "Tags",
   "photo_credit": "Photo:",
   "view_on_x": "View on X",
