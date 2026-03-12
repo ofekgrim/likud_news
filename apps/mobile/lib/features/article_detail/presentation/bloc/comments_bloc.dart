@@ -44,6 +44,7 @@ class SubmitCommentEvent extends CommentsEvent {
   final String articleId;
   final String body;
   final String? parentId;
+  final String? guestName; // Set when user is not authenticated
   final String targetType; // 'article' or 'story'
 
   const SubmitCommentEvent({
@@ -51,10 +52,11 @@ class SubmitCommentEvent extends CommentsEvent {
     required this.body,
     this.parentId,
     this.targetType = 'article',
+    this.guestName,
   });
 
   @override
-  List<Object?> get props => [articleId, body, parentId, targetType];
+  List<Object?> get props => [articleId, body, parentId, targetType, guestName];
 }
 
 /// Likes a comment (optimistic local update + API call).
@@ -316,6 +318,7 @@ class CommentsBloc extends Bloc<CommentsEvent, CommentsState> {
       body: event.body,
       parentId: event.parentId,
       targetType: event.targetType,
+      guestName: event.guestName,
     ));
 
     result.fold(

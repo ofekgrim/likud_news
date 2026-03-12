@@ -222,6 +222,8 @@
   "no_comments_yet": "אין תגובות עדיין",
   "comments_guest_prompt": "רוצה להגיב? הצטרף לשיחה",
   "comments_register_cta": "הרשמה",
+  "comments_guest_name_hint": "השם שלך",
+  "comments_have_account": "כבר יש לך חשבון?",
   "tags": "תגיות",
   "photo_credit": "צילום:",
   "view_on_x": "צפה ב-X",

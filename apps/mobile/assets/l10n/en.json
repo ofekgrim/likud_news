@@ -222,6 +222,8 @@
   "no_comments_yet": "No comments yet",
   "comments_guest_prompt": "Want to join the conversation?",
   "comments_register_cta": "Sign up",
+  "comments_guest_name_hint": "Your name",
+  "comments_have_account": "Already have an account?",
   "tags": "Tags",
   "photo_credit": "Photo:",
   "view_on_x": "View on X",

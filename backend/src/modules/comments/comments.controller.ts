@@ -18,15 +18,11 @@ import {
   ApiOperation,
   ApiResponse,
   ApiParam,
-  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { QueryCommentsDto } from './dto/query-comments.dto';
-import { AppAuthGuard } from '../app-auth/guards/app-auth.guard';
-import { AppRolesGuard } from '../app-auth/guards/app-roles.guard';
-import { AppRoles } from '../app-auth/decorators/app-roles.decorator';
-import { AppUserRole } from '../app-users/entities/app-user.entity';
+import { OptionalAppAuthGuard } from '../app-auth/guards/optional-app-auth.guard';
 
 /**
  * Public-facing controller for article comments.
@@ -52,28 +48,21 @@ export class ArticleCommentsController {
   }
 
   @Post(':articleId/comments')
-  @UseGuards(AppAuthGuard, AppRolesGuard)
-  @AppRoles(AppUserRole.GUEST)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Submit a comment on an article (requires login)' })
+  @UseGuards(OptionalAppAuthGuard)
+  @ApiOperation({ summary: 'Submit a comment on an article (auth optional — guests use guestName)' })
   @ApiParam({ name: 'articleId', description: 'Article UUID' })
-  @ApiResponse({
-    status: 201,
-    description: 'Comment submitted successfully',
-  })
+  @ApiResponse({ status: 201, description: 'Comment submitted successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input' })
-  @ApiResponse({ status: 403, description: 'Requires MEMBER role' })
   submit(
     @Param('articleId', ParseUUIDPipe) articleId: string,
     @Body() createCommentDto: CreateCommentDto,
     @Req() req: any,
   ) {
-    return this.commentsService.submit(articleId, createCommentDto, req.user.id);
+    return this.commentsService.submit(articleId, createCommentDto, req.user?.id ?? null);
   }
 
   @Post(':articleId/comments/:commentId/like')
-  @UseGuards(AppAuthGuard)
-  @ApiBearerAuth()
+  @UseGuards(OptionalAppAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Like a comment (requires login)' })
   @ApiParam({ name: 'articleId', description: 'Article UUID' })
@@ -160,28 +149,21 @@ export class StoryCommentsController {
   }
 
   @Post(':storyId/comments')
-  @UseGuards(AppAuthGuard, AppRolesGuard)
-  @AppRoles(AppUserRole.GUEST)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Submit a comment on a story (requires login)' })
+  @UseGuards(OptionalAppAuthGuard)
+  @ApiOperation({ summary: 'Submit a comment on a story (auth optional — guests use guestName)' })
   @ApiParam({ name: 'storyId', description: 'Story UUID' })
-  @ApiResponse({
-    status: 201,
-    description: 'Comment submitted successfully',
-  })
+  @ApiResponse({ status: 201, description: 'Comment submitted successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input' })
-  @ApiResponse({ status: 403, description: 'Requires MEMBER role' })
   submit(
     @Param('storyId', ParseUUIDPipe) storyId: string,
     @Body() createCommentDto: CreateCommentDto,
     @Req() req: any,
   ) {
-    return this.commentsService.submitForStory(storyId, createCommentDto, req.user.id);
+    return this.commentsService.submitForStory(storyId, createCommentDto, req.user?.id ?? null);
   }
 
   @Post(':storyId/comments/:commentId/like')
-  @UseGuards(AppAuthGuard)
-  @ApiBearerAuth()
+  @UseGuards(OptionalAppAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Like a comment on a story (requires login)' })
   @ApiParam({ name: 'storyId', description: 'Story UUID' })

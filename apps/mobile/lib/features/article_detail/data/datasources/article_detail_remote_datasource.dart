@@ -42,6 +42,7 @@ abstract class ArticleDetailRemoteDataSource {
     required String body,
     String? parentId,
     String targetType = 'article',
+    String? guestName,
   });
 
   /// Increments the share count for an article.
@@ -132,12 +133,14 @@ class ArticleDetailRemoteDataSourceImpl
     required String body,
     String? parentId,
     String targetType = 'article',
+    String? guestName,
   }) async {
     await _apiClient.post(
       _commentsBasePath(articleId, targetType),
       data: {
         'body': body,
         if (parentId != null) 'parentId': parentId,
+        if (guestName != null) 'guestName': guestName,
       },
     );
   }

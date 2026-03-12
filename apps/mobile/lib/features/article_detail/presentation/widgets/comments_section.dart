@@ -40,6 +40,7 @@ class CommentsSection extends StatefulWidget {
 class _CommentsSectionState extends State<CommentsSection> {
   final _bodyController = TextEditingController();
   final _bodyFocusNode = FocusNode();
+  final _guestNameController = TextEditingController();
 
   // Avatar color palette — 8 pleasing colors for initials circles.
   static const _avatarColors = [
@@ -70,6 +71,7 @@ class _CommentsSectionState extends State<CommentsSection> {
   void dispose() {
     _bodyController.dispose();
     _bodyFocusNode.dispose();
+    _guestNameController.dispose();
     super.dispose();
   }
 
@@ -361,92 +363,206 @@ class _CommentsSectionState extends State<CommentsSection> {
     );
   }
 
-  /// Shown to unauthenticated users — invite them to log in or register.
+  /// Shown to unauthenticated users — name field + comment field + auth nudge.
   Widget _buildGuestCommentPrompt() {
     return Padding(
       padding: const EdgeInsets.only(top: 12, bottom: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: context.colors.surfaceVariant,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: context.colors.border),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.chat_bubble_outline,
-                  size: 20,
-                  color: context.colors.textSecondary,
+      child: StatefulBuilder(
+        builder: (context, setLocal) {
+          final canSend = _guestNameController.text.trim().isNotEmpty &&
+              _bodyController.text.trim().isNotEmpty;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Name field
+              TextField(
+                controller: _guestNameController,
+                textDirection: TextDirection.rtl,
+                decoration: InputDecoration(
+                  hintText: 'comments_guest_name_hint'.tr(),
+                  hintStyle: TextStyle(
+                    color: context.colors.textTertiary,
+                    fontSize: 14,
+                  ),
+                  filled: true,
+                  fillColor: context.colors.surfaceVariant,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  isDense: true,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'comments_guest_prompt'.tr(),
-                    style: TextStyle(
-                      fontFamily: 'Heebo',
-                      fontSize: 14,
-                      color: context.colors.textSecondary,
+                style: TextStyle(
+                  fontFamily: 'Heebo',
+                  fontSize: 14,
+                  color: context.colors.textPrimary,
+                ),
+                onChanged: (_) => setLocal(() {}),
+              ),
+              const SizedBox(height: 8),
+
+              // Comment field + send button
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _bodyController,
+                      focusNode: _bodyFocusNode,
+                      textDirection: TextDirection.rtl,
+                      maxLines: 4,
+                      minLines: 1,
+                      decoration: InputDecoration(
+                        hintText: 'write_comment'.tr(),
+                        hintStyle: TextStyle(
+                          color: context.colors.textTertiary,
+                          fontSize: 14,
+                        ),
+                        filled: true,
+                        fillColor: context.colors.surfaceVariant,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        isDense: true,
+                      ),
+                      style: TextStyle(
+                        fontFamily: 'Heebo',
+                        fontSize: 14,
+                        color: context.colors.textPrimary,
+                      ),
+                      onChanged: (_) => setLocal(() {}),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => context.push('/login'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.likudBlue,
-                      side: const BorderSide(color: AppColors.likudBlue),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                  const SizedBox(width: 4),
+                  BlocBuilder<CommentsBloc, CommentsState>(
+                    buildWhen: (prev, curr) =>
+                        curr is CommentSubmitting ||
+                        curr is CommentsLoaded ||
+                        curr is CommentSubmitted,
+                    builder: (context, state) {
+                      final isSubmitting = state is CommentSubmitting;
+                      return IconButton(
+                        onPressed: (canSend && !isSubmitting)
+                            ? _submitGuestComment
+                            : null,
+                        icon: isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.likudBlue,
+                                ),
+                              )
+                            : Icon(
+                                Icons.send_rounded,
+                                color: canSend
+                                    ? AppColors.likudBlue
+                                    : context.colors.textTertiary,
+                              ),
+                        padding: EdgeInsets.zero,
+                        constraints:
+                            const BoxConstraints(minWidth: 36, minHeight: 36),
+                      );
+                    },
+                  ),
+                ],
+              ),
+
+              // Auth nudge
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'comments_have_account'.tr(),
+                    style: TextStyle(
+                      fontFamily: 'Heebo',
+                      fontSize: 12,
+                      color: context.colors.textTertiary,
                     ),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () => context.push('/login'),
                     child: Text(
                       'auth_sign_in'.tr(),
                       style: const TextStyle(
                         fontFamily: 'Heebo',
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
+                        color: AppColors.likudBlue,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.likudBlue,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => context.push('/register'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.likudBlue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                  Text(
+                    ' | ',
+                    style: TextStyle(
+                      fontFamily: 'Heebo',
+                      fontSize: 12,
+                      color: context.colors.textTertiary,
                     ),
+                  ),
+                  GestureDetector(
+                    onTap: () => context.push('/register'),
                     child: Text(
                       'comments_register_cta'.tr(),
                       style: const TextStyle(
                         fontFamily: 'Heebo',
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.white,
+                        color: AppColors.likudBlue,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.likudBlue,
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
+                ],
+              ),
+            ],
+          );
+        },
       ),
     );
+  }
+
+  void _submitGuestComment() {
+    final name = _guestNameController.text.trim();
+    final body = _bodyController.text.trim();
+    if (name.isEmpty || body.isEmpty) return;
+
+    final blocState = context.read<CommentsBloc>().state;
+    String? parentId;
+    if (blocState is CommentsLoaded && blocState.replyTargetId != null) {
+      parentId = blocState.replyTargetId;
+    }
+
+    context.read<CommentsBloc>().add(
+          SubmitCommentEvent(
+            articleId: widget.targetId,
+            body: body,
+            parentId: parentId,
+            targetType: widget.targetType,
+            guestName: name,
+          ),
+        );
+
+    _bodyController.clear();
+    _bodyFocusNode.unfocus();
+    context.read<CommentsBloc>().add(const ClearReplyTarget());
   }
 
   /// Shown to authenticated users — full text input with send button.

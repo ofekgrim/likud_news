@@ -21,19 +21,33 @@ export class CommentsService {
   async submit(
     articleId: string,
     dto: CreateCommentDto,
-    userId: string,
+    userId: string | null,
   ): Promise<Comment> {
-    const user = await this.appUserRepository.findOne({ where: { id: userId } });
+    if (userId) {
+      const user = await this.appUserRepository.findOne({ where: { id: userId } });
+      const comment = this.commentRepository.create({
+        body: dto.body,
+        parentId: dto.parentId,
+        articleId,
+        userId,
+        authorName: user?.displayName || 'Member',
+        authorEmail: user?.email ?? undefined,
+        authorAvatarUrl: user?.avatarUrl ?? undefined,
+        authorRole: user?.role ?? 'guest',
+        isApproved: true,
+      });
+      return this.commentRepository.save(comment);
+    }
+
+    // Guest comment — no account required, goes through moderation
     const comment = this.commentRepository.create({
       body: dto.body,
       parentId: dto.parentId,
       articleId,
-      userId,
-      authorName: user?.displayName || 'Member',
-      authorEmail: user?.email ?? undefined,
-      authorAvatarUrl: user?.avatarUrl ?? undefined,
-      authorRole: user?.role ?? 'guest',
-      isApproved: true,
+      userId: undefined,
+      authorName: dto.guestName?.trim() || 'אורח',
+      authorRole: 'guest',
+      isApproved: false,
     });
     return this.commentRepository.save(comment);
   }
@@ -198,19 +212,32 @@ export class CommentsService {
   async submitForStory(
     storyId: string,
     dto: CreateCommentDto,
-    userId: string,
+    userId: string | null,
   ): Promise<Comment> {
-    const user = await this.appUserRepository.findOne({ where: { id: userId } });
+    if (userId) {
+      const user = await this.appUserRepository.findOne({ where: { id: userId } });
+      const comment = this.commentRepository.create({
+        body: dto.body,
+        parentId: dto.parentId,
+        storyId,
+        userId,
+        authorName: user?.displayName || 'Member',
+        authorEmail: user?.email ?? undefined,
+        authorAvatarUrl: user?.avatarUrl ?? undefined,
+        authorRole: user?.role ?? 'guest',
+        isApproved: true,
+      });
+      return this.commentRepository.save(comment);
+    }
+
     const comment = this.commentRepository.create({
       body: dto.body,
       parentId: dto.parentId,
       storyId,
-      userId,
-      authorName: user?.displayName || 'Member',
-      authorEmail: user?.email ?? undefined,
-      authorAvatarUrl: user?.avatarUrl ?? undefined,
-      authorRole: user?.role ?? 'guest',
-      isApproved: true,
+      userId: undefined,
+      authorName: dto.guestName?.trim() || 'אורח',
+      authorRole: 'guest',
+      isApproved: false,
     });
     return this.commentRepository.save(comment);
   }

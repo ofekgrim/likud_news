@@ -85,6 +85,7 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
     required String body,
     String? parentId,
     String targetType = 'article',
+    String? guestName,
   }) async {
     try {
       await _remoteDataSource.submitComment(
@@ -92,6 +93,7 @@ class ArticleDetailRepositoryImpl implements ArticleDetailRepository {
         body: body,
         parentId: parentId,
         targetType: targetType,
+        guestName: guestName,
       );
       return const Right(null);
     } on Exception catch (e) {

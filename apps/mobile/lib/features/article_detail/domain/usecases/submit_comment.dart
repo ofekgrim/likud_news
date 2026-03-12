@@ -20,6 +20,7 @@ class SubmitComment implements UseCase<void, SubmitCommentParams> {
       body: params.body,
       parentId: params.parentId,
       targetType: params.targetType,
+      guestName: params.guestName,
     );
   }
 }
@@ -30,14 +31,16 @@ class SubmitCommentParams extends Equatable {
   final String body;
   final String? parentId;
   final String targetType; // 'article' or 'story'
+  final String? guestName; // Set when user is not authenticated
 
   const SubmitCommentParams({
     required this.articleId,
     required this.body,
     this.parentId,
     this.targetType = 'article',
+    this.guestName,
   });
 
   @override
-  List<Object?> get props => [articleId, body, parentId, targetType];
+  List<Object?> get props => [articleId, body, parentId, targetType, guestName];
 }

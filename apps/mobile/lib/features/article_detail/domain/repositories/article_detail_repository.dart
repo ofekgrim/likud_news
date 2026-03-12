@@ -43,6 +43,7 @@ abstract class ArticleDetailRepository {
     required String body,
     String? parentId,
     String targetType = 'article',
+    String? guestName,
   });
 
   /// Increments the share count for an article.

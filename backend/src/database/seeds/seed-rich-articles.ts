@@ -504,8 +504,18 @@ export async function seedRichArticles(): Promise<void> {
   for (const data of articlesData) {
     const existing = await articleRepo.findOne({ where: { slug: data.slug } });
     if (existing) {
-      // Update bodyBlocks on existing articles
-      await articleRepo.update({ slug: data.slug }, { bodyBlocks: data.bodyBlocks });
+      // Update bodyBlocks + key display fields on existing articles
+      await articleRepo.update({ slug: data.slug }, {
+        bodyBlocks: data.bodyBlocks,
+        allowComments: data.allowComments,
+        alertBannerEnabled: data.alertBannerEnabled,
+        alertBannerText: data.alertBannerText,
+        alertBannerColor: data.alertBannerColor,
+        heroImageUrl: data.heroImageUrl,
+        heroImageCaption: data.heroImageCaption,
+        heroImageCredit: data.heroImageCredit,
+        status: data.status,
+      });
       skipped++;
       continue;
     }
