@@ -106,6 +106,7 @@ describe('TickerService', () => {
       );
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         '(ticker.expiresAt IS NULL OR ticker.expiresAt > :now)',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         expect.objectContaining({ now: expect.any(Date) }),
       );
       expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
@@ -143,7 +144,7 @@ describe('TickerService', () => {
       repository.update.mockResolvedValue({ affected: 1 });
       repository.find.mockResolvedValue([]);
 
-      const result = await service.reorder(orderedIds);
+      await service.reorder(orderedIds);
 
       expect(repository.update).toHaveBeenCalledTimes(3);
       expect(repository.update).toHaveBeenCalledWith('uuid-3', { position: 0 });

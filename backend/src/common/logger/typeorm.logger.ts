@@ -97,10 +97,8 @@ function detectOperation(sql: string): { op: string; color: string } {
   if (upper.startsWith('DROP')) return { op: 'DROP', color: c.red };
   if (upper.startsWith('BEGIN') || upper.startsWith('START'))
     return { op: 'TXN:BEGIN', color: c.blue };
-  if (upper.startsWith('COMMIT'))
-    return { op: 'TXN:COMMIT', color: c.blue };
-  if (upper.startsWith('ROLLBACK'))
-    return { op: 'TXN:ROLLBACK', color: c.red };
+  if (upper.startsWith('COMMIT')) return { op: 'TXN:COMMIT', color: c.blue };
+  if (upper.startsWith('ROLLBACK')) return { op: 'TXN:ROLLBACK', color: c.red };
   return { op: 'QUERY', color: c.gray };
 }
 
@@ -109,9 +107,7 @@ function detectOperation(sql: string): { op: string; color: string } {
 // ─────────────────────────────────────────────────────────────
 function extractTable(sql: string): string {
   // FROM "table_name" or INTO "table_name" or UPDATE "table_name"
-  const match = sql.match(
-    /(?:FROM|INTO|UPDATE|JOIN|TABLE)\s+"?(\w+)"?/i,
-  );
+  const match = sql.match(/(?:FROM|INTO|UPDATE|JOIN|TABLE)\s+"?(\w+)"?/i);
   if (match) {
     const raw = match[1];
     return TABLE_LABELS[raw] || raw;
@@ -177,7 +173,7 @@ export class ReadableTypeOrmLogger implements TypeOrmLogger {
     parameters?: any[],
     _queryRunner?: QueryRunner,
   ) {
-    const { op, color } = detectOperation(query);
+    const { op, color: _color } = detectOperation(query);
     const table = extractTable(query);
     const params = formatParams(parameters);
     const errMsg = typeof error === 'string' ? error : error.message;

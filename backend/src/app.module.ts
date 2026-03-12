@@ -188,7 +188,7 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
           });
           console.log('✅ Cache: Connected to Redis');
           return { store };
-        } catch (error) {
+        } catch {
           // Fallback to in-memory cache if Redis is unavailable
           console.warn(
             '⚠️  Cache: Redis unavailable, using in-memory cache (development only)',

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 /**
  * Seed Notification Logs for Every Content Type
  *
@@ -45,8 +46,11 @@ async function main() {
   // -----------------------------------------------------------------------
 
   const safeQuery = async (sql: string): Promise<any[]> => {
-    try { return await dataSource.query(sql); }
-    catch { return []; }
+    try {
+      return await dataSource.query(sql);
+    } catch {
+      return [];
+    }
   };
 
   const [articles, polls, events, elections, quizzes] = await Promise.all([
@@ -285,7 +289,9 @@ async function main() {
   for (let i = 0; i < notifications.length; i++) {
     const n = notifications[i];
     // Stagger sentAt so they appear in order in the inbox
-    const sentAt = new Date(now.getTime() - (notifications.length - i) * 60_000);
+    const sentAt = new Date(
+      now.getTime() - (notifications.length - i) * 60_000,
+    );
 
     const result = await dataSource.query(
       `INSERT INTO notification_logs
@@ -369,7 +375,9 @@ async function main() {
   // -----------------------------------------------------------------------
 
   console.log('\n' + '='.repeat(60));
-  console.log(`🎉 Seeded ${logIds.length} notifications × ${devices.length} devices = ${receiptCount} receipts`);
+  console.log(
+    `🎉 Seeded ${logIds.length} notifications × ${devices.length} devices = ${receiptCount} receipts`,
+  );
   console.log('='.repeat(60));
   console.log('\nBreakdown:');
   const typeCounts: Record<string, number> = {};
@@ -381,8 +389,12 @@ async function main() {
   }
 
   console.log('\n📋 Test the inbox:');
-  console.log(`   GET /api/v1/notifications/inbox?deviceId=${devices[0]?.deviceId}`);
-  console.log('\n📋 Test deep links by tapping each notification in the app inbox.');
+  console.log(
+    `   GET /api/v1/notifications/inbox?deviceId=${devices[0]?.deviceId}`,
+  );
+  console.log(
+    '\n📋 Test deep links by tapping each notification in the app inbox.',
+  );
 
   await dataSource.destroy();
 }

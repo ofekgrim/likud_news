@@ -119,16 +119,18 @@ export class LoggingInterceptor implements NestInterceptor {
     const req = ctx.getRequest<Request>();
     const res = ctx.getResponse<Response>();
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { method, originalUrl, body, query } = req;
-    const ip = req.ip?.replace('::ffff:', '') || req.socket.remoteAddress || '?';
     const start = Date.now();
 
     // Identify client type from User-Agent
     const ua = req.get('user-agent') || '';
     let client = '';
     if (ua.includes('Flutter')) client = `${c.magenta}[Flutter]${c.reset} `;
-    else if (ua.includes('Next') || ua.includes('node')) client = `${c.cyan}[Admin]${c.reset} `;
-    else if (ua.includes('Mozilla') || ua.includes('Chrome')) client = `${c.blue}[Browser]${c.reset} `;
+    else if (ua.includes('Next') || ua.includes('node'))
+      client = `${c.cyan}[Admin]${c.reset} `;
+    else if (ua.includes('Mozilla') || ua.includes('Chrome'))
+      client = `${c.blue}[Browser]${c.reset} `;
 
     // Auth info
     const authHeader = req.get('authorization');
@@ -155,12 +157,15 @@ export class LoggingInterceptor implements NestInterceptor {
           // └──────────────────────────────────────────────────────
           let line = `${methodBadge(method)} ${c.white}${path}${c.reset} → ${statusColor(status)} ${c.dim}(${c.reset}${durationColor(ms)}${c.dim})${c.reset}  ${client}${authTag}`;
           if (queryStr) line += `\n${c.dim}           ? ${queryStr}${c.reset}`;
-          if (bodyStr) line += `\n${c.dim}           body: { ${bodyStr} }${c.reset}`;
+          if (bodyStr)
+            line += `\n${c.dim}           body: { ${bodyStr} }${c.reset}`;
 
           this.logger.log(line);
         },
-        error: (err) => {
+
+        error: (err: any) => {
           const ms = Date.now() - start;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
           const status = err?.status || err?.getStatus?.() || 500;
           const path = cleanPath(originalUrl);
           const queryStr = formatQuery(query as Record<string, any>);
@@ -171,9 +176,15 @@ export class LoggingInterceptor implements NestInterceptor {
 
           let line = `${methodBadge(method)} ${c.white}${path}${c.reset} → ${statusColor(status)} ${c.dim}(${c.reset}${durationColor(ms)}${c.dim})${c.reset}  ${client}${authTag}`;
           if (queryStr) line += `\n${c.dim}           ? ${queryStr}${c.reset}`;
-          if (bodyStr) line += `\n${c.dim}           body: { ${bodyStr} }${c.reset}`;
+          if (bodyStr)
+            line += `\n${c.dim}           body: { ${bodyStr} }${c.reset}`;
 
-          const errMsg = err?.message || err?.response?.message || 'Unknown error';
+          /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+          const errMsg =
+            err?.message ||
+            (err?.response?.message as string) ||
+            'Unknown error';
+          /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
           line += `\n${c.red}           error: ${errMsg}${c.reset}`;
 
           if (status >= 500) {

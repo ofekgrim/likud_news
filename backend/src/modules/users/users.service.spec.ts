@@ -54,6 +54,7 @@ describe('UsersService', () => {
       const result = await service.findAll();
 
       expect(result).toEqual(users);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(repository.find).toHaveBeenCalledWith({
         order: { createdAt: 'DESC' },
       });
@@ -67,6 +68,7 @@ describe('UsersService', () => {
       await expect(service.findOne('nonexistent-id')).rejects.toThrow(
         NotFoundException,
       );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(repository.findOne).toHaveBeenCalledWith({
         where: { id: 'nonexistent-id' },
       });
@@ -80,6 +82,7 @@ describe('UsersService', () => {
       const result = await service.findByEmail('nobody@example.com');
 
       expect(result).toBeNull();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(repository.findOne).toHaveBeenCalledWith({
         where: { email: 'nobody@example.com' },
       });
@@ -110,12 +113,14 @@ describe('UsersService', () => {
       const result = await service.createUser(createUserDto);
 
       expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(repository.create).toHaveBeenCalledWith({
         email: createUserDto.email,
         name: createUserDto.name,
         passwordHash: 'hashed_password',
         role: createUserDto.role,
       });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(repository.save).toHaveBeenCalledWith(savedUser);
       expect(result.passwordHash).toBeUndefined();
     });
@@ -131,6 +136,7 @@ describe('UsersService', () => {
       await expect(service.createUser(createUserDto)).rejects.toThrow(
         ConflictException,
       );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(repository.create).not.toHaveBeenCalled();
     });
   });

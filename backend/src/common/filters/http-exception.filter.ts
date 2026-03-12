@@ -58,6 +58,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message = response;
       } else if (typeof response === 'object' && response !== null) {
         const resp = response as Record<string, any>;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         message = resp.message || exception.message;
         // Validation errors come as array of messages
         if (Array.isArray(resp.message)) {
@@ -81,6 +82,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         ? 'Admin'
         : 'Browser';
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     const isServer = status >= 500;
     const badge = isServer
       ? `${c.bgRed}${c.bold}${c.white} ${status} ${errorName} ${c.reset}`
@@ -120,6 +122,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       statusCode: status,
       message,
       error: errorName,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       ...(details ? { details } : {}),
       timestamp: new Date().toISOString(),
       path: req.originalUrl,
