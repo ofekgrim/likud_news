@@ -21,7 +21,8 @@ class _AiSummary {
   factory _AiSummary.fromJson(Map<String, dynamic> json) {
     return _AiSummary(
       summaryHe: json['summaryHe'] as String? ?? '',
-      keyPointsHe: (json['keyPointsHe'] as List<dynamic>?)
+      keyPointsHe:
+          (json['keyPointsHe'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],
@@ -132,7 +133,7 @@ class _AiSummaryCardState extends State<AiSummaryCard>
       return _buildShimmer(context);
     }
 
-    return _buildCard(context);
+    return const SizedBox.shrink();
   }
 
   Widget _buildShimmer(BuildContext context) {
@@ -251,8 +252,12 @@ class _AiSummaryCardState extends State<AiSummaryCard>
                   // Key points
                   if (summary.keyPointsHe.isNotEmpty) ...[
                     Padding(
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        16,
+                        14,
+                        16,
+                        0,
+                      ),
                       child: Text(
                         'ai_summary.key_points'.tr(),
                         style: TextStyle(
@@ -264,8 +269,12 @@ class _AiSummaryCardState extends State<AiSummaryCard>
                       ),
                     ),
                     Padding(
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        16,
+                        8,
+                        16,
+                        0,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: summary.keyPointsHe.map((point) {
@@ -311,8 +320,12 @@ class _AiSummaryCardState extends State<AiSummaryCard>
                   if (summary.politicalAngleHe != null &&
                       summary.politicalAngleHe!.isNotEmpty) ...[
                     Padding(
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 0),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        16,
+                        10,
+                        16,
+                        0,
+                      ),
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
