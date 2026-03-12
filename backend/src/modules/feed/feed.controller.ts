@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { FeedService } from './feed.service';
-import { QueryFeedDto } from './dto/query-feed.dto';
+import { QueryFeedDto, FeedMode } from './dto/query-feed.dto';
 import { FeedItemDto } from './dto/feed-item.dto';
 
 /**
@@ -21,10 +21,15 @@ export class FeedController {
    * Returns a paginated feed with articles, polls, events, election updates,
    * and quiz prompts sorted by priority algorithm and interleaved for diversity.
    *
+   * Supports two modes:
+   * - `latest`: Standard algorithm-priority sort (default for anonymous users)
+   * - `personalized`: "For You" feed boosted by user follows (default for authenticated users)
+   *
    * @example
    * GET /api/v1/feed?page=1&limit=20
    * GET /api/v1/feed?types=article,poll&categoryId=xyz
    * GET /api/v1/feed?deviceId=abc123&userId=user123
+   * GET /api/v1/feed?userId=user123&mode=personalized
    */
   @Get()
   @ApiOperation({
@@ -56,6 +61,7 @@ export class FeedController {
             eventsCount: { type: 'number', example: 10 },
             electionsCount: { type: 'number', example: 3 },
             quizzesCount: { type: 'number', example: 3 },
+            mode: { type: 'string', enum: ['latest', 'personalized'], example: 'latest' },
           },
         },
       },
@@ -104,6 +110,14 @@ export class FeedController {
     type: String,
     description: 'User ID for personalization (authenticated users)',
   })
+  @ApiQuery({
+    name: 'mode',
+    required: false,
+    enum: FeedMode,
+    description:
+      'Feed mode: "latest" for chronological sort (default for anonymous), ' +
+      '"personalized" for For You feed (default for authenticated users)',
+  })
   async getFeed(
     @Query() query: QueryFeedDto,
   ): Promise<{
@@ -118,6 +132,7 @@ export class FeedController {
       eventsCount: number;
       electionsCount: number;
       quizzesCount: number;
+      mode: FeedMode;
     };
   }> {
     return this.feedService.getFeed(query);

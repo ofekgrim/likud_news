@@ -11,6 +11,14 @@ class MembershipInfoModel {
   final String? branch;
   final String? district;
   final bool votingEligible;
+  final bool isEligible;
+  final PaymentStatus paymentStatus;
+  final bool code99Freeze;
+  final PollingStationModel? pollingStation;
+  final DateTime? membershipJoinDate;
+  final DateTime? membershipExpiryDate;
+  final int daysUntilEligible;
+  final int monthsSinceJoin;
 
   const MembershipInfoModel({
     this.membershipId,
@@ -19,6 +27,14 @@ class MembershipInfoModel {
     this.branch,
     this.district,
     this.votingEligible = false,
+    this.isEligible = false,
+    this.paymentStatus = PaymentStatus.paid,
+    this.code99Freeze = false,
+    this.pollingStation,
+    this.membershipJoinDate,
+    this.membershipExpiryDate,
+    this.daysUntilEligible = 0,
+    this.monthsSinceJoin = 0,
   });
 
   /// Creates a [MembershipInfoModel] from a JSON map.
@@ -38,6 +54,22 @@ class MembershipInfoModel {
       branch: data['branch'] as String?,
       district: data['district'] as String?,
       votingEligible: data['votingEligible'] as bool? ?? false,
+      isEligible: data['isEligible'] as bool? ?? false,
+      paymentStatus: _parsePaymentStatus(data['paymentStatus'] as String?),
+      code99Freeze: data['code99Freeze'] as bool? ?? false,
+      pollingStation: data['pollingStation'] != null
+          ? PollingStationModel.fromJson(
+              data['pollingStation'] as Map<String, dynamic>,
+            )
+          : null,
+      membershipJoinDate: data['membershipJoinDate'] != null
+          ? DateTime.tryParse(data['membershipJoinDate'] as String)
+          : null,
+      membershipExpiryDate: data['membershipExpiryDate'] != null
+          ? DateTime.tryParse(data['membershipExpiryDate'] as String)
+          : null,
+      daysUntilEligible: data['daysUntilEligible'] as int? ?? 0,
+      monthsSinceJoin: data['monthsSinceJoin'] as int? ?? 0,
     );
   }
 
@@ -49,6 +81,14 @@ class MembershipInfoModel {
       'branch': branch,
       'district': district,
       'votingEligible': votingEligible,
+      'isEligible': isEligible,
+      'paymentStatus': paymentStatus.name,
+      'code99Freeze': code99Freeze,
+      'pollingStation': pollingStation?.toJson(),
+      'membershipJoinDate': membershipJoinDate?.toIso8601String(),
+      'membershipExpiryDate': membershipExpiryDate?.toIso8601String(),
+      'daysUntilEligible': daysUntilEligible,
+      'monthsSinceJoin': monthsSinceJoin,
     };
   }
 
@@ -60,6 +100,14 @@ class MembershipInfoModel {
       branch: branch,
       district: district,
       votingEligible: votingEligible,
+      isEligible: isEligible,
+      paymentStatus: paymentStatus,
+      code99Freeze: code99Freeze,
+      pollingStation: pollingStation?.toEntity(),
+      membershipJoinDate: membershipJoinDate,
+      membershipExpiryDate: membershipExpiryDate,
+      daysUntilEligible: daysUntilEligible,
+      monthsSinceJoin: monthsSinceJoin,
     );
   }
 
@@ -76,5 +124,65 @@ class MembershipInfoModel {
       default:
         return MembershipStatus.none;
     }
+  }
+
+  /// Parses a payment status string into a [PaymentStatus] enum.
+  static PaymentStatus _parsePaymentStatus(String? status) {
+    if (status == null) return PaymentStatus.paid;
+    switch (status.toLowerCase()) {
+      case 'due':
+        return PaymentStatus.due;
+      case 'overdue':
+        return PaymentStatus.overdue;
+      default:
+        return PaymentStatus.paid;
+    }
+  }
+}
+
+/// Data model for a polling station.
+class PollingStationModel {
+  final String name;
+  final String address;
+  final double? latitude;
+  final double? longitude;
+  final String? openingHours;
+
+  const PollingStationModel({
+    required this.name,
+    required this.address,
+    this.latitude,
+    this.longitude,
+    this.openingHours,
+  });
+
+  factory PollingStationModel.fromJson(Map<String, dynamic> json) {
+    return PollingStationModel(
+      name: json['name'] as String? ?? '',
+      address: json['address'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      openingHours: json['openingHours'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
+      'openingHours': openingHours,
+    };
+  }
+
+  PollingStation toEntity() {
+    return PollingStation(
+      name: name,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+      openingHours: openingHours,
+    );
   }
 }

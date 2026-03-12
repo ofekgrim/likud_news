@@ -11,11 +11,15 @@ import '../../domain/entities/membership_info.dart';
 import '../../domain/entities/voting_eligibility.dart';
 import '../bloc/membership_bloc.dart';
 import '../../../../core/utils/auth_guard.dart';
+import '../widgets/eligibility_banner.dart';
+import '../widgets/countdown_timer.dart';
+import '../widgets/assigned_station_card.dart';
 
 /// Membership dashboard page.
 ///
 /// Displays the user's Likud membership status, verification form,
-/// branch info, and voting eligibility.
+/// branch info, voting eligibility, eligibility banner, countdown timer,
+/// and assigned polling station.
 class MembershipPage extends StatefulWidget {
   const MembershipPage({super.key});
 
@@ -117,9 +121,31 @@ class _MembershipPageState extends State<MembershipPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Eligibility banner at top.
+            if (info.status == MembershipStatus.verified) ...[
+              EligibilityBanner(info: info),
+              const SizedBox(height: 16),
+            ],
+
             // Status card.
             _buildStatusCard(context, info),
             const SizedBox(height: 16),
+
+            // Countdown timer (if not yet eligible and verified).
+            if (info.status == MembershipStatus.verified &&
+                !info.isEligible) ...[
+              CountdownTimer(info: info),
+              const SizedBox(height: 16),
+            ],
+
+            // Assigned polling station.
+            if (info.pollingStation != null) ...[
+              AssignedStationCard(
+                station: info.pollingStation!,
+                district: info.district,
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // Verification section.
             _buildVerificationSection(context, info),

@@ -1,10 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { PollingStationsService } from './polling-stations.service';
 import { PollingStation } from './entities/polling-station.entity';
 import { StationReport } from './entities/station-report.entity';
+import { SseService } from '../sse/sse.service';
+
+const mockCacheManager = {
+  get: jest.fn(),
+  set: jest.fn(),
+  del: jest.fn(),
+};
+
+const mockSseService = {
+  emitStationWaitUpdate: jest.fn(),
+};
 
 const mockRepository = () => ({
   create: jest.fn(),
@@ -53,11 +65,18 @@ describe('PollingStationsService', () => {
   let reportRepository: jest.Mocked<Repository<StationReport>>;
 
   beforeEach(async () => {
+    mockCacheManager.get.mockReset();
+    mockCacheManager.set.mockReset();
+    mockCacheManager.del.mockReset();
+    mockSseService.emitStationWaitUpdate.mockReset();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PollingStationsService,
         { provide: getRepositoryToken(PollingStation), useFactory: mockRepository },
         { provide: getRepositoryToken(StationReport), useFactory: mockRepository },
+        { provide: CACHE_MANAGER, useValue: mockCacheManager },
+        { provide: SseService, useValue: mockSseService },
       ],
     }).compile();
 
@@ -75,10 +94,15 @@ describe('PollingStationsService', () => {
   // ---------------------------------------------------------------------------
   describe('findAll', () => {
     let qb: ReturnType<typeof mockQueryBuilder>;
+    let reportQb: ReturnType<typeof mockQueryBuilder>;
 
     beforeEach(() => {
       qb = mockQueryBuilder();
+      reportQb = mockQueryBuilder();
       stationRepository.createQueryBuilder.mockReturnValue(qb as any);
+      // Default: enrichWithWaitTimes query returns empty (no reports)
+      reportRepository.createQueryBuilder.mockReturnValue(reportQb as any);
+      reportQb.getRawMany.mockResolvedValue([]);
     });
 
     it('should return paginated stations with default page and limit', async () => {
@@ -96,13 +120,15 @@ describe('PollingStationsService', () => {
       expect(qb.orderBy).toHaveBeenCalledWith('station.createdAt', 'DESC');
       expect(qb.skip).toHaveBeenCalledWith(0);
       expect(qb.take).toHaveBeenCalledWith(20);
-      expect(result).toEqual({
-        data: stations,
-        total: 2,
-        page: 1,
-        limit: 20,
-        totalPages: 1,
-      });
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(20);
+      expect(result.totalPages).toBe(1);
+      expect(result.data).toHaveLength(2);
+      // Each station should be enriched with wait-time fields
+      expect(result.data[0]).toHaveProperty('avgWaitMinutes', null);
+      expect(result.data[0]).toHaveProperty('trafficLight', null);
+      expect(result.data[0]).toHaveProperty('reportCount', 0);
     });
 
     it('should apply correct skip for page 2', async () => {
@@ -356,6 +382,16 @@ describe('PollingStationsService', () => {
   // addReport
   // ---------------------------------------------------------------------------
   describe('addReport', () => {
+    let avgQb: ReturnType<typeof mockQueryBuilder>;
+
+    beforeEach(() => {
+      // Mock the getAverageWaitTime query builder used by emitStationWaitUpdate
+      avgQb = mockQueryBuilder();
+      avgQb.getRawOne.mockResolvedValue({ avg: '15', count: '1' });
+      mockCacheManager.get.mockResolvedValue(null); // No rate limit by default
+      mockCacheManager.set.mockResolvedValue(undefined);
+    });
+
     it('should create and save a report for an existing station', async () => {
       const userId = 'user-uuid-1';
       const dto = {
@@ -379,6 +415,7 @@ describe('PollingStationsService', () => {
       stationRepository.findOne.mockResolvedValue(station);
       reportRepository.create.mockReturnValue(report);
       reportRepository.save.mockResolvedValue(report);
+      reportRepository.createQueryBuilder.mockReturnValue(avgQb as any);
 
       const result = await service.addReport(userId, dto);
 
@@ -395,6 +432,35 @@ describe('PollingStationsService', () => {
       });
       expect(reportRepository.save).toHaveBeenCalledWith(report);
       expect(result).toEqual(report);
+      // Verify rate-limit key was set with 30-min TTL
+      expect(mockCacheManager.set).toHaveBeenCalledWith(
+        `station_report:${dto.stationId}:${userId}`,
+        '1',
+        30 * 60 * 1000,
+      );
+    });
+
+    it('should throw BadRequestException when rate-limited', async () => {
+      const userId = 'user-uuid-1';
+      const dto = {
+        stationId: 'station-uuid-1',
+        waitTimeMinutes: 10,
+      };
+
+      const station = { id: 'station-uuid-1', isActive: true } as PollingStation;
+      stationRepository.findOne.mockResolvedValue(station);
+      // Simulate rate-limit hit: cache returns a value
+      mockCacheManager.get.mockResolvedValue('1');
+
+      await expect(service.addReport(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
+      await expect(service.addReport(userId, dto)).rejects.toThrow(
+        'You can only submit one report per station every 30 minutes',
+      );
+
+      expect(reportRepository.create).not.toHaveBeenCalled();
+      expect(reportRepository.save).not.toHaveBeenCalled();
     });
 
     it('should default crowdLevel to moderate when not provided', async () => {
@@ -417,6 +483,7 @@ describe('PollingStationsService', () => {
       stationRepository.findOne.mockResolvedValue(station);
       reportRepository.create.mockReturnValue(report);
       reportRepository.save.mockResolvedValue(report);
+      reportRepository.createQueryBuilder.mockReturnValue(avgQb as any);
 
       await service.addReport(userId, dto);
 
@@ -575,6 +642,89 @@ describe('PollingStationsService', () => {
       expect(stationRepository.create).not.toHaveBeenCalled();
       expect(stationRepository.save).toHaveBeenCalledWith([]);
       expect(result).toEqual([]);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // computeTrafficLight
+  // ---------------------------------------------------------------------------
+  describe('computeTrafficLight', () => {
+    it('should return green for < 10 minutes', () => {
+      expect(service.computeTrafficLight(0)).toBe('green');
+      expect(service.computeTrafficLight(5)).toBe('green');
+      expect(service.computeTrafficLight(9.9)).toBe('green');
+    });
+
+    it('should return yellow for 10-30 minutes', () => {
+      expect(service.computeTrafficLight(10)).toBe('yellow');
+      expect(service.computeTrafficLight(20)).toBe('yellow');
+      expect(service.computeTrafficLight(30)).toBe('yellow');
+    });
+
+    it('should return red for > 30 minutes', () => {
+      expect(service.computeTrafficLight(30.1)).toBe('red');
+      expect(service.computeTrafficLight(60)).toBe('red');
+      expect(service.computeTrafficLight(120)).toBe('red');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // enrichWithWaitTimes
+  // ---------------------------------------------------------------------------
+  describe('enrichWithWaitTimes', () => {
+    it('should return empty array for empty input', async () => {
+      const result = await service.enrichWithWaitTimes([]);
+      expect(result).toEqual([]);
+    });
+
+    it('should enrich stations with wait-time data from reports', async () => {
+      const stations = [
+        { id: 'station-1', name: 'A' },
+        { id: 'station-2', name: 'B' },
+      ] as PollingStation[];
+
+      const reportQb = mockQueryBuilder();
+      reportRepository.createQueryBuilder.mockReturnValue(reportQb as any);
+      reportQb.getRawMany.mockResolvedValue([
+        { stationId: 'station-1', avg: '12.5', count: '4' },
+        { stationId: 'station-2', avg: '45.0', count: '2' },
+      ]);
+
+      const result = await service.enrichWithWaitTimes(stations);
+
+      expect(result).toHaveLength(2);
+      // Station 1: 12.5 min -> yellow
+      expect(result[0].avgWaitMinutes).toBe(12.5);
+      expect(result[0].trafficLight).toBe('yellow');
+      expect(result[0].reportCount).toBe(4);
+      // Station 2: 45 min -> red
+      expect(result[1].avgWaitMinutes).toBe(45);
+      expect(result[1].trafficLight).toBe('red');
+      expect(result[1].reportCount).toBe(2);
+    });
+
+    it('should set null wait-time for stations with no recent reports', async () => {
+      const stations = [
+        { id: 'station-1', name: 'A' },
+        { id: 'station-2', name: 'B' },
+      ] as PollingStation[];
+
+      const reportQb = mockQueryBuilder();
+      reportRepository.createQueryBuilder.mockReturnValue(reportQb as any);
+      // Only station-1 has reports
+      reportQb.getRawMany.mockResolvedValue([
+        { stationId: 'station-1', avg: '5.0', count: '3' },
+      ]);
+
+      const result = await service.enrichWithWaitTimes(stations);
+
+      expect(result[0].avgWaitMinutes).toBe(5);
+      expect(result[0].trafficLight).toBe('green');
+      expect(result[0].reportCount).toBe(3);
+      // Station 2: no reports
+      expect(result[1].avgWaitMinutes).toBeNull();
+      expect(result[1].trafficLight).toBeNull();
+      expect(result[1].reportCount).toBe(0);
     });
   });
 });

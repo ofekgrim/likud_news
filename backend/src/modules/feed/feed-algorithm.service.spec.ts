@@ -821,4 +821,719 @@ describe('FeedAlgorithmService', () => {
       expect(result).toHaveLength(6);
     });
   });
+
+  // ─────────────────────────────────────────────────────────────────
+  // computePersonalizedPriority
+  // ─────────────────────────────────────────────────────────────────
+  describe('computePersonalizedPriority', () => {
+    /**
+     * Helper to create a UserFollowsMap with optional overrides.
+     */
+    function createFollowsMap(overrides: Partial<{
+      categories: string[];
+      members: string[];
+      authors: string[];
+      tags: string[];
+    }> = {}) {
+      return {
+        categories: new Set(overrides.categories || []),
+        members: new Set(overrides.members || []),
+        authors: new Set(overrides.authors || []),
+        tags: new Set(overrides.tags || []),
+      };
+    }
+
+    describe('base recency score', () => {
+      it('should give 10 for a just-published item', () => {
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: new Date(),
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: new Date(),
+          },
+        });
+        const emptyFollows = createFollowsMap();
+        const score = service.computePersonalizedPriority(item, emptyFollows);
+        // base_recency = 10, decay = 0, no follows, no popularity
+        expect(score).toBe(10);
+      });
+
+      it('should decay base recency by 1 per hour', () => {
+        const fiveHoursAgo = new Date(Date.now() - 5 * 60 * 60 * 1000);
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: fiveHoursAgo,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: fiveHoursAgo,
+          },
+        });
+        const emptyFollows = createFollowsMap();
+        const score = service.computePersonalizedPriority(item, emptyFollows);
+        // base_recency = max(0, 10 - 5) = 5, decay = -5
+        expect(score).toBe(0);
+      });
+
+      it('should give 0 base recency for items older than 10 hours', () => {
+        const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: twelveHoursAgo,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: twelveHoursAgo,
+          },
+        });
+        const emptyFollows = createFollowsMap();
+        const score = service.computePersonalizedPriority(item, emptyFollows);
+        // base_recency = 0, decay = -12 => score = -12
+        expect(score).toBe(-12);
+      });
+    });
+
+    describe('recency decay', () => {
+      it('should cap decay at -24 for very old items', () => {
+        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: fortyEightHoursAgo,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: fortyEightHoursAgo,
+          },
+        });
+        const emptyFollows = createFollowsMap();
+        const score = service.computePersonalizedPriority(item, emptyFollows);
+        // base_recency = 0, decay = -24 (capped) => score = -24
+        expect(score).toBe(-24);
+      });
+    });
+
+    describe('category follow boost', () => {
+      it('should add +3 when article category is followed', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            categoryId: 'cat-1',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const follows = createFollowsMap({ categories: ['cat-1'] });
+        const noFollows = createFollowsMap();
+
+        const scoreWith = service.computePersonalizedPriority(item, follows);
+        const scoreWithout = service.computePersonalizedPriority(item, noFollows);
+
+        expect(scoreWith - scoreWithout).toBe(3);
+      });
+
+      it('should not boost when category does not match', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            categoryId: 'cat-1',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const follows = createFollowsMap({ categories: ['cat-999'] });
+        const noFollows = createFollowsMap();
+
+        const scoreWith = service.computePersonalizedPriority(item, follows);
+        const scoreWithout = service.computePersonalizedPriority(item, noFollows);
+
+        expect(scoreWith).toBe(scoreWithout);
+      });
+    });
+
+    describe('member follow boost', () => {
+      it('should add +5 per matching member', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            memberIds: ['member-1', 'member-2'],
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+
+        // Follow both members
+        const followsBoth = createFollowsMap({ members: ['member-1', 'member-2'] });
+        const followsOne = createFollowsMap({ members: ['member-1'] });
+        const noFollows = createFollowsMap();
+
+        const scoreBoth = service.computePersonalizedPriority(item, followsBoth);
+        const scoreOne = service.computePersonalizedPriority(item, followsOne);
+        const scoreNone = service.computePersonalizedPriority(item, noFollows);
+
+        expect(scoreBoth - scoreNone).toBe(10); // +5 per member
+        expect(scoreOne - scoreNone).toBe(5);
+      });
+
+      it('should not boost when no members match', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            memberIds: ['member-1'],
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const follows = createFollowsMap({ members: ['member-999'] });
+        const noFollows = createFollowsMap();
+
+        expect(
+          service.computePersonalizedPriority(item, follows),
+        ).toBe(
+          service.computePersonalizedPriority(item, noFollows),
+        );
+      });
+    });
+
+    describe('author follow boost', () => {
+      it('should add +4 when article author is followed', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            authorId: 'author-1',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const follows = createFollowsMap({ authors: ['author-1'] });
+        const noFollows = createFollowsMap();
+
+        const scoreWith = service.computePersonalizedPriority(item, follows);
+        const scoreWithout = service.computePersonalizedPriority(item, noFollows);
+
+        expect(scoreWith - scoreWithout).toBe(4);
+      });
+    });
+
+    describe('tag follow boost', () => {
+      it('should add +2 per matching tag', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            tagIds: ['tag-1', 'tag-2', 'tag-3'],
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const followsTwo = createFollowsMap({ tags: ['tag-1', 'tag-3'] });
+        const followsOne = createFollowsMap({ tags: ['tag-2'] });
+        const noFollows = createFollowsMap();
+
+        const scoreTwo = service.computePersonalizedPriority(item, followsTwo);
+        const scoreOne = service.computePersonalizedPriority(item, followsOne);
+        const scoreNone = service.computePersonalizedPriority(item, noFollows);
+
+        expect(scoreTwo - scoreNone).toBe(4); // +2 per tag
+        expect(scoreOne - scoreNone).toBe(2);
+      });
+    });
+
+    describe('popularity boost', () => {
+      it('should add viewCount / 100, capped at 5', () => {
+        const now = new Date();
+        const makeFeedItem = (viewCount: number) =>
+          createFeedItem({
+            type: FeedItemType.ARTICLE,
+            publishedAt: now,
+            article: {
+              id: `art-${viewCount}`,
+              title: 'a',
+              slug: 'a',
+              isBreaking: false,
+              viewCount,
+              commentCount: 0,
+              shareCount: 0,
+              readingTimeMinutes: 1,
+              publishedAt: now,
+            },
+          });
+        const emptyFollows = createFollowsMap();
+
+        const score0 = service.computePersonalizedPriority(makeFeedItem(0), emptyFollows);
+        const score200 = service.computePersonalizedPriority(makeFeedItem(200), emptyFollows);
+        const score500 = service.computePersonalizedPriority(makeFeedItem(500), emptyFollows);
+        const score1000 = service.computePersonalizedPriority(makeFeedItem(1000), emptyFollows);
+
+        // 0 views => +0, 200 views => +2, 500 views => +5, 1000 views => +5 (capped)
+        expect(score200 - score0).toBe(2);
+        expect(score500 - score0).toBe(5);
+        expect(score1000 - score0).toBe(5); // capped at 5
+      });
+    });
+
+    describe('non-article items', () => {
+      it('should only apply recency to polls (no follow boosts)', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.POLL,
+          publishedAt: now,
+        });
+        const heavyFollows = createFollowsMap({
+          categories: ['cat-1'],
+          members: ['member-1'],
+          authors: ['author-1'],
+          tags: ['tag-1'],
+        });
+
+        const score = service.computePersonalizedPriority(item, heavyFollows);
+        // base_recency = 10, decay = 0 => 10 (no follow boosts for polls)
+        expect(score).toBe(10);
+      });
+
+      it('should only apply recency to events (no follow boosts)', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.EVENT,
+          publishedAt: now,
+        });
+        const heavyFollows = createFollowsMap({
+          categories: ['cat-1'],
+          members: ['member-1'],
+        });
+
+        const score = service.computePersonalizedPriority(item, heavyFollows);
+        expect(score).toBe(10);
+      });
+    });
+
+    describe('combined scoring', () => {
+      it('should stack all follow boosts correctly', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'Full boost article',
+            slug: 'full-boost',
+            categoryId: 'cat-1',
+            authorId: 'author-1',
+            memberIds: ['member-1'],
+            tagIds: ['tag-1'],
+            isBreaking: false,
+            viewCount: 500, // popularity boost = 5 (capped)
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 3,
+            publishedAt: now,
+          },
+        });
+        const allFollows = createFollowsMap({
+          categories: ['cat-1'],
+          members: ['member-1'],
+          authors: ['author-1'],
+          tags: ['tag-1'],
+        });
+
+        const score = service.computePersonalizedPriority(item, allFollows);
+        // base_recency = 10
+        // category = +3
+        // member = +5
+        // author = +4
+        // tag = +2
+        // popularity = +5 (500/100 = 5, capped at 5)
+        // decay = 0
+        // total = 29
+        expect(score).toBe(29);
+      });
+
+      it('should rank followed content higher than unfollowed content', () => {
+        const now = new Date();
+        const followedItem = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-followed',
+            title: 'Followed',
+            slug: 'followed',
+            categoryId: 'cat-1',
+            authorId: 'author-1',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const unfollowedItem = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-unfollowed',
+            title: 'Unfollowed',
+            slug: 'unfollowed',
+            categoryId: 'cat-2',
+            authorId: 'author-2',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const follows = createFollowsMap({
+          categories: ['cat-1'],
+          authors: ['author-1'],
+        });
+
+        const followedScore = service.computePersonalizedPriority(followedItem, follows);
+        const unfollowedScore = service.computePersonalizedPriority(unfollowedItem, follows);
+
+        expect(followedScore).toBeGreaterThan(unfollowedScore);
+        // Difference should be category(3) + author(4) = 7
+        expect(followedScore - unfollowedScore).toBe(7);
+      });
+
+      it('should allow popularity to partially compensate for lack of follows', () => {
+        const now = new Date();
+        const unfollowedPopular = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-popular',
+            title: 'Popular',
+            slug: 'popular',
+            categoryId: 'cat-2',
+            isBreaking: false,
+            viewCount: 1000, // +5 popularity
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const followedUnpopular = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-unpopular',
+            title: 'Unpopular',
+            slug: 'unpopular',
+            categoryId: 'cat-1',
+            isBreaking: false,
+            viewCount: 0, // +0 popularity
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const follows = createFollowsMap({ categories: ['cat-1'] });
+
+        const popularScore = service.computePersonalizedPriority(unfollowedPopular, follows);
+        const followedScore = service.computePersonalizedPriority(followedUnpopular, follows);
+
+        // Popular but unfollowed: 10 + 5 (popularity) = 15
+        // Followed but unpopular: 10 + 3 (category) = 13
+        expect(popularScore).toBeGreaterThan(followedScore);
+      });
+
+      it('should handle articles with empty member/tag arrays', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            memberIds: [],
+            tagIds: [],
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const follows = createFollowsMap({
+          members: ['member-1'],
+          tags: ['tag-1'],
+        });
+
+        // Should not throw and should not boost
+        const score = service.computePersonalizedPriority(item, follows);
+        expect(score).toBe(10); // just base recency
+      });
+
+      it('should handle articles with undefined member/tag fields', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            // memberIds and tagIds are undefined
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const follows = createFollowsMap({
+          members: ['member-1'],
+          tags: ['tag-1'],
+        });
+
+        const score = service.computePersonalizedPriority(item, follows);
+        expect(score).toBe(10);
+      });
+
+      it('should handle empty follows map correctly', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-1',
+            title: 'a',
+            slug: 'a',
+            categoryId: 'cat-1',
+            authorId: 'author-1',
+            memberIds: ['member-1'],
+            tagIds: ['tag-1'],
+            isBreaking: false,
+            viewCount: 300,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+        const emptyFollows = createFollowsMap();
+
+        const score = service.computePersonalizedPriority(item, emptyFollows);
+        // base_recency = 10 + popularity(3) + decay(0) = 13
+        expect(score).toBe(13);
+      });
+
+      it('should use default scoring (recency + popularity only) with no follows', () => {
+        const now = new Date();
+        const noFollows = createFollowsMap();
+
+        const itemWithMetadata = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-full',
+            title: 'Full Metadata',
+            slug: 'full',
+            categoryId: 'cat-1',
+            authorId: 'author-1',
+            memberIds: ['m-1', 'm-2'],
+            tagIds: ['t-1', 't-2'],
+            isBreaking: false,
+            viewCount: 500,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 2,
+            publishedAt: now,
+          },
+        });
+
+        const itemWithoutMetadata = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-bare',
+            title: 'Bare Article',
+            slug: 'bare',
+            isBreaking: false,
+            viewCount: 500,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 2,
+            publishedAt: now,
+          },
+        });
+
+        // With no follows, both should score the same (only recency + popularity matter)
+        const scoreWithMeta = service.computePersonalizedPriority(itemWithMetadata, noFollows);
+        const scoreWithout = service.computePersonalizedPriority(itemWithoutMetadata, noFollows);
+
+        expect(scoreWithMeta).toBe(scoreWithout);
+        // Both: base=10, popularity=5 (500/100 capped), decay=0 => 15
+        expect(scoreWithMeta).toBe(15);
+      });
+
+      it('should compare 1hr old vs 24hr old recency decay correctly', () => {
+        const emptyFollows = createFollowsMap();
+        const oneHourAgo = new Date(Date.now() - 1 * 60 * 60 * 1000);
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+        const recentItem = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: oneHourAgo,
+          article: {
+            id: 'art-recent',
+            title: 'Recent',
+            slug: 'recent',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: oneHourAgo,
+          },
+        });
+
+        const oldItem = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: twentyFourHoursAgo,
+          article: {
+            id: 'art-old',
+            title: 'Old',
+            slug: 'old',
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: twentyFourHoursAgo,
+          },
+        });
+
+        const recentScore = service.computePersonalizedPriority(recentItem, emptyFollows);
+        const oldScore = service.computePersonalizedPriority(oldItem, emptyFollows);
+
+        // 1hr: base=max(0,10-1)=9, decay=-1 => 8
+        // 24hr: base=max(0,10-24)=0, decay=-24 => -24
+        expect(recentScore).toBeGreaterThan(oldScore);
+        expect(recentScore).toBe(8);
+        expect(oldScore).toBe(-24);
+      });
+
+      it('should stack multiple matching follow types for same article', () => {
+        const now = new Date();
+        const item = createFeedItem({
+          type: FeedItemType.ARTICLE,
+          publishedAt: now,
+          article: {
+            id: 'art-multi',
+            title: 'Multi Follow',
+            slug: 'multi',
+            categoryId: 'cat-1',
+            authorId: 'author-1',
+            memberIds: ['member-1', 'member-2'],
+            tagIds: ['tag-1', 'tag-2', 'tag-3'],
+            isBreaking: false,
+            viewCount: 0,
+            commentCount: 0,
+            shareCount: 0,
+            readingTimeMinutes: 1,
+            publishedAt: now,
+          },
+        });
+
+        // Follow everything
+        const fullFollows = createFollowsMap({
+          categories: ['cat-1'],
+          authors: ['author-1'],
+          members: ['member-1', 'member-2'],
+          tags: ['tag-1', 'tag-2', 'tag-3'],
+        });
+
+        const score = service.computePersonalizedPriority(item, fullFollows);
+        // base=10, category=+3, author=+4, members=+5*2=10, tags=+2*3=6, decay=0
+        // total = 10 + 3 + 4 + 10 + 6 = 33
+        expect(score).toBe(33);
+      });
+    });
+  });
 });

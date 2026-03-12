@@ -21,10 +21,12 @@ import {
 } from '@nestjs/swagger';
 import { GamificationService } from './gamification.service';
 import { DailyQuizService } from './daily-quiz.service';
+import { DailyMissionService } from './daily-mission.service';
 import { CreateDailyQuizDto } from './dto/create-daily-quiz.dto';
 import { SubmitDailyQuizDto } from './dto/submit-daily-quiz.dto';
 import { AwardPointsDto } from './dto/award-points.dto';
 import { QueryLeaderboardDto } from './dto/query-leaderboard.dto';
+import { RecordStreakActivityDto } from './dto/record-streak-activity.dto';
 import { AppAuthGuard } from '../app-auth/guards/app-auth.guard';
 import { OptionalAppAuthGuard } from '../app-auth/guards/optional-app-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -37,6 +39,7 @@ export class GamificationController {
   constructor(
     private readonly gamificationService: GamificationService,
     private readonly dailyQuizService: DailyQuizService,
+    private readonly dailyMissionService: DailyMissionService,
   ) {}
 
   // ─── User Profile ─────────────────────────────────────────
@@ -81,10 +84,10 @@ export class GamificationController {
 
   @Get('me/streak')
   @UseGuards(AppAuthGuard)
-  @ApiOperation({ summary: 'Get current user streak' })
-  @ApiResponse({ status: 200, description: 'User streak data' })
+  @ApiOperation({ summary: 'Get full streak state (current, longest, freezeTokens, tier, milestones, atRisk)' })
+  @ApiResponse({ status: 200, description: 'Full streak state' })
   getUserStreak(@Req() req) {
-    return this.gamificationService.getStreak(req.user.id);
+    return this.gamificationService.getFullStreakState(req.user.id);
   }
 
   @Get('me/rank')
@@ -103,6 +106,14 @@ export class GamificationController {
     return this.gamificationService.getUserRank(req.user.id, period);
   }
 
+  @Get('me/tier')
+  @UseGuards(AppAuthGuard)
+  @ApiOperation({ summary: 'Get current user tier info (tier, progress, features)' })
+  @ApiResponse({ status: 200, description: 'User tier info with progress and feature gates' })
+  getUserTier(@Req() req) {
+    return this.gamificationService.getTierInfo(req.user.id);
+  }
+
   // ─── Track Actions ────────────────────────────────────────
 
   @Post('track')
@@ -117,6 +128,25 @@ export class GamificationController {
     );
   }
 
+  // ─── Streak Activities ──────────────────────────────────────
+
+  @Post('streak/activity')
+  @UseGuards(AppAuthGuard)
+  @ApiOperation({ summary: 'Record a qualifying streak activity (awards XP and updates streak)' })
+  @ApiResponse({ status: 201, description: 'Activity recorded, streak updated' })
+  recordStreakActivity(@Req() req, @Body() dto: RecordStreakActivityDto) {
+    return this.gamificationService.recordStreakActivity(req.user.id, dto.type);
+  }
+
+  @Post('streak/freeze')
+  @UseGuards(AppAuthGuard)
+  @ApiOperation({ summary: 'Manually spend a freeze token to protect current streak' })
+  @ApiResponse({ status: 201, description: 'Freeze token used successfully' })
+  @ApiResponse({ status: 400, description: 'No freeze tokens available or no active streak' })
+  useStreakFreeze(@Req() req) {
+    return this.gamificationService.useFreeze(req.user.id);
+  }
+
   // ─── Leaderboard ──────────────────────────────────────────
 
   @Get('leaderboard')
@@ -124,6 +154,30 @@ export class GamificationController {
   @ApiResponse({ status: 200, description: 'Paginated leaderboard' })
   getLeaderboard(@Query() query: QueryLeaderboardDto) {
     return this.gamificationService.getLeaderboard(query);
+  }
+
+  // ─── Daily Missions ──────────────────────────────────────────
+
+  @Get('missions/today')
+  @UseGuards(AppAuthGuard)
+  @ApiOperation({ summary: 'Get today\'s daily missions with completion status' })
+  @ApiResponse({ status: 200, description: 'Today\'s missions with user progress' })
+  getTodayMissions(@Req() req) {
+    return this.dailyMissionService.getTodayMissions(req.user.id);
+  }
+
+  @Post('missions/:missionId/complete')
+  @UseGuards(AppAuthGuard)
+  @ApiOperation({ summary: 'Manually complete a daily mission' })
+  @ApiParam({ name: 'missionId', description: 'Mission UUID' })
+  @ApiResponse({ status: 201, description: 'Mission completed, points awarded' })
+  @ApiResponse({ status: 400, description: 'Mission already completed or action not performed' })
+  @ApiResponse({ status: 404, description: 'Mission not found or not part of today\'s missions' })
+  completeMission(
+    @Req() req,
+    @Param('missionId', ParseUUIDPipe) missionId: string,
+  ) {
+    return this.dailyMissionService.completeMission(req.user.id, missionId);
   }
 
   // ─── Daily Quiz ───────────────────────────────────────────

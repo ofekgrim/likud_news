@@ -1,0 +1,7 @@
+Version 2.0 - Primaries 2026 Edition!
+• Candidate Matcher - discover your candidate with an interactive quiz
+• Live Results - real-time tracking on election night
+• Station Map - wait times and navigation to your polling station
+• Daily Missions - earn points and badges
+• Leaderboard - compete between branches
+• Performance improvements and bug fixes

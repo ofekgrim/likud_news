@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../entities/branch_turnout.dart';
 import '../entities/election_result.dart';
 import '../entities/polling_station.dart';
 import '../entities/station_report.dart';
@@ -46,6 +47,23 @@ abstract class ElectionDayRepository {
 
   /// Fetches the turnout timeline (time-series) for a given [electionId].
   Future<Either<Failure, List<TurnoutSnapshot>>> getTurnoutTimeline(
+    String electionId,
+  );
+
+  /// Claims the "I Voted" badge and awards points.
+  ///
+  /// Calls POST /gotv/checkin on the backend.
+  Future<Either<Failure, bool>> claimIVotedBadge();
+
+  /// Saves the user's voting plan (selected time slot).
+  ///
+  /// Calls POST /gotv/plan on the backend.
+  Future<Either<Failure, bool>> saveVotingPlan(String timeSlot);
+
+  /// Fetches branch turnout data for the competition leaderboard.
+  ///
+  /// Derives from turnout snapshots grouped by district.
+  Future<Either<Failure, List<BranchTurnout>>> getBranchTurnouts(
     String electionId,
   );
 }

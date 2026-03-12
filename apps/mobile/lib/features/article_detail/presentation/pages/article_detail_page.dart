@@ -18,7 +18,11 @@ import '../widgets/recommended_articles.dart' show AllArticlesCarousel;
 import '../widgets/related_articles.dart';
 import '../widgets/reporter_row.dart';
 import '../widgets/tags_section.dart';
+import '../widgets/ai_summary_card.dart';
+import '../widgets/company_ad_banner.dart';
 import '../widgets/tts_player_bar.dart';
+import '../../../../core/sharing/share_button.dart';
+import '../../../../core/sharing/models/share_link.dart';
 
 /// Full-screen article detail page.
 ///
@@ -200,6 +204,19 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                 stretch: true,
                                 backgroundColor: AppColors.likudDarkBlue,
                                 leading: _BackButton(),
+                                actions: [
+                                  Padding(
+                                    padding: const EdgeInsetsDirectional.only(end: 8),
+                                    child: WhatsAppShareButton(
+                                      contentType: ShareContentType.article,
+                                      contentId: article.id,
+                                      shareText: article.title,
+                                      title: article.title,
+                                      description: article.subtitle,
+                                      imageUrl: article.heroImageUrl,
+                                    ),
+                                  ),
+                                ],
                                 flexibleSpace: FlexibleSpaceBar(
                                   background: ArticleHeader(article: article),
                                   collapseMode: CollapseMode.parallax,
@@ -272,6 +289,11 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                       content: article.content ?? '',
                                     ),
 
+                                    // 3.6. AI Summary card
+                                    AiSummaryCard(
+                                      articleId: article.id,
+                                    ),
+
                                     // 4. Block renderer (body content)
                                     BlockRenderer(
                                       blocks: article.bodyBlocks,
@@ -280,6 +302,9 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                     ),
 
                                     const SizedBox(height: 24),
+
+                                    // 4.5. Company article banner ad
+                                    const CompanyAdBanner(),
 
                                     // 5. Tags section
                                     TagsSection(

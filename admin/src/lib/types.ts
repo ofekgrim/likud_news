@@ -569,3 +569,332 @@ export interface DailyQuizWithStats extends DailyQuiz {
   completionCount?: number;
   averageScore?: number;
 }
+
+// ── Primaries: Candidate Matcher ────────────────────────────────────────
+
+export type MatcherCategory =
+  | 'security'
+  | 'economy'
+  | 'society'
+  | 'law'
+  | 'education'
+  | 'foreign_policy';
+
+export interface PolicyStatement {
+  id: string;
+  electionId: string;
+  textHe: string;
+  textEn?: string;
+  category: MatcherCategory;
+  defaultWeight: number;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type PositionValue = 'agree' | 'neutral' | 'disagree';
+
+export interface CandidatePosition {
+  id: string;
+  candidateId: string;
+  statementId: string;
+  position: PositionValue;
+  candidate?: PrimaryCandidate;
+  statement?: PolicyStatement;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MatcherStats {
+  totalStatements: number;
+  activeStatements: number;
+  totalPositions: number;
+  candidatesWithPositions: number;
+  completionRate: number;
+}
+
+// ── Knesset List Assembly ──────────────────────────────────────────────
+
+export type KnessetSlotType = 'leader' | 'reserved_minority' | 'reserved_woman' | 'national' | 'district';
+
+export interface KnessetListSlot {
+  id: string;
+  electionId: string;
+  slotNumber: number;
+  slotType: KnessetSlotType;
+  candidateId: string | null;
+  candidate?: {
+    id: string;
+    fullName: string;
+    district: string;
+    position: string;
+  };
+  isConfirmed: boolean;
+  assignedById?: string;
+  confirmedById?: string;
+  confirmedAt?: string;
+  notes?: string;
+}
+
+export interface SlotStatistics {
+  totalSlots: number;
+  filledSlots: number;
+  confirmedSlots: number;
+  byType: Record<KnessetSlotType, number>;
+}
+
+// ── Daily Missions ──────────────────────────────────────────────────────
+
+export type MissionType = 'quiz_complete' | 'article_read' | 'poll_vote' | 'share' | 'event_rsvp' | 'comment' | 'login' | 'endorsement';
+
+export interface DailyMission {
+  id: string;
+  type: MissionType;
+  descriptionHe: string;
+  descriptionEn: string;
+  points: number;
+  frequency: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+// ── Branches ────────────────────────────────────────────────────────────
+
+export interface Branch {
+  id: string;
+  name: string;
+  district: string;
+  memberCount: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface BranchWeeklyScore {
+  branchId: string;
+  branchName: string;
+  weekStart: string;
+  totalScore: number;
+  perCapitaScore: number;
+  activeMemberCount: number;
+  rank: number;
+  prevRank: number;
+}
+
+// ── AI Quiz Review ──────────────────────────────────────────────────────
+
+export interface AiGeneratedQuiz {
+  id: string;
+  questions: AiQuizQuestion[];
+  sourceArticleIds: string[];
+  generatedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewedById?: string;
+  reviewedAt?: string;
+}
+
+export interface AiQuizQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+  sourceArticleId?: string;
+}
+
+// ── AI Article Summary ──────────────────────────────────────────────────
+
+export interface ArticleAiSummary {
+  id: string;
+  articleId: string;
+  articleTitle?: string;
+  summaryHe: string;
+  keyPointsHe: string[];
+  politicalAngleHe?: string;
+  modelUsed: string;
+  tokensUsed: number;
+  createdAt: string;
+}
+
+// ── GOTV ────────────────────────────────────────────────────────────────
+
+export interface GotvEngagement {
+  id: string;
+  appUserId: string;
+  appUserName?: string;
+  electionId: string;
+  votingPlanTime: string | null;
+  stationCheckinAt: string | null;
+  votedBadgeClaimedAt: string | null;
+  notificationLog: Array<{ type: string; sentAt: string }>;
+  remindersEnabled: boolean;
+}
+
+export interface GotvStats {
+  totalEligible: number;
+  votingPlans: number;
+  checkedIn: number;
+  votedBadges: number;
+  notificationsSent: number;
+}
+
+// ── Ads: Candidate Ad Marketplace ──────────────────────────────────────
+
+export type AdPlacementType = 'profile_featured' | 'feed_sponsored' | 'push_notification' | 'quiz_end';
+export type AdPlacementStatus = 'pending' | 'approved' | 'rejected' | 'paused' | 'ended';
+
+export interface AdTargetingRules {
+  districts?: string[];
+  ageRange?: { min: number; max: number };
+  membersOnly?: boolean;
+}
+
+export interface CandidateAdPlacement {
+  id: string;
+  candidateId: string;
+  candidateName?: string;
+  placementType: AdPlacementType;
+  title: string;
+  contentHe: string;
+  imageUrl?: string;
+  targetingRules?: AdTargetingRules;
+  dailyBudgetNis: number;
+  cpmNis: number;
+  impressions: number;
+  clicks: number;
+  startDate: string;
+  endDate: string;
+  isApproved: boolean;
+  isActive: boolean;
+  status: AdPlacementStatus;
+  rejectionReason?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
+  pausedAt?: string;
+  endedAt?: string;
+  linkedContentType?: 'article' | 'candidate' | 'poll' | 'event' | 'external';
+  linkedContentId?: string;
+  ctaUrl?: string;
+  createdAt: string;
+  candidate?: PrimaryCandidate;
+}
+
+export interface AdPlacementStats {
+  totalImpressions: number;
+  totalClicks: number;
+  ctr: number;
+  totalSpendNis: number;
+  activePlacements: number;
+}
+
+export interface AdTypeBreakdown {
+  type: AdPlacementType;
+  count: number;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  totalSpendNis: number;
+  activePlacements: number;
+}
+
+export interface AdCandidateBreakdown {
+  candidateId: string;
+  candidateName: string;
+  count: number;
+  impressions: number;
+  clicks: number;
+  totalSpendNis: number;
+}
+
+export interface AdBudgetPacing {
+  id: string;
+  title: string;
+  candidateName: string;
+  dailyBudgetNis: number;
+  currentSpendNis: number;
+  pacingPct: number;
+  status: AdPlacementStatus;
+}
+
+export interface AdBreakdownStats {
+  byType: AdTypeBreakdown[];
+  byCandidate: AdCandidateBreakdown[];
+  budgetPacing: AdBudgetPacing[];
+}
+
+// ── Company Ads System ──────────────────────────────────────────────────────
+
+export interface CompanyAdvertiser {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  website?: string;
+  contactEmail?: string;
+  isActive: boolean;
+  ads?: CompanyAd[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CompanyAdType = 'article_banner' | 'feed_native' | 'article_pre_roll';
+export type CompanyAdStatus = 'pending' | 'approved' | 'rejected' | 'paused' | 'ended';
+
+export interface CompanyAd {
+  id: string;
+  advertiserId: string;
+  advertiser?: CompanyAdvertiser;
+  adType: CompanyAdType;
+  title: string;
+  contentHe?: string;
+  imageUrl?: string;
+  ctaUrl?: string;
+  ctaLabelHe?: string;
+  dailyBudgetNis: number;
+  cpmNis: number;
+  impressions: number;
+  clicks: number;
+  startDate?: string;
+  endDate?: string;
+  isApproved: boolean;
+  isActive: boolean;
+  status: CompanyAdStatus;
+  rejectionReason?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
+  pausedAt?: string;
+  endedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── AMA Sessions ─────────────────────────────────────────────────────────────
+
+export type AmaSessionStatus = 'draft' | 'upcoming' | 'live' | 'ended';
+
+export interface AmaSession {
+  id: string;
+  candidateId: string;
+  candidateName?: string;
+  title: string;
+  description: string;
+  scheduledAt: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  status: AmaSessionStatus;
+  questionCount: number;
+  createdAt: string;
+}
+
+export type AmaQuestionStatus = 'pending' | 'approved' | 'rejected';
+
+export interface AmaQuestion {
+  id: string;
+  sessionId: string;
+  authorName: string;
+  questionText: string;
+  answerText: string | null;
+  answeredAt: string | null;
+  upvoteCount: number;
+  status: AmaQuestionStatus;
+  isPinned: boolean;
+  createdAt: string;
+}

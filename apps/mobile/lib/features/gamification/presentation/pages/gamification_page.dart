@@ -9,8 +9,11 @@ import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../domain/entities/leaderboard_entry.dart';
 import '../../domain/entities/user_badge.dart';
-import '../../domain/entities/user_streak.dart';
 import '../bloc/gamification_bloc.dart';
+import '../widgets/milestone_timeline.dart';
+import '../widgets/streak_counter.dart';
+import '../widgets/streak_freeze_badge.dart';
+import '../widgets/tier_badge.dart';
 
 /// Gamification page displaying user points, badges, and the leaderboard.
 ///
@@ -195,7 +198,22 @@ class _GamificationPageState extends State<GamificationPage>
         children: [
           _buildPointsCard(state),
           const SizedBox(height: 16),
-          _buildStreakCard(state.streak),
+          // Streak counter (full version)
+          StreakCounter(streak: state.streak, tappable: false),
+          const SizedBox(height: 12),
+          // Freeze tokens
+          StreakFreezeBadge(
+            streak: state.streak,
+            onUseFreeze: () {
+              context.read<GamificationBloc>().add(const UseFreeze());
+            },
+          ),
+          const SizedBox(height: 12),
+          // Tier badge
+          TierBadge(streak: state.streak, tierInfo: state.tierInfo),
+          const SizedBox(height: 12),
+          // Milestone timeline
+          MilestoneTimeline(streak: state.streak),
           const SizedBox(height: 24),
           _buildBadgesSection(state),
           const SizedBox(height: 24),
@@ -230,7 +248,6 @@ class _GamificationPageState extends State<GamificationPage>
       child: Column(
         children: [
           Row(
-            // textDirection: TextDirection.rtl,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.stars_rounded, color: Colors.amber, size: 28),
@@ -275,72 +292,6 @@ class _GamificationPageState extends State<GamificationPage>
               ),
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Streak Card
-  // ---------------------------------------------------------------------------
-
-  Widget _buildStreakCard(UserStreak streak) {
-    return Container(
-      decoration: BoxDecoration(
-        color: context.colors.cardSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.colors.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: context.colors.shadow,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.local_fire_department_rounded,
-              color: Colors.deepOrange,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${'gamification_streak'.tr()} — ${'gamification_streak_days'.tr(args: ['${streak.currentStreak}'])}',
-                  style: TextStyle(
-                    fontFamily: 'Heebo',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: context.colors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'gamification_streak_best'.tr(args: ['${streak.longestStreak}']),
-                  style: TextStyle(
-                    fontFamily: 'Heebo',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: context.colors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

@@ -49,6 +49,8 @@ void configureDependencies() {
     ),
   );
 
+  // ShareService is auto-registered via @lazySingleton in di.config.dart
+
   // Register NotificationCountService for bell icon badge
   getIt.registerLazySingleton<NotificationCountService>(
     () => NotificationCountService(

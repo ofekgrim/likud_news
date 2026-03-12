@@ -7,12 +7,14 @@ import { PollingStationsService } from './polling-stations.service';
 import { PollingStationsController } from './polling-stations.controller';
 import { AppAuthModule } from '../app-auth/app-auth.module';
 import { AuthModule } from '../auth/auth.module';
+import { SseModule } from '../sse/sse.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PollingStation, StationReport, PrimaryElection]),
     AppAuthModule,
     AuthModule,
+    SseModule,
   ],
   controllers: [PollingStationsController],
   providers: [PollingStationsService],

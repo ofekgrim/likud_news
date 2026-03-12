@@ -81,6 +81,27 @@ describe('SseService', () => {
     });
   });
 
+  describe('station wait stream', () => {
+    it('should emit data with type "station_wait_update"', async () => {
+      const payload = {
+        stationId: 'station-1',
+        avgWaitMinutes: 15.5,
+        trafficLight: 'yellow',
+        reportCount: 4,
+      };
+
+      const eventPromise = firstValueFrom(
+        service.getStationWaitStream().pipe(take(1)),
+      );
+
+      service.emitStationWaitUpdate(payload);
+
+      const event = await eventPromise;
+      expect(event.data).toEqual(payload);
+      expect(event.type).toBe('station_wait_update');
+    });
+  });
+
   describe('feed stream', () => {
     it('should default to type "feed_update" when no type provided', async () => {
       const payload = { itemId: 'feed-1' };

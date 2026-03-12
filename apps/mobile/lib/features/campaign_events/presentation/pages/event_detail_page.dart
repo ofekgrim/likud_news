@@ -13,6 +13,8 @@ import '../../domain/entities/campaign_event.dart';
 import '../../domain/entities/event_rsvp.dart';
 import '../bloc/events_bloc.dart';
 import '../../../../core/utils/auth_guard.dart';
+import '../../../../core/sharing/share_button.dart';
+import '../../../../core/sharing/models/share_link.dart';
 
 /// Full detail page for a single campaign event.
 ///
@@ -209,6 +211,19 @@ class _EventDetailPageState extends State<EventDetailPage> {
             overflow: TextOverflow.ellipsis,
           ),
           centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 8),
+              child: WhatsAppShareButton(
+                contentType: ShareContentType.event,
+                contentId: event.id,
+                shareText: event.title,
+                title: event.title,
+                description: event.description,
+                imageUrl: event.imageUrl,
+              ),
+            ),
+          ],
           flexibleSpace: FlexibleSpaceBar(
             background: _buildHeaderImage(event),
           ),

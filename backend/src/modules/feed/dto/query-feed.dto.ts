@@ -12,6 +12,17 @@ import { Type, Transform } from 'class-transformer';
 import { FeedItemType } from './feed-item.dto';
 
 /**
+ * Feed display mode.
+ *
+ * - `latest`: Chronological / algorithm-priority sort (default for anonymous users)
+ * - `personalized`: Personalized "For You" feed using user follow data to boost relevant content
+ */
+export enum FeedMode {
+  LATEST = 'latest',
+  PERSONALIZED = 'personalized',
+}
+
+/**
  * Query parameters for the unified feed endpoint.
  *
  * Supports filtering by content types, pagination, and optional user context
@@ -74,4 +85,15 @@ export class QueryFeedDto {
   @IsOptional()
   @IsString()
   categoryId?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Feed mode: "latest" for chronological/priority sort (default for anonymous), ' +
+      '"personalized" for For You feed boosted by user follows (default for authenticated users)',
+    enum: FeedMode,
+    default: FeedMode.LATEST,
+  })
+  @IsOptional()
+  @IsIn(Object.values(FeedMode))
+  mode?: FeedMode;
 }

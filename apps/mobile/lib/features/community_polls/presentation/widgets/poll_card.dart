@@ -4,6 +4,8 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_context.dart';
 import '../../domain/entities/community_poll.dart';
 import '../../../../core/utils/auth_guard.dart';
+import '../../../../core/sharing/share_button.dart';
+import '../../../../core/sharing/models/share_link.dart';
 
 /// A card widget that displays a single community poll.
 ///
@@ -344,7 +346,7 @@ class _PollCardState extends State<PollCard> {
     );
   }
 
-  /// Builds the footer showing total vote count.
+  /// Builds the footer showing total vote count and share button.
   Widget _buildFooter(CommunityPoll poll) {
     return Row(
       children: [
@@ -362,7 +364,7 @@ class _PollCardState extends State<PollCard> {
           ),
         ),
         if (widget.hasVoted) ...[
-          const Spacer(),
+          const SizedBox(width: 8),
           Icon(
             Icons.check_circle,
             size: 16,
@@ -378,6 +380,16 @@ class _PollCardState extends State<PollCard> {
             ),
           ),
         ],
+        const Spacer(),
+        WhatsAppShareButton(
+          contentType: ShareContentType.poll,
+          contentId: poll.id,
+          shareText: poll.question,
+          title: poll.question,
+          description: poll.description,
+          size: 36,
+          iconSize: 18,
+        ),
       ],
     );
   }

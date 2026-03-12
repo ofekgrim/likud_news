@@ -32,6 +32,17 @@ export class SseController {
     return this.sseService.getArticlesStream();
   }
 
+  @Sse('station-wait')
+  @ApiOperation({
+    summary: 'Subscribe to polling station wait-time updates via SSE',
+    description:
+      'Receives real-time updates when new wait-time reports are submitted. ' +
+      'Each event includes stationId, avgWaitMinutes, trafficLight, and reportCount.',
+  })
+  stationWait(): Observable<MessageEvent> {
+    return this.sseService.getStationWaitStream();
+  }
+
   @Sse('feed')
   @ApiOperation({
     summary: 'Subscribe to unified feed updates via SSE',

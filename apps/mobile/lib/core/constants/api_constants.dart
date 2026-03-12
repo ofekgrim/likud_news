@@ -169,8 +169,14 @@ class ApiConstants {
   static const String gamificationRank = '/gamification/me/rank';
   static const String gamificationTrack = '/gamification/track';
   static const String gamificationLeaderboard = '/gamification/leaderboard';
+  static const String gamificationTier = '/gamification/me/tier';
   static const String gamificationDailyQuizToday = '/gamification/daily-quiz/today';
   static const String gamificationDailyQuizSubmit = '/gamification/daily-quiz/submit';
+
+  // Candidate Matcher (VAA)
+  static const String matcherStatements = '/primaries/matcher/statements';
+  static const String matcherResponses = '/primaries/matcher/responses';
+  static const String matcherMatch = '/primaries/matcher/match';
 
   // SSE - Primaries
   static const String ssePrimaries = '/sse/primaries';
@@ -181,9 +187,31 @@ class ApiConstants {
   // Article Analytics
   static const String articleAnalyticsTrack = '/article-analytics/track';
 
+  // GOTV (Get Out The Vote)
+  static const String gotvCheckin = '/gotv/checkin';
+  static const String gotvPlan = '/gotv/plan';
+
+  // Sharing
+  static const String sharingCreateLink = '/sharing/create-link';
+  static const String sharingResolve = '/sharing/resolve';
+
   // Notifications
   static const String notificationInbox = '/notifications/inbox';
   static const String notificationUnreadCount =
       '/notifications/inbox/unread-count';
   static const String notificationTrackOpen = '/notifications/track-open';
+
+  // AI Chat
+  static const String aiChat = '/ai/chat';
+  static const String aiChatSessions = '/ai/chat/sessions';
+
+  // AMA Sessions
+  static const String amaSessions = '/ama/sessions';
+  static const String amaSessionsUpcoming = '/ama/sessions/upcoming';
+  static const String amaQuestions = '/ama/questions';
+
+  // Subscriptions (Premium)
+  static const String subscriptionsMe = '/subscriptions/me';
+  static const String subscriptionsBenefits = '/subscriptions/benefits';
+  static const String subscriptionsCancel = '/subscriptions/cancel';
 }

@@ -26,10 +26,7 @@ class FloatingLogo extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF00C4F5),
-            Color(0xFF0068A0),
-          ],
+          colors: [Color(0xFF00C4F5), Color(0xFF0068A0)],
         ),
         borderRadius: BorderRadius.circular(height / 2),
         boxShadow: [
@@ -55,26 +52,26 @@ class FloatingLogo extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'מצודת',
+                'מלוכדים',
                 style: TextStyle(
                   fontFamily: 'Heebo',
-                  fontSize: height * 0.26,
+                  fontSize: height * 0.32,
                   fontWeight: FontWeight.w700,
                   color: AppColors.white,
                   height: 1.15,
                 ),
               ),
-              Text(
-                'הליכוד',
-                style: TextStyle(
-                  fontFamily: 'Heebo',
-                  fontSize: height * 0.32,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.white,
-                  letterSpacing: 0.5,
-                  height: 1.1,
-                ),
-              ),
+              // Text(
+              //   'הליכוד',
+              //   style: TextStyle(
+              //     fontFamily: 'Heebo',
+              //     fontSize: height * 0.32,
+              //     fontWeight: FontWeight.w900,
+              //     color: AppColors.white,
+              //     letterSpacing: 0.5,
+              //     height: 1.1,
+              //   ),
+              // ),
             ],
           ),
         ],

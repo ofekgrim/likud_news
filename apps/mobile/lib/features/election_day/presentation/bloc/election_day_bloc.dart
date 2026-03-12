@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
 import '../../../../core/network/sse_client.dart';
+import '../../domain/entities/branch_turnout.dart';
 import '../../domain/entities/election_result.dart';
 import '../../domain/entities/polling_station.dart';
 import '../../domain/entities/station_report.dart';
@@ -116,6 +117,31 @@ final class _SseTurnoutUpdated extends ElectionDayEvent {
 
   @override
   List<Object?> get props => [snapshots];
+}
+
+/// Claims the "I Voted" badge and awards 50 points.
+final class ClaimIVotedBadge extends ElectionDayEvent {
+  const ClaimIVotedBadge();
+}
+
+/// Saves the user's voting plan with a selected time slot.
+final class SaveVotingPlan extends ElectionDayEvent {
+  final String timeSlot;
+
+  const SaveVotingPlan({required this.timeSlot});
+
+  @override
+  List<Object?> get props => [timeSlot];
+}
+
+/// Loads branch turnout data for the competition leaderboard.
+final class LoadBranchTurnouts extends ElectionDayEvent {
+  final String electionId;
+
+  const LoadBranchTurnouts({required this.electionId});
+
+  @override
+  List<Object?> get props => [electionId];
 }
 
 // ---------------------------------------------------------------------------
@@ -261,6 +287,31 @@ final class ReportSubmitted extends ElectionDayState {
   List<Object?> get props => [report];
 }
 
+/// The "I Voted" badge was claimed successfully.
+final class IVotedBadgeClaimed extends ElectionDayState {
+  const IVotedBadgeClaimed();
+}
+
+/// The voting plan was saved successfully.
+final class VotingPlanSaved extends ElectionDayState {
+  final String timeSlot;
+
+  const VotingPlanSaved({required this.timeSlot});
+
+  @override
+  List<Object?> get props => [timeSlot];
+}
+
+/// Branch turnout data loaded for competition leaderboard.
+final class BranchTurnoutsLoaded extends ElectionDayState {
+  final List<BranchTurnout> branches;
+
+  const BranchTurnoutsLoaded({required this.branches});
+
+  @override
+  List<Object?> get props => [branches];
+}
+
 /// An error occurred while loading election day data.
 final class ElectionDayError extends ElectionDayState {
   final String message;
@@ -306,6 +357,9 @@ class ElectionDayBloc extends Bloc<ElectionDayEvent, ElectionDayState> {
     on<SubscribeToLiveResults>(_onSubscribeToLiveResults);
     on<_SseResultsUpdated>(_onSseResultsUpdated);
     on<_SseTurnoutUpdated>(_onSseTurnoutUpdated);
+    on<ClaimIVotedBadge>(_onClaimIVotedBadge);
+    on<SaveVotingPlan>(_onSaveVotingPlan);
+    on<LoadBranchTurnouts>(_onLoadBranchTurnouts);
   }
 
   /// Cached resolved election ID so we don't re-resolve on every tab switch.
@@ -633,6 +687,57 @@ class ElectionDayBloc extends Bloc<ElectionDayEvent, ElectionDayState> {
       totalEligible: totalEligible,
       totalVoted: totalVoted,
     ));
+  }
+
+  /// Claims the "I Voted" badge and awards 50 points.
+  Future<void> _onClaimIVotedBadge(
+    ClaimIVotedBadge event,
+    Emitter<ElectionDayState> emit,
+  ) async {
+    final result = await _repository.claimIVotedBadge();
+
+    result.fold(
+      (failure) => emit(ElectionDayError(
+        message: failure.message ?? 'error_generic'.tr(),
+      )),
+      (_) => emit(const IVotedBadgeClaimed()),
+    );
+  }
+
+  /// Saves the user's selected voting time slot.
+  Future<void> _onSaveVotingPlan(
+    SaveVotingPlan event,
+    Emitter<ElectionDayState> emit,
+  ) async {
+    final result = await _repository.saveVotingPlan(event.timeSlot);
+
+    result.fold(
+      (failure) => emit(ElectionDayError(
+        message: failure.message ?? 'error_generic'.tr(),
+      )),
+      (_) => emit(VotingPlanSaved(timeSlot: event.timeSlot)),
+    );
+  }
+
+  /// Loads branch turnout data for the competition leaderboard.
+  Future<void> _onLoadBranchTurnouts(
+    LoadBranchTurnouts event,
+    Emitter<ElectionDayState> emit,
+  ) async {
+    final resolvedId = await _resolveElectionId(event.electionId);
+    if (resolvedId == null) {
+      emit(ElectionDayError(message: 'error_generic'.tr()));
+      return;
+    }
+
+    final result = await _repository.getBranchTurnouts(resolvedId);
+
+    result.fold(
+      (failure) => emit(ElectionDayError(
+        message: failure.message ?? 'error_generic'.tr(),
+      )),
+      (branches) => emit(BranchTurnoutsLoaded(branches: branches)),
+    );
   }
 
   @override

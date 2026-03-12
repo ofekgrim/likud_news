@@ -17,6 +17,9 @@ import { EventRsvp } from '../campaign-events/entities/event-rsvp.entity';
 import { QuizResponse } from '../quiz/entities/quiz-response.entity';
 import { DailyQuiz } from '../gamification/entities/daily-quiz.entity';
 import { DailyQuizAttempt } from '../gamification/entities/daily-quiz-attempt.entity';
+import { CompanyAd } from '../ads/entities/company-ad.entity';
+import { CandidateAdPlacement } from '../ads/entities/candidate-ad-placement.entity';
+import { UserFollowsService } from '../user-follows/user-follows.service';
 import { FeedItemType } from './dto/feed-item.dto';
 
 // ─── Mock factories ──────────────────────────────────────────────────
@@ -121,6 +124,8 @@ describe('FeedService', () => {
   let quizResponseRepo: ReturnType<typeof mockRepository>;
   let dailyQuizRepo: ReturnType<typeof mockRepository>;
   let dailyQuizAttemptRepo: ReturnType<typeof mockRepository>;
+  let companyAdRepo: ReturnType<typeof mockRepository>;
+  let candidateAdRepo: ReturnType<typeof mockRepository>;
 
   // Query builder mocks (one per repo that uses createQueryBuilder in getFeed)
   let articleQb: ReturnType<typeof createMockQueryBuilder>;
@@ -150,6 +155,10 @@ describe('FeedService', () => {
     quizResponseRepo = mockRepository();
     dailyQuizRepo = mockRepository();
     dailyQuizAttemptRepo = mockRepository();
+    companyAdRepo = mockRepository();
+    companyAdRepo.createQueryBuilder = jest.fn().mockReturnValue(createMockQueryBuilder());
+    candidateAdRepo = mockRepository();
+    candidateAdRepo.createQueryBuilder = jest.fn().mockReturnValue(createMockQueryBuilder());
 
     // Create fresh query builders
     articleQb = createMockQueryBuilder();
@@ -208,10 +217,13 @@ describe('FeedService', () => {
         { provide: getRepositoryToken(QuizResponse), useValue: quizResponseRepo },
         { provide: getRepositoryToken(DailyQuiz), useValue: dailyQuizRepo },
         { provide: getRepositoryToken(DailyQuizAttempt), useValue: dailyQuizAttemptRepo },
+        { provide: getRepositoryToken(CompanyAd), useValue: companyAdRepo },
+        { provide: getRepositoryToken(CandidateAdPlacement), useValue: candidateAdRepo },
         { provide: FeedAlgorithmService, useValue: mockAlgorithmService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
         { provide: ElectionResultsService, useValue: mockElectionResultsService },
         { provide: CandidatesService, useValue: mockCandidatesService },
+        { provide: UserFollowsService, useValue: {} },
         { provide: SseService, useValue: mockSseService },
       ],
     }).compile();
@@ -513,10 +525,13 @@ describe('FeedService', () => {
           { provide: getRepositoryToken(QuizResponse), useValue: quizResponseRepo },
           { provide: getRepositoryToken(DailyQuiz), useValue: dailyQuizRepo },
           { provide: getRepositoryToken(DailyQuizAttempt), useValue: dailyQuizAttemptRepo },
+          { provide: getRepositoryToken(CompanyAd), useValue: companyAdRepo },
+          { provide: getRepositoryToken(CandidateAdPlacement), useValue: candidateAdRepo },
           { provide: FeedAlgorithmService, useValue: mockAlgorithmService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
           { provide: ElectionResultsService, useValue: mockElectionResultsService },
           { provide: CandidatesService, useValue: mockCandidatesService },
+          { provide: UserFollowsService, useValue: {} },
           // SseService intentionally omitted — @Optional() makes it undefined
         ],
       }).compile();
@@ -563,10 +578,13 @@ describe('FeedService', () => {
           { provide: getRepositoryToken(QuizResponse), useValue: quizResponseRepo },
           { provide: getRepositoryToken(DailyQuiz), useValue: dailyQuizRepo },
           { provide: getRepositoryToken(DailyQuizAttempt), useValue: dailyQuizAttemptRepo },
+          { provide: getRepositoryToken(CompanyAd), useValue: companyAdRepo },
+          { provide: getRepositoryToken(CandidateAdPlacement), useValue: candidateAdRepo },
           { provide: FeedAlgorithmService, useValue: mockAlgorithmService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
           { provide: ElectionResultsService, useValue: mockElectionResultsService },
           { provide: CandidatesService, useValue: mockCandidatesService },
+          { provide: UserFollowsService, useValue: {} },
         ],
       }).compile();
 
@@ -609,10 +627,13 @@ describe('FeedService', () => {
           { provide: getRepositoryToken(QuizResponse), useValue: quizResponseRepo },
           { provide: getRepositoryToken(DailyQuiz), useValue: dailyQuizRepo },
           { provide: getRepositoryToken(DailyQuizAttempt), useValue: dailyQuizAttemptRepo },
+          { provide: getRepositoryToken(CompanyAd), useValue: companyAdRepo },
+          { provide: getRepositoryToken(CandidateAdPlacement), useValue: candidateAdRepo },
           { provide: FeedAlgorithmService, useValue: mockAlgorithmService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
           { provide: ElectionResultsService, useValue: mockElectionResultsService },
           { provide: CandidatesService, useValue: mockCandidatesService },
+          { provide: UserFollowsService, useValue: {} },
         ],
       }).compile();
 

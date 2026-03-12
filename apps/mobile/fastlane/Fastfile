@@ -1,0 +1,42 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Upload metadata to App Store Connect"
+  lane :metadata do
+    deliver(
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      metadata_path: "../store-listing",
+      force: true
+    )
+  end
+
+  desc "Build and upload to TestFlight (with dSYM upload to Crashlytics)"
+  lane :beta do
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store"
+    )
+    upload_symbols_to_crashlytics(
+      gsp_path: "./Runner/GoogleService-Info.plist"
+    )
+    upload_to_testflight
+  end
+end
+
+platform :android do
+  desc "Build and upload to Google Play Internal"
+  lane :internal do
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "../android"
+    )
+    upload_to_play_store(
+      track: "internal",
+      release_status: "draft",
+      aab: "../build/app/outputs/bundle/release/app-release.aab"
+    )
+  end
+end

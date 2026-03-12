@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { PushService } from './push.service';
 import { PushToken } from './entities/push-token.entity';
 import { FIREBASE_ADMIN } from './firebase-admin.provider';
@@ -27,6 +28,7 @@ describe('PushService', () => {
         PushService,
         { provide: getRepositoryToken(PushToken), useFactory: mockRepository },
         { provide: FIREBASE_ADMIN, useValue: null },
+        { provide: CACHE_MANAGER, useValue: { get: jest.fn(), set: jest.fn(), del: jest.fn() } },
       ],
     }).compile();
 
