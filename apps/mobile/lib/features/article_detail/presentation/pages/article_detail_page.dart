@@ -23,6 +23,7 @@ import '../widgets/company_ad_banner.dart';
 import '../widgets/tts_player_bar.dart';
 import '../../../../core/sharing/share_button.dart';
 import '../../../../core/sharing/models/share_link.dart';
+import '../../../../core/services/review_service.dart';
 
 /// Full-screen article detail page.
 ///
@@ -162,7 +163,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
       child: Scaffold(
         body: BlocConsumer<ArticleDetailBloc, ArticleDetailState>(
           listener: (context, state) {
-            // When article loads successfully, dispatch LoadComments.
+            // When article loads successfully, dispatch LoadComments + track for rating prompt.
             if (state is ArticleDetailLoaded) {
               context.read<CommentsBloc>().add(
                 LoadComments(
@@ -170,6 +171,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                   targetType: 'article',
                 ),
               );
+              ReviewService.trackArticleRead();
             }
           },
           builder: (context, state) {

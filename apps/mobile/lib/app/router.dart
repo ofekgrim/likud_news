@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -96,6 +97,7 @@ import '../features/video/presentation/pages/video_player_page.dart';
 import '../features/article_detail/domain/entities/content_block.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/pages/login_page.dart';
+import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../features/auth/presentation/pages/otp_verification_page.dart';
 import '../features/auth/presentation/pages/register_page.dart';
 import 'router_refresh.dart';
@@ -144,6 +146,14 @@ class AppRouter {
 
       // Still checking auth — don't redirect
       if (authState is AuthInitial || authState is AuthLoading) return null;
+
+      // First-launch onboarding — shown once before anything else
+      // Only redirect from root; auth/deep-link routes bypass onboarding
+      if (location == '/') {
+        final prefs = getIt<SharedPreferences>();
+        final onboardingDone = prefs.getBool('onboarding_done') ?? false;
+        if (!onboardingDone) return '/onboarding';
+      }
 
       final isAuthenticated = authState is AuthAuthenticated;
 
@@ -317,6 +327,12 @@ class AppRouter {
       GoRoute(
         path: '/privacy',
         builder: (context, state) => const PrivacyPage(),
+      ),
+
+      // Onboarding (first-launch, shown once)
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingPage(),
       ),
 
       // Auth routes
