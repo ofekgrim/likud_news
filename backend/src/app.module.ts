@@ -140,6 +140,7 @@ import { FeedModule } from './modules/feed/feed.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SharingModule } from './modules/sharing/sharing.module';
 import { HealthModule } from './modules/health/health.module';
+import { LegalModule } from './modules/legal/legal.module';
 import { GotvModule } from './modules/gotv/gotv.module';
 import { CandidateMatcherModule } from './modules/candidate-matcher/candidate-matcher.module';
 
@@ -384,6 +385,9 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
 
     // Health
     HealthModule,
+
+    // Legal (privacy policy)
+    LegalModule,
   ],
   controllers: [],
   providers: [

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מדיניות פרטיות — מצודת הליכוד</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Heebo', Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #1a1a2e;
+      background: #f8f9fa;
+      padding: 0 16px 40px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    header {
+      background: #0099DB;
+      color: #fff;
+      padding: 24px 16px;
+      margin: 0 -16px 32px;
+      text-align: center;
+    }
+    header h1 { font-size: 24px; font-weight: 700; }
+    header p  { font-size: 14px; opacity: 0.85; margin-top: 4px; }
+    h2 { font-size: 18px; font-weight: 700; color: #0099DB; margin: 28px 0 10px; }
+    p, li { margin-bottom: 8px; color: #333; }
+    ul { padding-right: 24px; }
+    .highlight {
+      background: #e8f4fd;
+      border-right: 4px solid #0099DB;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin: 16px 0;
+    }
+    footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+      font-size: 13px;
+      color: #777;
+      text-align: center;
+    }
+    .lang-en { direction: ltr; text-align: left; margin-top: 48px; border-top: 2px solid #eee; padding-top: 32px; }
+    .lang-en h2 { color: #0099DB; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>מדיניות פרטיות</h1>
+  <p>מצודת הליכוד — עדכון אחרון: מרץ 2026</p>
+</header>
+
+<!-- ── Hebrew ── -->
+<h2>1. מי אנחנו</h2>
+<p>אפליקציית "מצודת הליכוד" מופעלת על ידי מפלגת הליכוד. ניתן ליצור קשר בכתובת:
+<strong>legal@likud.org.il</strong></p>
+
+<h2>2. המידע שאנו אוספים</h2>
+<ul>
+  <li><strong>מספר טלפון / אימייל</strong> — לצורך אימות זהות ויצירת חשבון משתמש.</li>
+  <li><strong>מזהה מכשיר</strong> — UUID ייחודי לגלישה אנונימית ללא התחברות.</li>
+  <li><strong>מיקום (תחנות קלפי)</strong> — נאסף רק כאשר המשתמש מאפשר זאת במפורש, אך ורק לצורך מציאת תחנת הצבעה הקרובה ביותר. לא נאסף ברקע.</li>
+  <li><strong>נתוני שימוש</strong> — כתבות שנקראו, בדיקות שגיאות (Crashlytics/Sentry). אין זיהוי אישי.</li>
+  <li><strong>טוקן התראות (FCM)</strong> — לשליחת התראות Push. ניתן לבטל בכל עת בהגדרות.</li>
+</ul>
+
+<div class="highlight">
+  <strong>דאטה מיקום תחנת קלפי:</strong> נמחק אוטומטית 90 יום לאחר יום הבחירות. מאוחסן כ-hash חד-כיווני — לא ניתן לשחזר זהות משתמש ממנו.
+</div>
+
+<h2>3. כיצד אנו משתמשים במידע</h2>
+<ul>
+  <li>הפעלת שירותי האפליקציה (חדשות, פריימריז, בחירות)</li>
+  <li>שליחת התראות שבחרתם לקבל</li>
+  <li>שיפור ביצועי האפליקציה ותיקון תקלות</li>
+  <li>ניתוח שימוש אנונימי לצורכי פיתוח בלבד</li>
+</ul>
+
+<h2>4. שיתוף מידע עם צדדים שלישיים</h2>
+<p>אנו <strong>לא מוכרים</strong> מידע אישי. מידע מועבר אך ורק ל:</p>
+<ul>
+  <li><strong>Google Firebase</strong> — התראות Push, ניתוח קריסות, אנליטיקס אנונימיים</li>
+  <li><strong>Sentry</strong> — ניטור שגיאות (ללא מידע מזהה)</li>
+  <li><strong>שרתי הליכוד</strong> — אחסון נתוני המשתמש באישראל</li>
+</ul>
+
+<h2>5. אחסון ואבטחה</h2>
+<ul>
+  <li>נתונים מאוחסנים בשרתים מאובטחים עם הצפנה מלאה (TLS 1.3)</li>
+  <li>גיבוי יומי עם שמירת 30 ימים</li>
+  <li>גישה מוגבלת לעובדים מורשים בלבד</li>
+  <li>סיסמאות מוצפנות עם bcrypt (לא ניתן לשחזור)</li>
+</ul>
+
+<h2>6. זכויות המשתמש</h2>
+<p>בהתאם לחוק הגנת הפרטיות הישראלי, יש לכם זכות ל:</p>
+<ul>
+  <li>עיון במידע שנאסף עליכם</li>
+  <li>תיקון מידע שגוי</li>
+  <li>מחיקת חשבון וכל הנתונים (הגדרות → מחק חשבון)</li>
+  <li>ביטול הסכמה לקבלת התראות (הגדרות → התראות)</li>
+</ul>
+
+<h2>7. ילדים</h2>
+<p>האפליקציה אינה מיועדת לילדים מתחת לגיל 13. איננו אוספים ביודעין מידע מילדים.</p>
+
+<h2>8. שינויים במדיניות</h2>
+<p>שינויים מהותיים יפורסמו באפליקציה 14 יום מראש.</p>
+
+<h2>9. יצירת קשר</h2>
+<p>לכל שאלה בנושא פרטיות: <strong>legal@likud.org.il</strong></p>
+
+<!-- ── English ── -->
+<div class="lang-en">
+  <h2>Privacy Policy (English Summary)</h2>
+  <p><strong>Last updated: March 2026</strong></p>
+  <p>Metzudat HaLikud ("the App") is operated by the Likud Party, Israel. Contact: <strong>legal@likud.org.il</strong></p>
+
+  <h2>Data We Collect</h2>
+  <ul>
+    <li><strong>Phone / email</strong> — for account creation and authentication.</li>
+    <li><strong>Device ID</strong> — anonymous UUID for guest browsing.</li>
+    <li><strong>Location (polling stations)</strong> — only when explicitly granted; used solely to find the nearest polling station. Never collected in the background. Auto-deleted 90 days after election day.</li>
+    <li><strong>Usage analytics</strong> — anonymous crash reports and app usage (no personal identification).</li>
+    <li><strong>FCM token</strong> — for push notifications; revocable at any time in Settings.</li>
+  </ul>
+
+  <h2>Your Rights</h2>
+  <p>Under Israeli Privacy Protection Law, you may request access, correction, or deletion of your data at <strong>legal@likud.org.il</strong> or via Settings → Delete Account.</p>
+
+  <h2>Third Parties</h2>
+  <p>We do not sell personal data. Data is shared only with Google Firebase (crash reporting, analytics), Sentry (error monitoring), and the Likud Party's own servers.</p>
+</div>
+
+<footer>
+  <p>מצודת הליכוד &copy; 2026 — כל הזכויות שמורות למפלגת הליכוד</p>
+</footer>
+
+</body>
+</html>
