@@ -50,6 +50,27 @@ export class AppUsersController {
     return this.appUsersService.getProfile(userId);
   }
 
+  @Get('me/referral-code')
+  @UseGuards(AppAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get or generate referral code for current user' })
+  async getReferralCode(@CurrentAppUser('id') userId: string) {
+    return this.appUsersService.getOrCreateReferralCode(userId);
+  }
+
+  @Post('me/claim-referral')
+  @UseGuards(AppAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Claim a referral code (call once after registration)' })
+  @ApiResponse({ status: 204, description: 'Referral claimed or silently ignored' })
+  async claimReferral(
+    @CurrentAppUser('id') userId: string,
+    @Body() body: { code: string },
+  ) {
+    await this.appUsersService.claimReferralCode(userId, body.code);
+  }
+
   @Put('me')
   @UseGuards(AppAuthGuard)
   @ApiBearerAuth()
@@ -159,6 +180,44 @@ export class AppUsersController {
     @Body() body: { userIds: string[]; electionId: string; approvedBy?: string },
   ) {
     return this.appUsersService.bulkApproveVoting(body.userIds, body.electionId, body.approvedBy);
+  }
+
+  @Get('analytics/active-users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get DAU/WAU/MAU metrics (admin)' })
+  async getActiveUsers() {
+    return this.appUsersService.getActiveUsers();
+  }
+
+  @Get('analytics/growth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get daily user registration trend (admin)' })
+  @ApiQuery({ name: 'days', required: false, type: Number, description: 'Default: 30' })
+  async getGrowthTrend(@Query('days') days?: string) {
+    return this.appUsersService.getUserGrowthTrend(days ? parseInt(days, 10) : 30);
+  }
+
+  @Get('analytics/segments')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user segmentation by role and membership (admin)' })
+  async getSegments() {
+    return this.appUsersService.getUserSegments();
+  }
+
+  @Get('analytics/retention')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get weekly retention cohorts (admin)' })
+  @ApiQuery({ name: 'weeks', required: false, type: Number, description: 'Default: 8' })
+  async getRetention(@Query('weeks') weeks?: string) {
+    return this.appUsersService.getRetentionCohorts(weeks ? parseInt(weeks, 10) : 8);
   }
 
   @Get(':id')

@@ -8,6 +8,7 @@ import '../../../../core/network/sse_client.dart';
 import '../../domain/entities/feed_item.dart';
 import '../../domain/entities/feed_response.dart';
 import '../../domain/repositories/feed_repository.dart';
+import '../../domain/usecases/get_feed.dart';
 import '../datasources/feed_local_datasource.dart';
 import '../datasources/feed_remote_datasource.dart';
 import '../models/feed_item_model.dart';
@@ -35,6 +36,7 @@ class FeedRepositoryImpl implements FeedRepository {
     String? categoryId,
     String? deviceId,
     String? userId,
+    FeedMode? mode,
   }) async {
     try {
       // Convert enum types to strings
@@ -47,6 +49,7 @@ class FeedRepositoryImpl implements FeedRepository {
         categoryId: categoryId,
         deviceId: deviceId,
         userId: userId,
+        mode: mode?.name,
       );
 
       // Cache first page for offline access

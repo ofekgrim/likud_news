@@ -12,7 +12,7 @@ export class LegalController {
 
   constructor() {
     this.privacyHtml = readFileSync(
-      join(process.cwd(), 'src/modules/legal/privacy-policy.html'),
+      join(__dirname, 'privacy-policy.html'),
       'utf-8',
     );
   }

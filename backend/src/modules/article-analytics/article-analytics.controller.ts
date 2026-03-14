@@ -55,6 +55,23 @@ export class ArticleAnalyticsController {
     return this.analyticsService.getReferrerBreakdown(articleId);
   }
 
+  @Get('funnel')
+  @ApiOperation({ summary: 'Get engagement funnel (admin)' })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  getEngagementFunnel(
+    @Query('from') dateFrom?: string,
+    @Query('to') dateTo?: string,
+  ) {
+    return this.analyticsService.getEngagementFunnel(dateFrom, dateTo);
+  }
+
+  @Get('live-readers')
+  @ApiOperation({ summary: 'Get count of active readers in the last 5 minutes' })
+  getLiveReaders() {
+    return this.analyticsService.getLiveReaderCount();
+  }
+
   @Get('article/:id')
   @ApiOperation({ summary: 'Get stats for a single article (admin)' })
   @ApiQuery({ name: 'from', required: false })

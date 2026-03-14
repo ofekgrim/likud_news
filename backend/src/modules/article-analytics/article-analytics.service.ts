@@ -173,4 +173,43 @@ export class ArticleAnalyticsService {
 
     return qb.getRawMany();
   }
+
+  /**
+   * Engagement funnel: views → read_complete → share → comment
+   */
+  async getEngagementFunnel(dateFrom?: string, dateTo?: string): Promise<Array<{ stage: string; count: number }>> {
+    const stages = ['view', 'read_complete', 'share', 'comment'];
+    const results: Array<{ stage: string; count: number }> = [];
+
+    for (const stage of stages) {
+      const qb = this.analyticsRepository
+        .createQueryBuilder('a')
+        .select('COUNT(DISTINCT COALESCE("a"."deviceId", "a"."userId"::text))', 'count')
+        .where('a.eventType = :eventType', { eventType: stage });
+
+      if (dateFrom) qb.andWhere('a.createdAt >= :dateFrom', { dateFrom });
+      if (dateTo) qb.andWhere('a.createdAt <= :dateTo', { dateTo });
+
+      const result = await qb.getRawOne();
+      results.push({ stage, count: parseInt(result?.count || '0', 10) });
+    }
+
+    return results;
+  }
+
+  /**
+   * Count distinct devices/users that triggered a VIEW event in the last 5 minutes.
+   */
+  async getLiveReaderCount(): Promise<{ count: number }> {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+    const result = await this.analyticsRepository
+      .createQueryBuilder('a')
+      .select('COUNT(DISTINCT COALESCE("a"."deviceId", "a"."userId"::text))', 'count')
+      .where('a.eventType = :eventType', { eventType: 'view' })
+      .andWhere('a.createdAt >= :since', { since: fiveMinutesAgo })
+      .getRawOne();
+
+    return { count: parseInt(result?.count || '0', 10) };
+  }
 }

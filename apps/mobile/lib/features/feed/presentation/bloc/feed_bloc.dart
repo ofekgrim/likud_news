@@ -35,6 +35,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<UnsubscribeFromUpdates>(_onUnsubscribeFromUpdates);
     on<FeedUpdateReceived>(_onFeedUpdateReceived);
     on<AuthStateChangedFeed>(_onAuthStateChanged);
+    on<ChangeFeedMode>(_onChangeFeedMode);
 
     // Listen for auth state changes — reload feed with userId when user logs in
     _authSubscription = _authBloc.stream.listen((authState) {
@@ -300,6 +301,39 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         hasReachedMax: !response.meta.hasMore,
         activeFilters: types,
         activeCategoryId: categoryId,
+      )),
+    );
+  }
+
+  /// Handle feed mode change (latest ↔ personalized)
+  Future<void> _onChangeFeedMode(
+    ChangeFeedMode event,
+    Emitter<FeedState> emit,
+  ) async {
+    final currentState = state;
+    final types = currentState is FeedLoaded ? currentState.activeFilters : null;
+    final categoryId = currentState is FeedLoaded ? currentState.activeCategoryId : null;
+
+    emit(const FeedLoading());
+
+    final result = await _getFeed(GetFeedParams(
+      page: 1,
+      limit: 20,
+      types: types,
+      categoryId: categoryId,
+      userId: _currentUserId,
+      mode: event.mode,
+    ));
+
+    result.fold(
+      (failure) => emit(FeedError(failure.message ?? 'Failed to load feed')),
+      (response) => emit(FeedLoaded(
+        items: response.items,
+        meta: response.meta,
+        hasReachedMax: !response.meta.hasMore,
+        activeFilters: types,
+        activeCategoryId: categoryId,
+        feedMode: event.mode,
       )),
     );
   }

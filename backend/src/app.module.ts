@@ -227,6 +227,11 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
           ? new ReadableTypeOrmLogger()
           : undefined,
         maxQueryExecutionTime: 500, // log slow queries > 500ms
+        extra: {
+          max: parseInt(process.env.DB_POOL_MAX || '50', 10),
+          min: parseInt(process.env.DB_POOL_MIN || '5', 10),
+          idleTimeoutMillis: 30000,
+        },
         entities: [
           Article,
           Category,

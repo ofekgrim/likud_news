@@ -1,6 +1,7 @@
 import { Injectable, Logger, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Cron } from '@nestjs/schedule';
 import { UserPoints, PointAction, POINT_VALUES } from './entities/user-points.entity';
 import { UserBadge, BadgeType } from './entities/user-badge.entity';
 import { UserStreak } from './entities/user-streak.entity';
@@ -938,5 +939,67 @@ export class GamificationService {
       badges,
       rank,
     };
+  }
+
+  // ─── Engagement Scoring ────────────────────────────────────
+
+  /**
+   * Recalculate engagement score for a user.
+   * Weighted formula:
+   *   score = totalXp * tierMultiplier + (streakDays * 5) + (badgeCount * 50) + recencyBonus
+   *
+   * Recency bonus: points earned in last 7 days count 2x
+   */
+  async calculateEngagementScore(userId: string): Promise<number> {
+    const [totalXp, recentXp, streak, badgeCount] = await Promise.all([
+      this.userPointsRepository
+        .createQueryBuilder('p')
+        .select('COALESCE(SUM(p.points), 0)', 'total')
+        .where('p.userId = :userId', { userId })
+        .getRawOne()
+        .then(r => parseInt(r?.total || '0', 10)),
+      this.userPointsRepository
+        .createQueryBuilder('p')
+        .select('COALESCE(SUM(p.points), 0)', 'total')
+        .where('p.userId = :userId', { userId })
+        .andWhere('p.earnedAt >= :since', { since: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) })
+        .getRawOne()
+        .then(r => parseInt(r?.total || '0', 10)),
+      this.userStreakRepository.findOne({ where: { userId } }),
+      this.userBadgeRepository.count({ where: { userId } }),
+    ]);
+
+    const tierMultipliers = { 1: 1.0, 2: 1.2, 3: 1.5, 4: 1.8, 5: 2.0 };
+    const tier = streak?.tier || 1;
+    const multiplier = tierMultipliers[tier] || 1.0;
+    const streakDays = streak?.currentStreak || 0;
+
+    const score = Math.round(
+      (totalXp + recentXp) * multiplier +
+      streakDays * 5 +
+      badgeCount * 50
+    );
+
+    return score;
+  }
+
+  @Cron('0 3 * * *')
+  async recalculateAllEngagementScores(): Promise<void> {
+    this.logger.log('Starting engagement score recalculation...');
+
+    // Get all active user IDs
+    const users = await this.userPointsRepository
+      .createQueryBuilder('p')
+      .select('DISTINCT p.userId', 'userId')
+      .getRawMany();
+
+    let updated = 0;
+    for (const { userId } of users) {
+      const score = await this.calculateEngagementScore(userId);
+      await this.appUserRepository.update(userId, { engagementScore: score });
+      updated++;
+    }
+
+    this.logger.log(`Engagement scores recalculated for ${updated} users`);
   }
 }

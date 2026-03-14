@@ -183,7 +183,8 @@ class PollsBloc extends Bloc<PollsEvent, PollsState> {
     on<_MyVotesLoaded>(_onMyVotesLoaded);
   }
 
-  /// Loads all community polls and then fetches user votes for each.
+  /// Loads all community polls. Vote status is included inline from the
+  /// backend response (no separate per-poll requests).
   Future<void> _onLoadPolls(
     LoadPolls event,
     Emitter<PollsState> emit,
@@ -192,32 +193,20 @@ class PollsBloc extends Bloc<PollsEvent, PollsState> {
 
     final result = await _getPolls(const NoParams());
 
-    await result.fold(
-      (failure) async => emit(PollsError(
+    result.fold(
+      (failure) => emit(PollsError(
         message: failure.message ?? 'polls_error_loading'.tr(),
       )),
-      (polls) async {
-        emit(PollsLoaded(polls: polls));
-
-        // Load user votes for all polls in parallel
+      (polls) {
+        // Build myVotes map from the inline data returned by the backend
         final Map<String, int?> myVotes = {};
-        final futures = polls.map((poll) async {
-          final voteResult = await _getMyVote(poll.id);
-          voteResult.fold(
-            (_) {
-              // Silently ignore vote fetch errors
-            },
-            (vote) {
-              if (vote != null) {
-                myVotes[poll.id] = vote.optionIndex;
-              }
-            },
-          );
-        });
-        await Future.wait(futures);
+        for (final poll in polls) {
+          if (poll.myVoteOptionIndex != null) {
+            myVotes[poll.id] = poll.myVoteOptionIndex;
+          }
+        }
 
-        // Emit votes via internal event
-        add(_MyVotesLoaded(myVotes: myVotes));
+        emit(PollsLoaded(polls: polls, myVotes: myVotes));
       },
     );
   }

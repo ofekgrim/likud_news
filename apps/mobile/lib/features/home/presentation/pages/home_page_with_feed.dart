@@ -10,11 +10,14 @@ import '../../../../app/di.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_context.dart';
+import '../../../article_detail/presentation/bloc/article_detail_bloc.dart';
+import '../../../article_detail/presentation/pages/article_detail_page.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/rtl_scaffold.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../features/categories/presentation/widgets/category_card.dart';
 import '../../../../features/community_polls/presentation/bloc/polls_bloc.dart';
+import '../../../../features/feed/domain/usecases/get_feed.dart';
 import '../../../../features/feed/presentation/bloc/feed_bloc.dart';
 import '../../../../features/feed/presentation/bloc/feed_event.dart'
     as feed_events;
@@ -24,12 +27,15 @@ import '../../../../features/daily_missions/presentation/bloc/daily_missions_blo
 import '../../../../features/daily_missions/presentation/bloc/daily_missions_event.dart';
 import '../../../../features/gamification/presentation/bloc/gamification_bloc.dart';
 import '../../../../features/gamification/presentation/widgets/home_streak_card.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../feed/domain/entities/feed_item.dart';
 import '../bloc/home_bloc.dart';
 import '../widgets/breaking_ticker.dart';
 import '../widgets/hero_card.dart';
 import '../widgets/story_circles.dart';
 import '../widgets/story_viewer.dart';
+import '../widgets/feed_mode_toggle.dart';
+import '../widgets/live_readers_badge.dart';
 import '../widgets/trending_breaking_tabs.dart';
 
 /// Main home screen with unified mixed-content feed
@@ -48,6 +54,9 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
   late final DailyMissionsBloc _dailyMissionsBloc;
   bool _showRefreshButton = false;
 
+  // Tablet master-detail: slug of the currently selected article.
+  String? _selectedArticleSlug;
+
   @override
   void initState() {
     super.initState();
@@ -64,13 +73,17 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
     _pollsBloc = getIt<PollsBloc>();
     _pollsBloc.add(const LoadPolls());
 
-    // Initialize GamificationBloc for streak counter
+    // Initialize GamificationBloc and DailyMissionsBloc — only fire
+    // network requests when the user is authenticated to avoid 401s.
     _gamificationBloc = getIt<GamificationBloc>();
-    _gamificationBloc.add(const LoadStreak());
-
-    // Initialize DailyMissionsBloc for missions strip
     _dailyMissionsBloc = getIt<DailyMissionsBloc>();
-    _dailyMissionsBloc.add(const LoadTodayMissions());
+
+    final isAuthenticated =
+        context.read<AuthBloc>().state is AuthAuthenticated;
+    if (isAuthenticated) {
+      _gamificationBloc.add(const LoadStreak());
+      _dailyMissionsBloc.add(const LoadTodayMissions());
+    }
 
     // Setup scroll listener for pagination and refresh button visibility
     _scrollController.addListener(_onScroll);
@@ -167,7 +180,28 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
                   }
 
                   if (homeState is HomeLoaded) {
-                    return _buildLoadedState(context, homeState);
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth >= 768) {
+                          return Row(
+                            children: [
+                              SizedBox(
+                                width: constraints.maxWidth * 0.4,
+                                child: _buildLoadedState(context, homeState),
+                              ),
+                              VerticalDivider(
+                                width: 1,
+                                color: Theme.of(context).dividerColor,
+                              ),
+                              Expanded(
+                                child: _buildDetailPane(),
+                              ),
+                            ],
+                          );
+                        }
+                        return _buildLoadedState(context, homeState);
+                      },
+                    );
                   }
 
                   return const SizedBox.shrink();
@@ -361,19 +395,30 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
           // Date display
           SliverToBoxAdapter(child: _buildDateHeader()),
 
-          // Section header
+          // Live readers count
+          const SliverToBoxAdapter(
+            child: LiveReadersBadge(),
+          ),
+
+          // Feed mode toggle (Latest / For You)
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Text(
-                'latest_news'.tr(),
-                style: TextStyle(
-                  fontFamily: 'Heebo',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: context.colors.textPrimary,
-                ),
-              ),
+            child: BlocBuilder<FeedBloc, FeedState>(
+              buildWhen: (prev, curr) =>
+                  prev is! FeedLoaded ||
+                  curr is! FeedLoaded ||
+                  prev.feedMode != curr.feedMode,
+              builder: (context, feedState) {
+                final currentMode = feedState is FeedLoaded
+                    ? feedState.feedMode
+                    : FeedMode.latest;
+                return FeedModeToggle(
+                  currentMode: currentMode,
+                  onModeChanged: (mode) {
+                    _feedBloc
+                        .add(feed_events.ChangeFeedMode(mode));
+                  },
+                );
+              },
             ),
           ),
 
@@ -495,10 +540,36 @@ class _HomePageWithFeedState extends State<HomePageWithFeed> {
     );
   }
 
+  Widget _buildDetailPane() {
+    final slug = _selectedArticleSlug;
+    if (slug == null) {
+      return Center(
+        child: Text(
+          'select_article'.tr(),
+          style: TextStyle(
+            fontFamily: 'Heebo',
+            fontSize: 15,
+            color: context.colors.textTertiary,
+          ),
+        ),
+      );
+    }
+    return BlocProvider(
+      key: ValueKey(slug),
+      create: (_) => getIt<ArticleDetailBloc>()..add(LoadArticleDetail(slug)),
+      child: ArticleDetailPage(slug: slug),
+    );
+  }
+
   void _handleFeedItemTap(BuildContext context, FeedItem feedItem) {
+    final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
     switch (feedItem) {
       case ArticleFeedItem item:
-        context.push('/article/${item.article.slug}');
+        if (isTablet) {
+          setState(() => _selectedArticleSlug = item.article.slug);
+        } else {
+          context.push('/article/${item.article.slug}');
+        }
         break;
       case PollFeedItem _:
         // Navigate to polls list page (voting happens inline)

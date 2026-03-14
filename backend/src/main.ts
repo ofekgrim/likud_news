@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, RequestMethod } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
@@ -27,9 +27,11 @@ async function bootstrap() {
   });
   const config = app.get(ConfigService);
 
-  // Global prefix
+  // Global prefix (exclude /.well-known/* for deep link verification files)
   const apiPrefix = config.get<string>('apiPrefix', 'api/v1');
-  app.setGlobalPrefix(apiPrefix);
+  app.setGlobalPrefix(apiPrefix, {
+    exclude: [{ path: '.well-known/(.*)', method: RequestMethod.GET }],
+  });
 
   // CORS (must be before helmet)
   const nodeEnv = config.get<string>('nodeEnv', 'development');

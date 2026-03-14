@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/feed_item.dart';
 import '../../domain/entities/feed_response.dart';
+import '../../domain/usecases/get_feed.dart';
 
 /// States for FeedBloc
 sealed class FeedState extends Equatable {
@@ -29,6 +30,7 @@ class FeedLoaded extends FeedState {
   final bool isLoadingMore;
   final List<FeedItemType>? activeFilters;
   final String? activeCategoryId;
+  final FeedMode feedMode;
 
   const FeedLoaded({
     required this.items,
@@ -38,6 +40,7 @@ class FeedLoaded extends FeedState {
     this.isLoadingMore = false,
     this.activeFilters,
     this.activeCategoryId,
+    this.feedMode = FeedMode.latest,
   });
 
   FeedLoaded copyWith({
@@ -48,6 +51,7 @@ class FeedLoaded extends FeedState {
     bool? isLoadingMore,
     List<FeedItemType>? activeFilters,
     String? activeCategoryId,
+    FeedMode? feedMode,
   }) {
     return FeedLoaded(
       items: items ?? this.items,
@@ -57,6 +61,7 @@ class FeedLoaded extends FeedState {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       activeFilters: activeFilters ?? this.activeFilters,
       activeCategoryId: activeCategoryId ?? this.activeCategoryId,
+      feedMode: feedMode ?? this.feedMode,
     );
   }
 
@@ -69,6 +74,7 @@ class FeedLoaded extends FeedState {
         isLoadingMore,
         activeFilters,
         activeCategoryId,
+        feedMode,
       ];
 }
 

@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_context.dart';
 import '../../../../core/widgets/branded_placeholder.dart';
+import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/feed_item.dart';
 
 /// Card widget for displaying an article in the feed
@@ -52,12 +53,10 @@ class FeedArticleCard extends StatelessWidget {
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
                       child: article.heroImageUrl != null
-                          ? Image.network(
-                              article.heroImageUrl!,
+                          ? AppCachedImage(
+                              imageUrl: article.heroImageUrl!,
                               fit: BoxFit.cover,
                               semanticLabel: article.title,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const BrandedPlaceholder(),
                             )
                           : const BrandedPlaceholder(),
                     ),

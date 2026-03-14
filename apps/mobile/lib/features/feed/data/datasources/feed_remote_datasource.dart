@@ -15,6 +15,7 @@ abstract class FeedRemoteDataSource {
     String? categoryId,
     String? deviceId,
     String? userId,
+    String? mode,
   });
 }
 
@@ -32,6 +33,7 @@ class FeedRemoteDataSourceImpl implements FeedRemoteDataSource {
     String? categoryId,
     String? deviceId,
     String? userId,
+    String? mode,
   }) async {
     final queryParams = <String, dynamic>{
       'page': page.toString(),
@@ -49,6 +51,9 @@ class FeedRemoteDataSourceImpl implements FeedRemoteDataSource {
     }
     if (userId != null) {
       queryParams['userId'] = userId;
+    }
+    if (mode != null) {
+      queryParams['mode'] = mode;
     }
 
     final response = await apiClient.get(

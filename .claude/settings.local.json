@@ -126,7 +126,26 @@
       "Bash(brew install k6)",
       "Bash(k6 run api-election-day.js --env BASE_URL=http://localhost:6000 --env ELECTION_ID=108d9777-8ae2-4cef-8c9c-1bfe3cc934d9 --vus 30 --duration 20s)",
       "Bash(k6 run smoke-test.js --env BASE_URL=http://localhost:6000 --env ELECTION_ID=108d9777-8ae2-4cef-8c9c-1bfe3cc934d9 --env STATION_ID=88f04472-6c57-45ab-bd98-8c2e8eb69659)",
-      "Bash(wc -l /Users/ofekgrim/likud_news/admin/src/app/\\\\\\(authenticated\\\\\\)/ama/page.tsx)"
+      "Bash(wc -l /Users/ofekgrim/likud_news/admin/src/app/\\\\\\(authenticated\\\\\\)/ama/page.tsx)",
+      "Bash(npx eslint src/app.module.ts src/common/filters/http-exception.filter.ts src/common/interceptors/logging.interceptor.ts src/common/logger/typeorm.logger.ts src/database/seeds/seed-ads-subscriptions.ts src/database/seeds/seed-all-notifications.ts src/modules/ticker/ticker.service.spec.ts src/modules/users/users.service.spec.ts)",
+      "Bash(npx eslint src/app.module.ts src/common/filters/http-exception.filter.ts src/common/logger/typeorm.logger.ts src/modules/ticker/ticker.service.spec.ts src/modules/users/users.service.spec.ts)",
+      "Bash(npx eslint --fix src/common/interceptors/logging.interceptor.ts)",
+      "Bash(npx eslint src/common/interceptors/logging.interceptor.ts)",
+      "Bash(npx eslint --fix src/database/seeds/seed-ads-subscriptions.ts)",
+      "Bash(npx eslint --fix src/database/seeds/seed-all-notifications.ts)",
+      "Bash(npx ts-node --project tsconfig.json -e \"require\\(''./src/database/seeds/seed-rich-articles''\\).seedRichArticles\\(\\)\")",
+      "Bash(dart analyze lib/features/article_detail/presentation/widgets/comments_section.dart)",
+      "Bash(sed -i '' 's/final String? parentId;$/final String? parentId;\\\\n  final String? guestName; \\\\/\\\\/ Set when user is not authenticated/' /Users/ofekgrim/likud_news/apps/mobile/lib/features/article_detail/presentation/bloc/comments_bloc.dart)",
+      "Bash(sed -i '' '/this\\\\.targetType = .article.,$/a\\\\\\\\    this.guestName,' /Users/ofekgrim/likud_news/apps/mobile/lib/features/article_detail/presentation/bloc/comments_bloc.dart)",
+      "Bash(dart analyze lib/features/article_detail/)",
+      "Bash(dart analyze lib/features/feed/presentation/widgets/sponsored_feed_card.dart)",
+      "Bash(npm test -- --testPathPattern=\"comments|polling-stations|push|gotv|gamification\" --forceExit)",
+      "Bash(npm test -- --testPathPatterns=\"comments|polling-stations|push|gotv\" --forceExit)",
+      "Bash(node -e \"const { createHash } = require\\(''crypto''\\); console.log\\(createHash\\(''sha256''\\).update\\(''user-uuid-1''\\).digest\\(''hex''\\)\\);\")",
+      "Bash(npx typeorm migration:run -d src/database/data-source.ts)",
+      "Bash(docker compose:*)",
+      "Bash(docker exec:*)",
+      "Bash(psql -U likud -d likud_news -c 'ALTER TABLE \"\"app_users\"\" ADD COLUMN IF NOT EXISTS \"\"engagementScore\"\" integer NOT NULL DEFAULT 0; CREATE INDEX IF NOT EXISTS \"\"IDX_app_users_engagementScore\"\" ON \"\"app_users\"\" \\(\"\"engagementScore\"\"\\);')"
     ]
   }
 }

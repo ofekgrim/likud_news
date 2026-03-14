@@ -1,8 +1,11 @@
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_context.dart';
@@ -10,6 +13,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../domain/usecases/get_referral_code.dart';
 import '../bloc/user_profile_bloc.dart';
 import '../widgets/membership_card.dart';
 import '../widgets/profile_avatar.dart';
@@ -251,6 +255,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 Padding(
                   padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
                   child: _buildCategorySection(user.preferredCategories),
+                ),
+
+              // Referral card (only for authenticated users).
+              if (user.role != AppUserRole.guest)
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
+                  child: const _ReferralCard(),
                 ),
 
               // Action buttons.
@@ -612,6 +623,126 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ReferralCard extends StatefulWidget {
+  const _ReferralCard();
+
+  @override
+  State<_ReferralCard> createState() => _ReferralCardState();
+}
+
+class _ReferralCardState extends State<_ReferralCard> {
+  late final Future<Map<String, dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = GetIt.I<GetReferralCode>()().then(
+      (result) => result.fold(
+        (failure) => throw Exception(failure.toString()),
+        (data) => data,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const ShimmerLoading(height: 88);
+        }
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const SizedBox.shrink();
+        }
+        final code = snapshot.data!['referralCode'] as String? ?? '';
+        final total = snapshot.data!['totalReferrals'] as int? ?? 0;
+
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'profile_referral_title'.tr(),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            12, 10, 12, 10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          code,
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 2,
+                                  ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy_outlined),
+                      tooltip: 'profile_referral_copy'.tr(),
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: code));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('profile_referral_copied'.tr()),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'profile_referral_count'.tr(args: ['$total']),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.share_outlined, size: 18),
+                      label: Text('profile_referral_share'.tr()),
+                      onPressed: () {
+                        Share.share(
+                          'profile_referral_share_text'.tr(args: [code]),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

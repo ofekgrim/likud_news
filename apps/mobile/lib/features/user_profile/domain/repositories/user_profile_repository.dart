@@ -48,4 +48,11 @@ abstract class UserProfileRepository {
     required String membershipId,
     String? fullName,
   });
+
+  /// Gets or generates the authenticated user's referral code.
+  Future<Either<Failure, Map<String, dynamic>>> getReferralCode();
+
+  /// Claims a referral code. Errors are swallowed so a bad or
+  /// already-used code never blocks the registration flow.
+  Future<Either<Failure, void>> claimReferralCode(String code);
 }

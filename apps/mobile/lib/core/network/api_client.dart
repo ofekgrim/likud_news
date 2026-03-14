@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 
@@ -32,12 +31,14 @@ class ApiClient {
     _dio.interceptors.addAll([
       TalkerDioLogger(
         talker: AppLogger.instance,
-        settings: TalkerDioLoggerSettings(
+        settings: const TalkerDioLoggerSettings(
           printRequestHeaders: false,
           printResponseHeaders: false,
-          printRequestData: kDebugMode,
-          printResponseData: kDebugMode,
+          printRequestData: false,
+          printResponseData: false,
           printResponseMessage: true,
+          printErrorHeaders: false,
+          printErrorData: false,
         ),
       ),
     ]);

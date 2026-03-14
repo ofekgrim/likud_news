@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
+import '../core/services/achievement_service.dart';
 import '../core/services/app_logger.dart';
 import '../core/services/push_notification_service.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
@@ -43,6 +44,7 @@ class _MetzudatAppState extends State<MetzudatApp> {
     _settingsBloc = getIt<SettingsBloc>()..add(const LoadSettings());
     _router = AppRouter.createRouter(_authBloc);
     getIt<PushNotificationService>().setRouter(_router);
+    AchievementService().init(_router.routerDelegate.navigatorKey);
   }
 
   @override
@@ -73,7 +75,7 @@ class _MetzudatAppState extends State<MetzudatApp> {
           }
 
           return MaterialApp.router(
-            title: 'app_name'.tr(),
+            onGenerateTitle: (context) => 'app_name'.tr(),
             debugShowCheckedModeBanner: false,
 
             // Theme — dynamically controlled by SettingsBloc

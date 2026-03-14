@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_context.dart';
 import '../../../../core/utils/auth_guard.dart';
+import '../../../../core/widgets/cached_image.dart';
 import '../../domain/entities/feed_item.dart';
 
 /// Card widget for displaying a campaign event in the feed
@@ -46,14 +47,9 @@ class FeedEventCard extends StatelessWidget {
                     ),
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
-                      child: Image.network(
-                        event.imageUrl!,
+                      child: AppCachedImage(
+                        imageUrl: event.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Container(
-                          color: context.colors.surfaceMedium,
-                          child: const Icon(Icons.event, size: 48),
-                        ),
                       ),
                     ),
                   ),

@@ -298,18 +298,33 @@ export class ArticlesService {
     deviceId?: string,
     userId?: string,
   ): Promise<any> {
-    const article = await this.articleRepository
+    // Support both UUID id and slug lookups so callers (e.g. ticker)
+    // can navigate with either value.
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        slug,
+      );
+
+    const qb = this.articleRepository
       .createQueryBuilder('article')
       .leftJoinAndSelect('article.category', 'category')
       .leftJoinAndSelect('article.members', 'members')
       .leftJoinAndSelect('article.media', 'media')
       .leftJoinAndSelect('article.authorEntity', 'authorEntity')
-      .leftJoinAndSelect('article.tags', 'tags')
-      .where('article.slug = :slug', { slug })
-      .getOne();
+      .leftJoinAndSelect('article.tags', 'tags');
+
+    if (isUuid) {
+      qb.where('article.id = :id', { id: slug });
+    } else {
+      qb.where('article.slug = :slug', { slug });
+    }
+
+    const article = await qb.getOne();
 
     if (!article) {
-      throw new NotFoundException(`Article with slug "${slug}" not found`);
+      throw new NotFoundException(
+        `Article with ${isUuid ? 'id' : 'slug'} "${slug}" not found`,
+      );
     }
 
     // Fire-and-forget view count increment

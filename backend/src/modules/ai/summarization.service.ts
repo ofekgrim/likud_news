@@ -43,6 +43,12 @@ export class SummarizationService {
         apiKey: anthropicKey,
       });
     }
+
+    if (!this.dictalmClient && !this.claudeClient) {
+      this.logger.warn(
+        'No AI client configured (DICTALM_API_URL / ANTHROPIC_API_KEY) — summarization disabled',
+      );
+    }
   }
 
   /**
@@ -71,11 +77,18 @@ export class SummarizationService {
   /**
    * Summarize an article. Returns existing summary if available.
    */
-  async summarizeArticle(articleId: string): Promise<ArticleAiSummary> {
+  async summarizeArticle(
+    articleId: string,
+  ): Promise<ArticleAiSummary | null> {
     // Check for existing summary
     const existing = await this.getSummary(articleId);
     if (existing) {
       return existing;
+    }
+
+    // If no AI client is configured, return null silently (logged once at startup)
+    if (!this.dictalmClient && !this.claudeClient) {
+      return null;
     }
 
     const article = await this.articleRepository.findOne({
@@ -83,14 +96,19 @@ export class SummarizationService {
     });
 
     if (!article) {
-      throw new Error(`Article ${articleId} not found`);
+      this.logger.warn(`Article ${articleId} not found for summarization`);
+      return null;
     }
 
     const articleText = `${article.title}\n${article.subtitle || ''}\n${article.content}`;
 
     // Determine which model to use
     const useBreakingModel = article.isBreaking;
-    let result: { summary: string; keyPoints: string[]; politicalAngle: string | null };
+    let result: {
+      summary: string;
+      keyPoints: string[];
+      politicalAngle: string | null;
+    };
     let modelUsed: string;
     let tokensUsed: number;
 
@@ -100,17 +118,22 @@ export class SummarizationService {
         result = response.parsed;
         modelUsed = 'claude-sonnet';
         tokensUsed = response.tokensUsed;
-      } else {
+      } else if (this.dictalmClient) {
         const response = await this.callDictaLM(articleText);
         result = response.parsed;
         modelUsed = 'dictalm-3.0';
+        tokensUsed = response.tokensUsed;
+      } else {
+        const response = await this.callClaude(articleText);
+        result = response.parsed;
+        modelUsed = 'claude-sonnet';
         tokensUsed = response.tokensUsed;
       }
     } catch (error) {
       this.logger.error(
         `Failed to summarize article ${articleId}: ${error.message}`,
       );
-      throw error;
+      return null;
     }
 
     const summaryEntity = this.summaryRepository.create({
@@ -136,6 +159,10 @@ export class SummarizationService {
    */
   @Cron('*/15 * * * *')
   async processUnsummarizedArticles(): Promise<void> {
+    if (!this.dictalmClient && !this.claudeClient) {
+      return; // No AI client — skip (logged once at startup)
+    }
+
     const articles = await this.articleRepository
       .createQueryBuilder('a')
       .leftJoin(ArticleAiSummary, 'ais', 'ais.articleId = a.id')

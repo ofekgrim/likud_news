@@ -51,6 +51,12 @@ abstract class UserProfileRemoteDataSource {
     required String membershipId,
     String? fullName,
   });
+
+  /// Gets or generates the user's referral code.
+  Future<Map<String, dynamic>> getReferralCode();
+
+  /// Claims a referral code on behalf of the current user.
+  Future<void> claimReferralCode(String code);
 }
 
 /// Implementation of [UserProfileRemoteDataSource] using [ApiClient].
@@ -173,5 +179,25 @@ class UserProfileRemoteDataSourceImpl implements UserProfileRemoteDataSource {
     );
     final data = response.data ?? <String, dynamic>{};
     return data['url'] as String;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getReferralCode() async {
+    final options = await _authOptions();
+    final response = await _apiClient.dio.get<Map<String, dynamic>>(
+      ApiConstants.appUsersMeReferralCode,
+      options: options,
+    );
+    return response.data ?? <String, dynamic>{};
+  }
+
+  @override
+  Future<void> claimReferralCode(String code) async {
+    final options = await _authOptions();
+    await _apiClient.dio.post<void>(
+      ApiConstants.appUsersMeClaimReferral,
+      data: {'code': code},
+      options: options,
+    );
   }
 }

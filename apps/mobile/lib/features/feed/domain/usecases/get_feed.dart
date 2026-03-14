@@ -23,9 +23,13 @@ class GetFeed implements UseCase<FeedResponse, GetFeedParams> {
       categoryId: params.categoryId,
       deviceId: params.deviceId,
       userId: params.userId,
+      mode: params.mode,
     );
   }
 }
+
+/// Feed display mode — mirrors backend FeedMode enum.
+enum FeedMode { latest, personalized }
 
 /// Parameters for GetFeed use case
 class GetFeedParams extends Equatable {
@@ -35,6 +39,7 @@ class GetFeedParams extends Equatable {
   final String? categoryId;
   final String? deviceId;
   final String? userId;
+  final FeedMode? mode;
 
   const GetFeedParams({
     this.page = 1,
@@ -43,6 +48,7 @@ class GetFeedParams extends Equatable {
     this.categoryId,
     this.deviceId,
     this.userId,
+    this.mode,
   });
 
   GetFeedParams copyWith({
@@ -52,6 +58,7 @@ class GetFeedParams extends Equatable {
     String? categoryId,
     String? deviceId,
     String? userId,
+    FeedMode? mode,
   }) {
     return GetFeedParams(
       page: page ?? this.page,
@@ -60,9 +67,10 @@ class GetFeedParams extends Equatable {
       categoryId: categoryId ?? this.categoryId,
       deviceId: deviceId ?? this.deviceId,
       userId: userId ?? this.userId,
+      mode: mode ?? this.mode,
     );
   }
 
   @override
-  List<Object?> get props => [page, limit, types, categoryId, deviceId, userId];
+  List<Object?> get props => [page, limit, types, categoryId, deviceId, userId, mode];
 }

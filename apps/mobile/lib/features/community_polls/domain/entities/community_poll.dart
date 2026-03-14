@@ -27,6 +27,7 @@ class CommunityPoll extends Equatable {
   final DateTime? closedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int? myVoteOptionIndex;
 
   const CommunityPoll({
     required this.id,
@@ -39,6 +40,7 @@ class CommunityPoll extends Equatable {
     this.closedAt,
     required this.createdAt,
     required this.updatedAt,
+    this.myVoteOptionIndex,
   });
 
   /// Whether the poll is still open for voting.
@@ -70,6 +72,7 @@ class CommunityPoll extends Equatable {
       closedAt: closedAt,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      myVoteOptionIndex: optionIndex,
     );
   }
 
@@ -85,5 +88,6 @@ class CommunityPoll extends Equatable {
         closedAt,
         createdAt,
         updatedAt,
+        myVoteOptionIndex,
       ];
 }

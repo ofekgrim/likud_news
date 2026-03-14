@@ -46,6 +46,7 @@ class CommunityPollModel {
   final DateTime? closedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final int? myVoteOptionIndex;
 
   const CommunityPollModel({
     required this.id,
@@ -58,6 +59,7 @@ class CommunityPollModel {
     this.closedAt,
     required this.createdAt,
     required this.updatedAt,
+    this.myVoteOptionIndex,
   });
 
   factory CommunityPollModel.fromJson(Map<String, dynamic> json) {
@@ -78,6 +80,7 @@ class CommunityPollModel {
           : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      myVoteOptionIndex: json['myVoteOptionIndex'] as int?,
     );
   }
 
@@ -108,6 +111,7 @@ class CommunityPollModel {
       closedAt: closedAt,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      myVoteOptionIndex: myVoteOptionIndex,
     );
   }
 }

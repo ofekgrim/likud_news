@@ -6,12 +6,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import {
   AppUser,
   AppUserRole,
   MembershipStatus,
 } from './entities/app-user.entity';
 import { VotingEligibility } from './entities/voting-eligibility.entity';
+import { UserReferral } from './entities/user-referral.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateNotificationPreferencesDto, NotificationPreferencesResponseDto } from './dto/update-notification-preferences.dto';
 import { VerifyMembershipDto } from './dto/verify-membership.dto';
@@ -24,6 +26,8 @@ export class AppUsersService {
     private readonly appUserRepository: Repository<AppUser>,
     @InjectRepository(VotingEligibility)
     private readonly votingEligibilityRepository: Repository<VotingEligibility>,
+    @InjectRepository(UserReferral)
+    private readonly userReferralRepository: Repository<UserReferral>,
   ) {}
 
   async findById(id: string): Promise<AppUser> {
@@ -312,5 +316,163 @@ export class AppUsersService {
       }
     }
     return { approved: count };
+  }
+
+  // ── Referral System ─────────────────────────────────────────────────
+
+  /** Returns existing referral code or generates a new unique 8-char one. */
+  async getOrCreateReferralCode(userId: string): Promise<{ referralCode: string; totalReferrals: number }> {
+    const user = await this.findById(userId);
+
+    if (!user.referralCode) {
+      // Generate unique 8-char alphanumeric code
+      let code: string;
+      let exists = true;
+      do {
+        code = randomBytes(4).toString('hex').toUpperCase();
+        const existing = await this.appUserRepository.findOne({ where: { referralCode: code } });
+        exists = !!existing;
+      } while (exists);
+
+      user.referralCode = code;
+      await this.appUserRepository.save(user);
+    }
+
+    const totalReferrals = await this.userReferralRepository.count({
+      where: { referrerId: userId },
+    });
+
+    return { referralCode: user.referralCode, totalReferrals };
+  }
+
+  /** Claims a referral code during registration. Awards 100 points to referrer. */
+  async claimReferralCode(refereeId: string, code: string): Promise<void> {
+    // Find referrer
+    const referrer = await this.appUserRepository.findOne({
+      where: { referralCode: code.toUpperCase() },
+    });
+    if (!referrer) return; // invalid code — fail silently, don't block registration
+
+    if (referrer.id === refereeId) return; // can't refer yourself
+
+    // Check not already claimed
+    const alreadyClaimed = await this.userReferralRepository.findOne({
+      where: { refereeId },
+    });
+    if (alreadyClaimed) return;
+
+    await this.userReferralRepository.save(
+      this.userReferralRepository.create({
+        referrerId: referrer.id,
+        refereeId,
+        code: code.toUpperCase(),
+      }),
+    );
+  }
+
+  // ── Growth Analytics ────────────────────────────────────────────────
+
+  /** DAU / WAU / MAU based on lastLoginAt. */
+  async getActiveUsers(): Promise<{ dau: number; wau: number; mau: number }> {
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [dau, wau, mau] = await Promise.all([
+      this.appUserRepository.createQueryBuilder('u')
+        .where('u.lastLoginAt >= :since', { since: dayAgo })
+        .andWhere('u.isActive = true')
+        .getCount(),
+      this.appUserRepository.createQueryBuilder('u')
+        .where('u.lastLoginAt >= :since', { since: weekAgo })
+        .andWhere('u.isActive = true')
+        .getCount(),
+      this.appUserRepository.createQueryBuilder('u')
+        .where('u.lastLoginAt >= :since', { since: monthAgo })
+        .andWhere('u.isActive = true')
+        .getCount(),
+    ]);
+
+    return { dau, wau, mau };
+  }
+
+  /** Daily new user registrations for the last N days. */
+  async getUserGrowthTrend(days: number = 30): Promise<Array<{ date: string; count: number }>> {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    const rows = await this.appUserRepository
+      .createQueryBuilder('u')
+      .select("TO_CHAR(u.createdAt, 'YYYY-MM-DD')", 'date')
+      .addSelect('COUNT(*)::int', 'count')
+      .where('u.createdAt >= :since', { since })
+      .groupBy("TO_CHAR(u.createdAt, 'YYYY-MM-DD')")
+      .orderBy('"date"', 'ASC')
+      .getRawMany();
+
+    return rows;
+  }
+
+  /** User segmentation by role and membership status. */
+  async getUserSegments(): Promise<{
+    byRole: Array<{ role: string; count: number }>;
+    byMembership: Array<{ status: string; count: number }>;
+  }> {
+    const [byRole, byMembership] = await Promise.all([
+      this.appUserRepository
+        .createQueryBuilder('u')
+        .select('u.role', 'role')
+        .addSelect('COUNT(*)::int', 'count')
+        .where('u.isActive = true')
+        .groupBy('u.role')
+        .getRawMany(),
+      this.appUserRepository
+        .createQueryBuilder('u')
+        .select('u.membershipStatus', 'status')
+        .addSelect('COUNT(*)::int', 'count')
+        .where('u.isActive = true')
+        .groupBy('u.membershipStatus')
+        .getRawMany(),
+    ]);
+
+    return { byRole, byMembership };
+  }
+
+  /** Retention cohort: users who registered in a given week and returned in subsequent weeks. */
+  async getRetentionCohorts(weeks: number = 8): Promise<Array<{
+    cohort: string;
+    registered: number;
+    retained: number[];
+  }>> {
+    const results: Array<{ cohort: string; registered: number; retained: number[] }> = [];
+    const now = new Date();
+
+    for (let w = weeks - 1; w >= 0; w--) {
+      const cohortStart = new Date(now.getTime() - (w + 1) * 7 * 24 * 60 * 60 * 1000);
+      const cohortEnd = new Date(now.getTime() - w * 7 * 24 * 60 * 60 * 1000);
+      const cohortLabel = cohortStart.toISOString().split('T')[0];
+
+      const registered = await this.appUserRepository
+        .createQueryBuilder('u')
+        .where('u.createdAt >= :start AND u.createdAt < :end', { start: cohortStart, end: cohortEnd })
+        .getCount();
+
+      const retained: number[] = [];
+      for (let rw = 1; rw <= w; rw++) {
+        const retStart = new Date(cohortStart.getTime() + rw * 7 * 24 * 60 * 60 * 1000);
+        const retEnd = new Date(retStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const count = await this.appUserRepository
+          .createQueryBuilder('u')
+          .where('u.createdAt >= :cohortStart AND u.createdAt < :cohortEnd', { cohortStart: cohortStart, cohortEnd: cohortEnd })
+          .andWhere('u.lastLoginAt >= :retStart AND u.lastLoginAt < :retEnd', { retStart, retEnd })
+          .getCount();
+        retained.push(count);
+      }
+
+      results.push({ cohort: cohortLabel, registered, retained });
+    }
+
+    return results;
   }
 }

@@ -13,6 +13,8 @@ import { NotificationTemplateService } from './notification-template.service';
 import { NotificationAudienceService } from './notification-audience.service';
 import { NotificationSchedulerService } from './notification-scheduler.service';
 import { NotificationAnalyticsService } from './notification-analytics.service';
+import { NotificationCampaignService } from './notification-campaign.service';
+import { AppUser } from '../app-users/entities/app-user.entity';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { NotificationAnalyticsService } from './notification-analytics.service';
       NotificationSchedule,
       NotificationReceipt,
       PushToken,
+      AppUser,
     ]),
     ScheduleModule.forRoot(),
     PushModule,
@@ -33,6 +36,7 @@ import { NotificationAnalyticsService } from './notification-analytics.service';
     NotificationAudienceService,
     NotificationSchedulerService,
     NotificationAnalyticsService,
+    NotificationCampaignService,
   ],
   exports: [NotificationsService],
 })

@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../user_profile/domain/usecases/claim_referral_code.dart';
 import '../../../user_profile/presentation/bloc/user_profile_bloc.dart';
 import '../bloc/auth_bloc.dart';
 
@@ -23,6 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _referralController = TextEditingController();
   String? _passwordError;
   String? _avatarPath;
 
@@ -45,6 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _referralController.dispose();
     super.dispose();
   }
 
@@ -80,6 +84,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 context.read<UserProfileBloc>().add(
                       PickAndUploadAvatarEvent(filePath: _avatarPath!),
                     );
+              }
+              // Claim referral code in the background — failure is silent.
+              final referralCode = _referralController.text.trim().toUpperCase();
+              if (referralCode.isNotEmpty) {
+                GetIt.I<ClaimReferralCode>()(referralCode);
               }
               // If phone was provided, navigate to OTP verify for phone verification.
               final phone = _phoneController.text.trim();
@@ -284,6 +293,26 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   onSubmitted: (_) => _submit(),
+                ),
+                const SizedBox(height: 16),
+
+                // Referral code (optional)
+                TextField(
+                  controller: _referralController,
+                  textDirection: TextDirection.ltr,
+                  textCapitalization: TextCapitalization.characters,
+                  decoration: InputDecoration(
+                    labelText: 'register_referral_code'.tr(),
+                    prefixIcon: const Icon(Icons.card_giftcard_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          const BorderSide(color: AppColors.likudBlue, width: 2),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
 

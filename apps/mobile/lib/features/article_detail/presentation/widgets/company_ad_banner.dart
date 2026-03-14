@@ -105,7 +105,7 @@ class _CompanyAdBannerState extends State<CompanyAdBanner> {
     try {
       await apiClient.post<void>(
         '/ads/company/impression',
-        data: {'adId': adId},
+        data: {'placementId': adId},
       );
     } catch (_) {
       // Impression failures are non-fatal; ignore silently.

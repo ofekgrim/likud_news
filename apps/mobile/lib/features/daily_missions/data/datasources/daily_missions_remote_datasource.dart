@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/daily_mission_model.dart';
 import '../models/daily_missions_summary_model.dart';
@@ -29,7 +30,7 @@ class DailyMissionsRemoteDataSourceImpl
   @override
   Future<DailyMissionsSummaryModel> getTodayMissions() async {
     final response = await _apiClient.get(
-      '/engagement/missions/today',
+      ApiConstants.gamificationMissionsToday,
     );
     final data = response.data;
     if (data is Map<String, dynamic>) {
@@ -47,7 +48,7 @@ class DailyMissionsRemoteDataSourceImpl
   @override
   Future<DailyMissionModel> completeMission(String missionId) async {
     final response = await _apiClient.post(
-      '/engagement/missions/$missionId/complete',
+      '${ApiConstants.gamificationMissionsComplete}/$missionId/complete',
     );
     final data = response.data;
     if (data is Map<String, dynamic>) {

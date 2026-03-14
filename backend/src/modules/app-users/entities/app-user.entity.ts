@@ -113,6 +113,12 @@ export class AppUser {
   @JoinColumn({ name: 'branchId' })
   branch: unknown;
 
+  @Column({ type: 'varchar', length: 8, nullable: true, unique: true })
+  referralCode: string | null;
+
+  @Column({ type: 'int', default: 0 })
+  engagementScore: number;
+
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 

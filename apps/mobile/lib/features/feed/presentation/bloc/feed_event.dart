@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/feed_item.dart';
+import '../../domain/usecases/get_feed.dart';
 
 /// Events for FeedBloc
 sealed class FeedEvent extends Equatable {
@@ -73,4 +74,14 @@ class FeedUpdateReceived extends FeedEvent {
 /// Internal event when auth state changes (user logs in/out)
 class AuthStateChangedFeed extends FeedEvent {
   const AuthStateChangedFeed();
+}
+
+/// Event to switch between feed modes (latest / personalized)
+class ChangeFeedMode extends FeedEvent {
+  final FeedMode mode;
+
+  const ChangeFeedMode(this.mode);
+
+  @override
+  List<Object?> get props => [mode];
 }

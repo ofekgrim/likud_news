@@ -47,7 +47,8 @@ const navGroups = [
     items: [
       { href: '/dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
       { href: '/articles', label: 'כתבות', icon: Newspaper },
-      { href: '/articles/analytics', label: 'אנליטיקס', icon: BarChart3 },
+      { href: '/articles/analytics', label: 'אנליטיקס כתבות', icon: BarChart3 },
+      { href: '/analytics', label: 'אנליטיקס צמיחה', icon: TrendingUp },
       { href: '/media', label: 'מדיה', icon: Image },
       { href: '/categories', label: 'קטגוריות', icon: FolderOpen },
       { href: '/stories', label: 'סטוריז', icon: CircleDot },

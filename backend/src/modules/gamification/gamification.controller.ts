@@ -201,6 +201,15 @@ export class GamificationController {
 
   // ─── Admin ────────────────────────────────────────────────
 
+  @Post('admin/recalculate-scores')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Trigger engagement score recalculation for all users' })
+  async recalculateScores() {
+    await this.gamificationService.recalculateAllEngagementScores();
+    return { message: 'Engagement scores recalculated' };
+  }
+
   @Post('award')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)

@@ -32,7 +32,10 @@ export class CommunityPollsService {
   /**
    * Get all polls, pinned first, then by createdAt DESC. Optionally filter by isActive.
    */
-  async findAll(isActive?: boolean): Promise<CommunityPoll[]> {
+  async findAll(
+    isActive?: boolean,
+    userId?: string,
+  ): Promise<(CommunityPoll & { myVoteOptionIndex: number | null })[]> {
     const qb = this.pollRepository
       .createQueryBuilder('poll')
       .orderBy('poll.isPinned', 'DESC')
@@ -42,7 +45,25 @@ export class CommunityPollsService {
       qb.where('poll.isActive = :isActive', { isActive });
     }
 
-    return qb.getMany();
+    // Include the current user's vote in a single query (no N+1)
+    if (userId) {
+      qb.leftJoin(
+        'poll_votes',
+        'myVote',
+        'myVote."pollId" = poll.id AND myVote."userId" = :userId',
+        { userId },
+      );
+      qb.addSelect('myVote."optionIndex"', 'myVoteOptionIndex');
+    }
+
+    const { entities, raw } = await qb.getRawAndEntities();
+
+    return entities.map((poll, i) => ({
+      ...poll,
+      myVoteOptionIndex: userId
+        ? (raw[i]?.myVoteOptionIndex ?? null)
+        : null,
+    }));
   }
 
   /**

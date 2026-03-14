@@ -38,15 +38,17 @@ export class CommunityPollsController {
   ) {}
 
   @Get()
+  @UseGuards(OptionalAppAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all community polls' })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean, description: 'Filter by active status' })
-  @ApiResponse({ status: 200, description: 'List of community polls' })
-  findAll(@Query('isActive') isActive?: string) {
+  @ApiResponse({ status: 200, description: 'List of community polls (includes myVoteOptionIndex when authenticated)' })
+  findAll(@Query('isActive') isActive?: string, @Req() req?: any) {
     const active =
       isActive !== undefined
         ? isActive === 'true' || isActive === '1'
         : undefined;
-    return this.communityPollsService.findAll(active);
+    return this.communityPollsService.findAll(active, req?.user?.id);
   }
 
   @Get(':id')

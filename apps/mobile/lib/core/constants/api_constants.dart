@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 class ApiConstants {
   ApiConstants._();
 
-  static const String _localUrl = 'http://localhost:9090/api/v1';
+  static const String _localUrl = 'http://localhost/api/v1';
   static const String _ngrokUrl =
       'https://misfashioned-fastidiously-deacon.ngrok-free.dev/api/v1';
   static const String _productionUrl =
@@ -135,6 +135,8 @@ class ApiConstants {
       '/app-users/me/verify-membership';
   static const String appUsersMeFolders = '/app-users/me/folders';
   static const String appUsersMeFollows = '/app-users/me/follows';
+  static const String appUsersMeReferralCode = '/app-users/me/referral-code';
+  static const String appUsersMeClaimReferral = '/app-users/me/claim-referral';
 
   // Elections
   static const String elections = '/elections';
@@ -186,6 +188,7 @@ class ApiConstants {
 
   // Article Analytics
   static const String articleAnalyticsTrack = '/article-analytics/track';
+  static const String articleAnalyticsLiveReaders = '/article-analytics/live-readers';
 
   // GOTV (Get Out The Vote)
   static const String gotvCheckin = '/gotv/checkin';
@@ -209,6 +212,10 @@ class ApiConstants {
   static const String amaSessions = '/ama/sessions';
   static const String amaSessionsUpcoming = '/ama/sessions/upcoming';
   static const String amaQuestions = '/ama/questions';
+
+  // Daily Missions (under gamification)
+  static const String gamificationMissionsToday = '/gamification/missions/today';
+  static const String gamificationMissionsComplete = '/gamification/missions';
 
   // Subscriptions (Premium)
   static const String subscriptionsMe = '/subscriptions/me';

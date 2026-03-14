@@ -4,12 +4,13 @@ import { AppUsersController } from './app-users.controller';
 import { AppUsersService } from './app-users.service';
 import { AppUser } from './entities/app-user.entity';
 import { VotingEligibility } from './entities/voting-eligibility.entity';
+import { UserReferral } from './entities/user-referral.entity';
 import { AuthModule } from '../auth/auth.module';
 import { AppAuthModule } from '../app-auth/app-auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AppUser, VotingEligibility]),
+    TypeOrmModule.forFeature([AppUser, VotingEligibility, UserReferral]),
     AuthModule,
     AppAuthModule,
   ],

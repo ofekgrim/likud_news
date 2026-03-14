@@ -122,6 +122,30 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getReferralCode() async {
+    try {
+      final data = await _remoteDataSource.getReferralCode();
+      return Right(data);
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> claimReferralCode(String code) async {
+    try {
+      await _remoteDataSource.claimReferralCode(code);
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(_mapDioException(e));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
   /// Maps a [DioException] to the appropriate domain [Failure].
   Failure _mapDioException(DioException e) {
     switch (e.type) {

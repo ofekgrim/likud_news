@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/feed_item.dart';
 import '../entities/feed_response.dart';
+import '../usecases/get_feed.dart';
 
 /// Repository interface for feed operations
 abstract class FeedRepository {
@@ -13,6 +14,7 @@ abstract class FeedRepository {
   /// [categoryId] - Optional filter for article category
   /// [deviceId] - Optional device ID for personalization
   /// [userId] - Optional user ID for personalization
+  /// [mode] - Feed mode: latest (chronological) or personalized
   Future<Either<Failure, FeedResponse>> getFeed({
     int page = 1,
     int limit = 20,
@@ -20,6 +22,7 @@ abstract class FeedRepository {
     String? categoryId,
     String? deviceId,
     String? userId,
+    FeedMode? mode,
   });
 
   /// Subscribe to real-time feed updates via SSE
