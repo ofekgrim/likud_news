@@ -122,7 +122,7 @@ class AuthorCard extends StatelessWidget {
                 ),
                 // Arrow indicator.
                 const Icon(
-                  Icons.chevron_left,
+                  Icons.chevron_right,
                   color: AppColors.textTertiary,
                   size: 24,
                 ),

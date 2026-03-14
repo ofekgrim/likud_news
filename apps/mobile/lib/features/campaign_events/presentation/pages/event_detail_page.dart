@@ -53,8 +53,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (!requireAuth(context)) return;
     setState(() => _selectedRsvpStatus = status);
     context.read<EventsBloc>().add(
-          RsvpToEventAction(eventId: widget.eventId, status: status),
-        );
+      RsvpToEventAction(eventId: widget.eventId, status: status),
+    );
   }
 
   @override
@@ -74,9 +74,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               ),
             );
             // Reload event detail to get updated RSVP count.
-            context
-                .read<EventsBloc>()
-                .add(LoadEventDetail(id: widget.eventId));
+            context.read<EventsBloc>().add(LoadEventDetail(id: widget.eventId));
           }
           if (state is EventsError) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -106,9 +104,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
               ),
               body: ErrorView(
                 message: state.message,
-                onRetry: () => context
-                    .read<EventsBloc>()
-                    .add(LoadEventDetail(id: widget.eventId)),
+                onRetry: () => context.read<EventsBloc>().add(
+                  LoadEventDetail(id: widget.eventId),
+                ),
               ),
             );
           }
@@ -196,7 +194,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           expandedHeight: 240,
           pinned: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_forward, color: AppColors.white),
+            icon: const Icon(Icons.arrow_back, color: AppColors.white),
             onPressed: () => context.pop(),
           ),
           title: Text(
@@ -224,9 +222,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               ),
             ),
           ],
-          flexibleSpace: FlexibleSpaceBar(
-            background: _buildHeaderImage(event),
-          ),
+          flexibleSpace: FlexibleSpaceBar(background: _buildHeaderImage(event)),
         ),
 
         // Content body.
@@ -340,11 +336,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         ),
       ),
       child: const Center(
-        child: Icon(
-          Icons.event,
-          size: 64,
-          color: AppColors.white,
-        ),
+        child: Icon(Icons.event, size: 64, color: AppColors.white),
       ),
     );
   }
@@ -407,7 +399,11 @@ class _EventDetailPageState extends State<EventDetailPage> {
       ),
       child: Row(
         children: [
-          Icon(Icons.location_on_outlined, size: 20, color: AppColors.likudBlue),
+          Icon(
+            Icons.location_on_outlined,
+            size: 20,
+            color: AppColors.likudBlue,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -488,7 +484,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
         children: [
           // Candidate photo.
           ClipOval(
-            child: event.candidatePhotoUrl != null &&
+            child:
+                event.candidatePhotoUrl != null &&
                     event.candidatePhotoUrl!.isNotEmpty
                 ? AppCachedImage(
                     imageUrl: event.candidatePhotoUrl!,
@@ -647,8 +644,9 @@ class _RsvpChoiceChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 22,
-                color:
-                    isSelected ? AppColors.likudBlue : context.colors.textSecondary,
+                color: isSelected
+                    ? AppColors.likudBlue
+                    : context.colors.textSecondary,
               ),
               const SizedBox(height: 4),
               Text(

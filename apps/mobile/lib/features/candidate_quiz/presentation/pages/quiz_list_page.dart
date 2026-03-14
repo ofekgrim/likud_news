@@ -33,7 +33,7 @@ class _QuizListPageState extends State<QuizListPage> {
           backgroundColor: context.colors.cardSurface,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_forward, color: context.colors.textPrimary),
+            icon: Icon(Icons.arrow_back, color: context.colors.textPrimary),
             onPressed: () => context.pop(),
           ),
           centerTitle: true,
@@ -99,7 +99,9 @@ class _QuizListPageState extends State<QuizListPage> {
                       Icon(
                         Icons.quiz_outlined,
                         size: 64,
-                        color: context.colors.textTertiary.withValues(alpha: 0.5),
+                        color: context.colors.textTertiary.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(

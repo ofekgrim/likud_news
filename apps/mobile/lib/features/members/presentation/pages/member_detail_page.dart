@@ -153,7 +153,7 @@ class _MemberDetailPageState extends State<MemberDetailPage> {
           expandedHeight: 220,
           pinned: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_forward, color: AppColors.white),
+            icon: const Icon(Icons.arrow_back, color: AppColors.white),
             onPressed: () => context.pop(),
           ),
           title: Text(

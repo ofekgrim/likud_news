@@ -208,7 +208,9 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                 leading: _BackButton(),
                                 actions: [
                                   Padding(
-                                    padding: const EdgeInsetsDirectional.only(end: 8),
+                                    padding: const EdgeInsetsDirectional.only(
+                                      end: 8,
+                                    ),
                                     child: WhatsAppShareButton(
                                       contentType: ShareContentType.article,
                                       contentId: article.id,
@@ -253,7 +255,8 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                               .textTheme
                                               .bodySmall
                                               ?.copyWith(
-                                                color: context.colors.textTertiary,
+                                                color:
+                                                    context.colors.textTertiary,
                                                 fontStyle: FontStyle.italic,
                                               ),
                                         ),
@@ -292,9 +295,7 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                     ),
 
                                     // 3.6. AI Summary card
-                                    AiSummaryCard(
-                                      articleId: article.id,
-                                    ),
+                                    AiSummaryCard(articleId: article.id),
 
                                     // 4. Block renderer (body content)
                                     BlockRenderer(
@@ -345,20 +346,28 @@ class _ArticleDetailPageState extends State<ArticleDetailPage> {
                                       BlocBuilder<CommentsBloc, CommentsState>(
                                         builder: (context, commentsState) {
                                           // Calculate live count from CommentsBloc if loaded
-                                          int displayCount = article.commentCount;
+                                          int displayCount =
+                                              article.commentCount;
                                           if (commentsState is CommentsLoaded) {
                                             displayCount =
                                                 commentsState.comments.length +
-                                                    commentsState.comments
-                                                        .map((c) => c.replies.length)
-                                                        .fold(0, (sum, count) => sum + count);
+                                                commentsState.comments
+                                                    .map(
+                                                      (c) => c.replies.length,
+                                                    )
+                                                    .fold(
+                                                      0,
+                                                      (sum, count) =>
+                                                          sum + count,
+                                                    );
                                           }
 
                                           return CommentsSection(
                                             targetId: article.id,
                                             targetType: 'article',
                                             commentCount: displayCount,
-                                            allowComments: article.allowComments,
+                                            allowComments:
+                                                article.allowComments,
                                           );
                                         },
                                       ),
@@ -439,11 +448,7 @@ class _BackButton extends StatelessWidget {
         radius: 18,
         child: IconButton(
           padding: EdgeInsets.zero,
-          icon: const Icon(
-            Icons.arrow_forward,
-            color: AppColors.white,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back, color: AppColors.white, size: 20),
           onPressed: () {
             if (context.canPop()) {
               context.pop();

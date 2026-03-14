@@ -55,19 +55,18 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   void _onFilterChanged() {
-    context.read<EventsBloc>().add(FilterEvents(
-          district: _selectedDistrict,
-          upcoming: _showUpcoming ? true : null,
-        ));
+    context.read<EventsBloc>().add(
+      FilterEvents(
+        district: _selectedDistrict,
+        upcoming: _showUpcoming ? true : null,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('events_title'.tr()),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text('events_title'.tr()), centerTitle: true),
       body: Column(
         children: [
           _buildFilterBar(),
@@ -109,12 +108,9 @@ class _EventsPageState extends State<EventsPage> {
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
       decoration: BoxDecoration(
-        color: context.colors.surface,
+        color: Colors.transparent,
         border: Border(
-          bottom: BorderSide(
-            color: context.colors.border,
-            width: 0.5,
-          ),
+          bottom: BorderSide(color: context.colors.border, width: 0.5),
         ),
       ),
       child: SingleChildScrollView(
@@ -136,8 +132,7 @@ class _EventsPageState extends State<EventsPage> {
                 color: _showUpcoming
                     ? AppColors.likudBlue
                     : context.colors.textSecondary,
-                fontWeight:
-                    _showUpcoming ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: _showUpcoming ? FontWeight.w600 : FontWeight.w400,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -266,8 +261,9 @@ class _EventsPageState extends State<EventsPage> {
                         _onFilterChanged();
                         Navigator.pop(bottomSheetContext);
                       },
-                      selectedColor:
-                          AppColors.likudBlue.withValues(alpha: 0.15),
+                      selectedColor: AppColors.likudBlue.withValues(
+                        alpha: 0.15,
+                      ),
                       showCheckmark: false,
                     ),
                     ...districts.map((district) {
@@ -275,13 +271,16 @@ class _EventsPageState extends State<EventsPage> {
                         label: Text(district),
                         selected: _selectedDistrict == district,
                         onSelected: (selected) {
-                          setState(() => _selectedDistrict =
-                              selected ? district : null);
+                          setState(
+                            () =>
+                                _selectedDistrict = selected ? district : null,
+                          );
                           _onFilterChanged();
                           Navigator.pop(bottomSheetContext);
                         },
-                        selectedColor:
-                            AppColors.likudBlue.withValues(alpha: 0.15),
+                        selectedColor: AppColors.likudBlue.withValues(
+                          alpha: 0.15,
+                        ),
                         showCheckmark: false,
                       );
                     }),
@@ -370,8 +369,9 @@ class _EventCard extends StatelessWidget {
               // Event image.
               if (event.imageUrl != null && event.imageUrl!.isNotEmpty)
                 ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
                   child: AppCachedImage(
                     imageUrl: event.imageUrl!,
                     height: 160,
@@ -465,9 +465,9 @@ class _EventCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'events_rsvp_count'.tr(args: [
-                            event.rsvpCount.toString(),
-                          ]),
+                          'events_rsvp_count'.tr(
+                            args: [event.rsvpCount.toString()],
+                          ),
                           style: TextStyle(
                             fontFamily: 'Heebo',
                             fontSize: 12,
@@ -480,10 +480,13 @@ class _EventCard extends StatelessWidget {
                         if (event.isUpcoming)
                           Container(
                             padding: const EdgeInsetsDirectional.fromSTEB(
-                                8, 2, 8, 2),
+                              8,
+                              2,
+                              8,
+                              2,
+                            ),
                             decoration: BoxDecoration(
-                              color:
-                                  AppColors.likudBlue.withValues(alpha: 0.1),
+                              color: AppColors.likudBlue.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -499,10 +502,15 @@ class _EventCard extends StatelessWidget {
                         else
                           Container(
                             padding: const EdgeInsetsDirectional.fromSTEB(
-                                8, 2, 8, 2),
+                              8,
+                              2,
+                              8,
+                              2,
+                            ),
                             decoration: BoxDecoration(
-                              color: context.colors.textSecondary
-                                  .withValues(alpha: 0.1),
+                              color: context.colors.textSecondary.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
